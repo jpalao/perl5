@@ -27,12 +27,26 @@ FindExt::scan_ext("../$_")
     foreach qw(cpan dist ext);
 FindExt::set_static_extensions(split ' ', $^O eq 'MSWin32'
                                ? $ENV{PERL_STATIC_EXT} : $Config{static_ext});
+                               
+sub ios_check {
+  my (@ext) = @_;
+  for my $index (0 .. (scalar @ext - 1)) {
+    if ($ext[$index] eq 'DB_File') {
+      splice(@ext, $index, 1);
+      last;
+    }
+  }
+  return @ext;
+}
 
 sub compare {
     my ($desc, $want, @have) = @_;
     $want = [sort split ' ', $want]
         unless ref $want eq 'ARRAY';
     local $::Level = $::Level + 1;
+    if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) { 
+      @have = ios_check(@have);
+    }
     is(scalar @have, scalar @$want, "We find the same number of $desc");
     is("@have", "@$want", "We find the same list of $desc");
 }
