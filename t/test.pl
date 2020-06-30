@@ -153,7 +153,7 @@ sub skip_all_if_miniperl {
 }
 
 sub skip_all_if_darwin_ios {
-    skip_all("Running on $Config{archname}... skipping all tests") if is_ios();
+    skip_all("Running on $Config{archname}... skipping all tests") if is_darwin_ios();
 }
 
 sub skip_all_without_dynamic_extension {
