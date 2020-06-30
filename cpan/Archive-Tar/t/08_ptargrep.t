@@ -25,8 +25,12 @@ $tar->add_files($foo);
 $tar->write($tarfile);
 
 # see if ptargrep matches
-my $out = qx{$cmd};
-cmp_ok($out, 'eq', "$foo\n", "ptargrep shows matched file");
+SKIP: {
+  use Config;
+  skip "qx not supported on iOS", 1 if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+  my $out = qx{$cmd};
+  cmp_ok($out, 'eq', "$foo\n", "ptargrep shows matched file");
+}
 
 # cleanup
 END {
