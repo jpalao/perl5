@@ -218,29 +218,37 @@ SKIP: {
 			$t->write( $archname, 1 );
 		}
 
-    { #use case 1 - in memory extraction
-			my $t=Archive::Tar->new;
-			$t->read( $archname );
-			my $r = eval{ $t->extract };
-			ok( $r && !$@,            "   In memory extraction/symlinks" );
-			ok((stat 'tmp/a/b/link.txt')[7] == 9,
-			                          "       Linked content" ) unless $r;
-			clean_78030();
-		}
 
-		{ #use case 2 - iter extraction
-		  #$DB::single = 2;
-			my $next=Archive::Tar->iter( $archname, 1 );
-			my $failed = 0;
-			#use Data::Dumper;
-			while(my $f = $next->() ){
-			#  print "\$f = ", Dumper( $f ), $/;
-				eval{ $f->extract } or $failed++;
-			}
-			ok( !$failed,             "   From disk extraction/symlinks" );
-			ok((stat 'tmp/a/b/link.txt')[7] == 9,
-			                          "       Linked content" ) unless $failed;
-		}
+    SKIP: {
+      use Config;
+      skip "in memory extraction iOS", 1 if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+      { #use case 1 - in memory extraction
+        my $t=Archive::Tar->new;
+        $t->read( $archname );
+        my $r = eval{ $t->extract };
+        ok( $r && !$@,            "   In memory extraction/symlinks" );
+        ok((stat 'tmp/a/b/link.txt')[7] == 9,
+                                  "       Linked content" ) unless $r;
+        clean_78030();
+      }
+    }
+
+    SKIP: {
+      skip "iter extraction extraction iOS", 1 if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+      { #use case 2 - iter extraction
+        #$DB::single = 2;
+        my $next=Archive::Tar->iter( $archname, 1 );
+        my $failed = 0;
+        #use Data::Dumper;
+        while(my $f = $next->() ){
+        #  print "\$f = ", Dumper( $f ), $/;
+          eval{ $f->extract } or $failed++;
+        }
+        ok( !$failed,             "   From disk extraction/symlinks" );
+        ok((stat 'tmp/a/b/link.txt')[7] == 9,
+                                  "       Linked content" ) unless $failed;
+      }
+    }
 
     #remove tmp files
 		sub clean_78030{
@@ -279,6 +287,10 @@ SKIP: {
     skip "Windows tries to be clever", 1 if $^O eq 'MSWin32';
 	  ok( ! -e 'white_space',     "	<white_space> should not exist" );
   }
-	ok( -e 'white_space   ',    "	<white_space   > should exist" );
+  use Config;
+  SKIP: {
+    skip "iOS:	<white_space   > should exist", 1 if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+	  ok( -e 'white_space   ',    "	<white_space   > should exist" );
+	} 
 	unlink foreach ('white_space   ', 'white_space');
 }
