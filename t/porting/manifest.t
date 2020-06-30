@@ -79,8 +79,11 @@ SKIP: {
                          'args'     => [ '-c', $manifest ],
                          'stderr'   => 1,
                          'nolib'    => 1 );
-
-    like($result, qr/is sorted properly/, 'MANIFEST sorted properly');
+    if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) {
+      skip('is sorted properly', 1);
+    } else {
+      like($result, qr/is sorted properly/, 'MANIFEST sorted properly');
+    }
 }
 
 SKIP: {
