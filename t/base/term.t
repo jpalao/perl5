@@ -16,9 +16,13 @@ elsif ($x eq chr(21)) { print "ok 1 # EBCDIC\n"; }
 else {print "not ok 1\n";}
 
 # check `` processing
-
-$x = `$^X -le "print 'hi there'"`;
-if ($x eq "hi there\n") {print "ok 2\n";} else {print "not ok 2\n";}
+use Config;
+if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) {
+  print "ok 2 # skipped on ios: no `` processing\n"
+} else {
+  $x = `$^X -le "print 'hi there'"`;
+  if ($x eq "hi there\n") {print "ok 2\n";} else {print "not ok 2\n";}
+}
 
 # check $#array
 
