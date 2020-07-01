@@ -15,6 +15,7 @@ BEGIN {
 }
 
 use strict;
+skip_all_if_darwin_ios();
 
 my $Perl = which_perl();
 
