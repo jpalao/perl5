@@ -21,6 +21,9 @@ BEGIN {
     }
 }
 use Config;
+
+skip_all_if_darwin_ios();
+
 my $have_strtod = $Config{d_strtod} eq 'define';
 my @locales = find_locales( [ 'LC_ALL', 'LC_CTYPE', 'LC_NUMERIC' ]);
 skip_all("no locales available") unless @locales;
