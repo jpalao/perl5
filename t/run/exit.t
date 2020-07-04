@@ -8,6 +8,8 @@ BEGIN {
     @INC = qw(. ../lib);
 }
 
+skip_all_if_darwin_ios();
+
 # Run some code, return its wait status.
 sub run {
     my($code) = shift;
