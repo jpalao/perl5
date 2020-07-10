@@ -25,7 +25,6 @@ sub check_error {
 sub exec_perl {
   my ($req) = @_;
   my $runPerl = {
-    cmd => $req,
     file => $req->{file},
     pwd =>  $req->{pwd},
     switches => $req->{switches},
@@ -58,18 +57,19 @@ sub parse_test {
     }
   }
 
+  my ($arg) = $t =~ s/(.*?$file)(.*)/$2/r;
+  print Dumper("Args", $arg) if $DEBUG;
+  my @args = split " ", $arg;
+
   my ($switch) = $cmd =~ s/(.*?)([^\s]*)\s*$/$1/r;
   my @switches = split " ", $switch;
   print Dumper("Switches:", @switches) if $DEBUG;
-
-  my $args = []; 
-  print Dumper("Args:", $args) if $DEBUG;  
   
   my $result = {
     file => $file,
     pwd => $pwd,
     switches => \@switches,
-    args => $args,
+    args => \@args,
   };
 
   print Dumper("parse_test", $result) if $DEBUG;
