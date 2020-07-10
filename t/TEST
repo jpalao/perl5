@@ -373,13 +373,13 @@ sub _run_test {
 
     my $cmd = _cmd($options, $type);
 
-    if (!is_darwin_ios()) {   
+    if (!is_darwin_ios()) {
       open(my $results, "$cmd |") or print "can't run '$cmd': $!.\n";
     } else {
       use Cwd qw/getcwd/;
       use cbrunperl;
       exec_test( getcwd(), $cmd);
-    } 
+    }
 
     _after_fork($options);
 
