@@ -11,9 +11,9 @@ use Cwd qw/abs_path chdir getcwd/;
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
-our @EXPORT = ('exec_test', 'exec_file_tests');
-our @EXPORT_OK = ('exec_test', 'exec_file_tests');
-our $DEBUG = 0;
+our @EXPORT = ('exec_test', 'exec_file_tests' , 'popen_perl');
+our @EXPORT_OK = ('exec_test', 'exec_file_tests' , 'popen_perl');
+our $DEBUG = 1;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -33,6 +33,20 @@ sub exec_perl {
   my $exec = $json->utf8->pretty->encode($runPerl);
   print $exec . "\n" if $DEBUG;
   my $t = CamelBones::CBRunPerl($exec);
+  return $t;
+}
+
+sub popen_perl {
+  my ($req) = @_;
+  my $runPerl = {
+    file => $req->{file},
+    pwd =>  $req->{pwd},
+    switches => $req->{switches},
+    args => $req->{args}
+  };
+  my $exec = $json->utf8->pretty->encode($runPerl);
+  print $exec . "\n" if $DEBUG;
+  my $t = CamelBones::CBRunPerlCaptureStdout($exec);
   return $t;
 }
 
