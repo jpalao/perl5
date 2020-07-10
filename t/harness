@@ -1,11 +1,15 @@
 #!./perl
-
+$|=1;
 # We suppose that perl _mostly_ works at this moment, so may use
 # sophisticated testing.
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';              # pick up only this build's lib
+    if (is_darwin_ios()) {
+        use lib '../lib';
+    } else {
+        @INC = '../lib'; # pick up only this build's lib
+    }
 }
 
 my $torture; # torture testing?
@@ -13,6 +17,15 @@ my $torture; # torture testing?
 use TAP::Harness 3.13;
 use strict;
 use Config;
+
+sub is_darwin_ios {
+    unless (eval {require Config; 1}) {
+	warn "test.pl had problems loading Config: $@";
+	return;
+    }
+    use Config;
+    return ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+}
 
 $::do_nothing = $::do_nothing = 1;
 require './TEST';
