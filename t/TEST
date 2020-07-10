@@ -151,7 +151,11 @@ our $show_elapsed_time = $ENV{HARNESS_TIMER} || 0;
 
 chdir 't' if -f 't/TEST';
 if (-f 'TEST' && -f 'harness' && -d '../lib') {
+  if (is_darwin_ios()) {
+    use lib '../lib';
+  } else {
     @INC = '../lib';
+  }
 }
 
 die "You need to run \"make test_prep\" first to set things up.\n"
@@ -166,6 +170,15 @@ $ENV{EMXSHELL} = 'sh';        # For OS/2
 
 if ($show_elapsed_time) { require Time::HiRes }
 my %timings = (); # testname => [@et] pairs if $show_elapsed_time.
+
+sub is_darwin_ios {
+    unless (eval {require Config; 1}) {
+	warn "TEST had problems loading Config: $@";
+	return;
+    }
+    use Config;
+    return ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+}
 
 # Roll your own File::Find!
 our @found;
@@ -360,7 +373,13 @@ sub _run_test {
 
     my $cmd = _cmd($options, $type);
 
-    open(my $results, "$cmd |") or print "can't run '$cmd': $!.\n";
+    if (!is_darwin_ios()) {   
+      open(my $results, "$cmd |") or print "can't run '$cmd': $!.\n";
+    } else {
+      use Cwd qw/getcwd/;
+      use cbrunperl;
+      exec_test( getcwd(), $cmd);
+    } 
 
     _after_fork($options);
 
