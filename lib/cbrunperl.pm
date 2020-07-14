@@ -11,9 +11,9 @@ use Cwd qw/abs_path chdir getcwd/;
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
-our @EXPORT = ('exec_test', 'exec_file_tests' , 'popen_perl');
-our @EXPORT_OK = ('exec_test', 'exec_file_tests' , 'popen_perl');
-our $DEBUG = 1;
+our @EXPORT = ('exec_test', 'exec_file_tests', 'exec_perl', 'capture_test');
+our @EXPORT_OK = ('exec_test', 'exec_file_tests', 'exec_perl', 'capture_test');
+our $DEBUG = 0;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -97,6 +97,15 @@ sub exec_test {
   my $json = parse_test($pwd, $test);
   my $exec = exec_perl($json);
   my $result = check_error($exec);
+}
+
+sub capture_test {
+  my ($pwd, $test) = @_;
+  die ('Could not chdir to $pwd') if (! chdir $pwd);
+  print "Capturing: $test\nPWD: $pwd\n" if $DEBUG;
+  my $json = parse_test($pwd, $test);
+  my $exec = popen_perl($json);
+  return $exec;
 }
 
 sub exec_file_tests {
