@@ -23,42 +23,45 @@ like($@, qr/Modification of a read-only value attempted/, '[perl #19566]');
   is($a .= <A>, 4, '#21628 - $a .= <A> , A closed');
 }
 
-# [perl #21614]: 82 is chosen to exceed the length for sv_grow in
-# do_readline (80)
-foreach my $k (1, 82) {
-  my $result
-    = runperl (stdin => '', stderr => 1,
-              prog => "\$x = q(k) x $k; \$a{\$x} = qw(v); \$_ = <> foreach keys %a; print qw(end)",
-	      );
-  $result =~ s/\n\z// if $^O eq 'VMS';
-  is ($result, "end", '[perl #21614] for length ' . length('k' x $k));
-}
+SKIP: {
+  skip( 'no stdin pipe on iOS' ) if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+  # [perl #21614]: 82 is chosen to exceed the length for sv_grow in
+  # do_readline (80)
+  foreach my $k (1, 82) {
+    my $result
+      = runperl (stdin => '', stderr => 1,
+                prog => "\$x = q(k) x $k; \$a{\$x} = qw(v); \$_ = <> foreach keys %a; print qw(end)",
+          );
+    $result =~ s/\n\z// if $^O eq 'VMS';
+    is ($result, "end", '[perl #21614] for length ' . length('k' x $k));
+  }
 
 
-foreach my $k (1, 21) {
-  my $result
-    = runperl (stdin => ' rules', stderr => 1,
-              prog => "\$x = q(perl) x $k; \$a{\$x} = q(v); foreach (keys %a) {\$_ .= <>; print}",
-	      );
-  $result =~ s/\n\z// if $^O eq 'VMS';
-  is ($result, ('perl' x $k) . " rules", 'rcatline to shared sv for length ' . length('perl' x $k));
-}
+  foreach my $k (1, 21) {
+    my $result
+      = runperl (stdin => ' rules', stderr => 1,
+                prog => "\$x = q(perl) x $k; \$a{\$x} = q(v); foreach (keys %a) {\$_ .= <>; print}",
+          );
+    $result =~ s/\n\z// if $^O eq 'VMS';
+    is ($result, ('perl' x $k) . " rules", 'rcatline to shared sv for length ' . length('perl' x $k));
+  }
 
-foreach my $l (1, 82) {
-  my $k = $l;
-  $k = 'k' x $k;
-  my $copy = $k;
-  $k = <DATA>;
-  is ($k, "moo\n", 'catline to COW sv for length ' . length $copy);
-}
+  foreach my $l (1, 82) {
+    my $k = $l;
+    $k = 'k' x $k;
+    my $copy = $k;
+    $k = <DATA>;
+    is ($k, "moo\n", 'catline to COW sv for length ' . length $copy);
+  }
 
 
-foreach my $l (1, 21) {
-  my $k = $l;
-  $k = 'perl' x $k;
-  my $perl = $k;
-  $k .= <DATA>;
-  is ($k, "$perl rules\n", 'rcatline to COW sv for length ' . length $perl);
+  foreach my $l (1, 21) {
+    my $k = $l;
+    $k = 'perl' x $k;
+    my $perl = $k;
+    $k .= <DATA>;
+    is ($k, "$perl rules\n", 'rcatline to COW sv for length ' . length $perl);
+  }
 }
 
 use strict;
