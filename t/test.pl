@@ -120,7 +120,7 @@ sub is_darwin_ios {
 
 sub set_up_inc {
     # Don’t clobber @INC under miniperl
-    @INC = () unless is_miniperl;
+    @INC = () unless (is_miniperl || is_darwin_ios());
     unshift @INC, @_;
 }
 
@@ -648,6 +648,7 @@ USE_OK
 my $is_mswin    = $^O eq 'MSWin32';
 my $is_vms      = $^O eq 'VMS';
 my $is_cygwin   = $^O eq 'cygwin';
+my $is_ios      = ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
 
 sub _quote_args {
     my ($runperl, $args) = @_;
@@ -828,9 +829,21 @@ sub runperl {
 	$runperl =~ /(.*)/s;
 	$runperl = $1;
 
-	$result = `$runperl`;
+  if (!is_darwin_ios()) {
+    $result = `$runperl`;
+  } else {
+    use Cwd qw/getcwd/;
+    use cbrunperl;
+    exec_test(getcwd(), $runperl);
+  }
     } else {
-	$result = `$runperl`;
+  if (!is_darwin_ios()) {
+    $result = `$runperl`;
+  } else {
+    use Cwd qw/getcwd/;
+    use cbrunperl;
+    exec_test(getcwd(), $runperl);
+  }
     }
     $result =~ s/\n\n/\n/g if $is_vms; # XXX pipes sometimes double these
     return $result;
