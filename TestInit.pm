@@ -60,7 +60,7 @@ sub import {
 	    @INC = @up_2_t;
 	    $setopt = 1;
 	} elsif ($_ eq 'U1') {
-	    @INC = '../lib';
+	    use lib '../lib';
 	    $setopt = 1;
 	} elsif ($_ eq 'NC') {
 	    delete $ENV{PERL_CORE}
@@ -69,7 +69,7 @@ sub import {
 	} elsif ($_ eq 'T') {
 	    $chdir = '..'
 		unless -f 't/TEST' && -f 'MANIFEST' && -d 'lib' && -d 'ext';
-	    @INC = 'lib';
+	    use lib 'lib';
 	    $setopt = 1;
 	} elsif ($_ eq 'DOT') {
             $add_dot = 1;
@@ -94,14 +94,14 @@ sub import {
 		$^X =~ s!^\.([\\/])!..$1..$1!;
 	    } else {
 		$chdir = 't';
-		@INC = '../lib';
+		use lib '../lib';
 		$setopt = $0 =~ m!^lib/!;
 	    }
 	} else {
 	    # (likely) we're being run by t/TEST or t/harness, and we're a test
 	    # in t/
 	    if (defined &DynaLoader::boot_DynaLoader) {
-		@INC = '../lib';
+			use lib '../lib';
 	    }
 	    else {
 		# miniperl/minitest
