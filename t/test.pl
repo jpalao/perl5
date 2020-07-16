@@ -36,6 +36,9 @@ our $TODO = 0;
 our $NO_ENDING = 0;
 our $Tests_Are_Passing = 1;
 
+use Cwd qw/getcwd/;
+use cbrunperl;
+
 # Use this instead of print to avoid interference while testing globals.
 sub _print {
     local($\, $", $,) = (undef, ' ', '');
@@ -828,16 +831,12 @@ sub runperl {
   if (!is_darwin_ios()) {
     $result = `$runperl`;
   } else {
-    use Cwd qw/getcwd/;
-    use cbrunperl;
     exec_test(getcwd(), $runperl);
   }
     } else {
   if (!is_darwin_ios()) {
     $result = `$runperl`;
   } else {
-    use Cwd qw/getcwd/;
-    use cbrunperl;
     exec_test(getcwd(), $runperl);
   }
     }
