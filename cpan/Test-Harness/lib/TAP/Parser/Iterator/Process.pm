@@ -9,7 +9,7 @@ use IO::Handle;
 use base 'TAP::Parser::Iterator';
 
 my $IS_WIN32 = ( $^O =~ /^(MS)?Win32$/ );
-my $IS_DARWIN_IOS = { $^O eq 'darwin' && $Config{archname} =~ /darwin-ios/ };
+my $IS_DARWIN_IOS = $^O eq 'darwin' && $Config{archname} =~ /darwin-ios/ ;
 
 =head1 NAME
 
