@@ -11,9 +11,9 @@ use Cwd qw/abs_path chdir getcwd/;
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
-our @EXPORT = ('exec_test', 'exec_file_tests', 'exec_perl', 'capture_test');
-our @EXPORT_OK = ('exec_test', 'exec_file_tests', 'exec_perl', 'capture_test');
-our $DEBUG = 0;
+our @EXPORT = ('ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl', 'capture_test');
+our @EXPORT_OK = ('ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl', 'capture_test');
+our $DEBUG = 1;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -22,13 +22,42 @@ sub check_error {
   warn "CBRunPerl error: $error" if $error;
 }
 
+sub ios_runperl {
+  my ($pwd, $test) = @_;
+  die ('Could not chdir to $pwd') if (! chdir $pwd);
+  print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
+  my $exec = exec_perl($test);
+  my $result = check_error($exec);
+}
+
+# runperl, run_perl - Runs a separate perl interpreter and returns its output.
+# Arguments :
+#   switches => [ command-line switches ]
+#   nolib    => 1 # don't use -I../lib (included by default)
+#   non_portable => Don't warn if a one liner contains quotes
+#   prog     => one-liner (avoid quotes)
+#   progs    => [ multi-liner (avoid quotes) ]
+#   progfile => perl script
+#   stdin    => string to feed the stdin (or undef to redirect from /dev/null)
+#   stderr   => If 'devnull' suppresses stderr, if other TRUE value redirect
+#               stderr to stdout
+#   args     => [ command-line arguments to the perl program ]
+#   verbose  => print the command line
+
 sub exec_perl {
   my ($req) = @_;
   my $runPerl = {
-    file => $req->{file},
-    pwd =>  $req->{pwd},
-    switches => $req->{switches},
-    args => $req->{args}
+	switches => $req->{switches},
+	nolib => $req->{switches},
+	non_portable => $req->{non_portable},
+	prog => $req->{prog},
+    progs => $req->{progs},
+    progfile => $req->{progfile},
+	stdin => $req->{stdin},
+	stderr => $req->{stderr},
+    args => $req->{args},
+    verbose => $req->{verbose},
+    pwd => $req->{pwd},    
   };
   my $exec = $json->utf8->pretty->encode($runPerl);
   print $exec . "\n" if $DEBUG;
@@ -39,7 +68,7 @@ sub exec_perl {
 sub popen_perl {
   my ($req) = @_;
   my $runPerl = {
-    file => $req->{file},
+    progfile => $req->{progfile},
     pwd =>  $req->{pwd},
     switches => $req->{switches},
     args => $req->{args}
@@ -80,7 +109,7 @@ sub parse_test {
   print Dumper("Switches:", @switches) if $DEBUG;
   
   my $result = {
-    file => $file,
+    progfile => $file,
     pwd => $pwd,
     switches => \@switches,
     args => \@args,
