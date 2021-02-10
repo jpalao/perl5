@@ -48,7 +48,7 @@ sub exec_perl {
   my ($req) = @_;
   my $runPerl = {
 	switches => $req->{switches},
-	nolib => $req->{switches},
+	nolib => $req->{nolib},
 	non_portable => $req->{non_portable},
 	prog => $req->{prog},
     progs => $req->{progs},
