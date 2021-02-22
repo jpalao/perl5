@@ -118,7 +118,7 @@ sub is_darwin_ios {
 	return;
     }
     use Config;
-    return ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+    return $Config{archname} =~ /darwin-ios/;
 }
 
 sub set_up_inc {
@@ -651,7 +651,7 @@ USE_OK
 my $is_mswin    = $^O eq 'MSWin32';
 my $is_vms      = $^O eq 'VMS';
 my $is_cygwin   = $^O eq 'cygwin';
-my $is_ios      = ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+my $is_ios      = $Config{archname} =~ /darwin-ios/;
 
 sub _quote_args {
     my ($runperl, $args) = @_;
@@ -813,6 +813,12 @@ sub untaint_path {
 sub runperl {
     die "test.pl:runperl() does not take a hashref"
 	if ref $_[0] and ref $_[0] eq 'HASH';
+	
+	if (is_darwin_ios()) {
+		my %args = @_;
+    	return exec_perl_capture(\%args);
+	}
+	
     my $runperl = &_create_runperl;
     my $result;
 
@@ -832,17 +838,9 @@ sub runperl {
 	$runperl =~ /(.*)/s;
 	$runperl = $1;
 
-  if (!is_darwin_ios()) {
     $result = `$runperl`;
-  } else {
-    exec_test(getcwd(), $runperl);
-  }
     } else {
-  if (!is_darwin_ios()) {
     $result = `$runperl`;
-  } else {
-    exec_test(getcwd(), $runperl);
-  }
     }
     $result =~ s/\n\n/\n/g if $is_vms; # XXX pipes sometimes double these
     return $result;
@@ -1851,7 +1849,7 @@ sub watchdog ($;$)
 
             # Kill test process if still running
             if (kill(0, $pid_to_kill)) {
-                _diag($timeout_msg);
+                _diag("FORK: $timeout_msg");
                 kill('KILL', $pid_to_kill);
 		if ($is_cygwin) {
 		    # sometimes the above isn't enough on cygwin
@@ -1886,10 +1884,11 @@ sub watchdog ($;$)
 
                 # Kill the parent (and ourself)
                 select(STDERR); $| = 1;
-                _diag($timeout_msg);
-                POSIX::_exit(1) if (defined(&POSIX::_exit));
-                my $sig = $is_vms ? 'TERM' : 'KILL';
-                kill($sig, $pid_to_kill);
+                _diag("THREADS: $timeout_msg");
+                # POSIX::_exit(1) if (defined(&POSIX::_exit));
+                #my $sig = $is_vms ? 'TERM' : 'KILL';
+                #kill($sig, $pid_to_kill);
+                return;
             })->detach();
         return;
     }
@@ -1903,7 +1902,7 @@ WATCHDOG_VIA_ALARM:
         # Alarm handler will do the actual 'killing'
         $SIG{'ALRM'} = sub {
             select(STDERR); $| = 1;
-            _diag($timeout_msg);
+            _diag("WATCHDOG_VIA_ALARM: $timeout_msg");
             POSIX::_exit(1) if (defined(&POSIX::_exit));
             my $sig = $is_vms ? 'TERM' : 'KILL';
             kill($sig, $pid_to_kill);
