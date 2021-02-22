@@ -446,8 +446,7 @@ foreach my $test_ref (@CF) {
 
 SKIP: {
     use feature qw( fc unicode_strings );
-
-    skip "locales not available", 256 unless locales_enabled('LC_ALL');
+    skip "locales not available", 256 unless locales_enabled('LC_ALL') && !is_darwin_ios();
 
     setlocale(&POSIX::LC_ALL, "C");
 
@@ -474,21 +473,22 @@ SKIP: {
 
 my $utf8_locale = find_utf8_ctype_locale();
 
-{
+SKIP: {
+    skip "locales not available", 1 if is_darwin_ios();
     use feature qw( fc );
     use locale;
     no warnings 'locale';   # Would otherwise warn
     is(fc("\x{1E9E}"), fc("\x{17F}\x{17F}"), 'fc("\x{1E9E}") eq fc("\x{17F}\x{17F}")');
     use warnings 'locale';
     SKIP: {
-        skip 'Can\'t find a UTF-8 locale', 1 unless defined $utf8_locale;
+        skip 'Can\'t find a UTF-8 locale', 1 unless defined $utf8_locale && !is_darwin_ios();
         setlocale(&LC_CTYPE, $utf8_locale);
         is(fc("\x{1E9E}"), "ss", 'fc("\x{1E9E}") eq "ss" in a UTF-8 locale)');
     }
 }
 
 SKIP: {
-    skip 'Can\'t find a UTF-8 locale', 256 unless defined $utf8_locale;
+    skip 'Can\'t find a UTF-8 locale', 256 unless defined $utf8_locale && !is_darwin_ios();
 
     use feature qw( fc unicode_strings );
 

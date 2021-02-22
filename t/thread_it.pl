@@ -1,6 +1,7 @@
 #!perl
 use strict;
 use warnings;
+use Config;
 
 # As perlfunc.pod says:
 # Note that the file will not be included twice under the same specified name.
@@ -34,7 +35,7 @@ note('running tests in a new thread');
 # Same on AIX
 my $curr = threads->create({
                             stack_size => $^O eq 'hpux'   ? 524288 :
-                                          $^O =~ 'darwin' ? 2000000:
+                                          $^O eq 'darwin' ? 50000 :
                                           $^O eq 'VMS'    ? 150000 :
                                           $^O eq 'aix'    ? 1500000 : 0,
                            }, sub {

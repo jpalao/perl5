@@ -22,6 +22,7 @@ BEGIN {
 	^E ^F ^H ^I ^L ^N ^O ^P ^S ^T ^V ^W ^UTF8CACHE ::12345 main::98732
 	^LAST_FH
     )) {
+    next if $_ eq "SIG";
 	my $v = $_;
 	# avoid using any global vars here:
 	if ($v =~ s/^\^(?=.)//) {
@@ -42,7 +43,7 @@ BEGIN {
 # will invalidate the test for it.
 BEGIN {
     $ENV{PATH} = '/bin' if ${^TAINT};
-    $SIG{__WARN__} = sub { die "Dying on warning: ", @_ };
+    $SIG{__WARN__} = sub { warn "Dying on warning: ", @_ };
 }
 
 use warnings;
@@ -53,10 +54,12 @@ $Is_MSWin32  = $^O eq 'MSWin32';
 $Is_VMS      = $^O eq 'VMS';
 $Is_os2      = $^O eq 'os2';
 $Is_Cygwin   = $^O eq 'cygwin';
+$Is_Ios       = $Config{archname} =~ /darwin-ios/;
 
 $PERL =
    ($Is_VMS     ? $^X      :
     $Is_MSWin32 ? '.\perl' :
+    $Is_Ios     ? ''       :
                   './perl');
 
 
@@ -242,13 +245,17 @@ is((keys %h)[0], "foo\034bar");
     is((keys %h)[0], 'fooxbar');
 }
 
-# $?, $@, $$
-system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(0)"];
-is $?, 0;
-system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(1)"];
-isnt $?, 0;
+SKIP: {
+	skip('no system on iOS', 2)
+	if $Is_MSWin32 || $Is_NetWare || $Is_Dos || $Is_Ios;
+	# $?, $@, $$
+	system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(0)"];
+	is $?, 0;
+	system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(1)"];
+	isnt $?, 0;
+}
 
-eval { die "foo\n" };
+eval { warn "foo\n" };
 is $@, "foo\n";
 
 ok !*@{HASH}, 'no %@';
@@ -259,10 +266,11 @@ eval { $$ = 42 };
 is $$, 42, '$$ can be modified';
 SKIP: {
     skip "no fork", 1 unless $Config{d_fork};
+    skip "no fork", 1 if $IsIos;
     (my $kidpid = open my $fh, "-|") // skip "cannot fork: $!", 1;
     if($kidpid) { # parent
 	my $kiddollars = <$fh>;
-	close $fh or die "cannot close pipe from kid proc: $!";
+	close $fh or warn "cannot close pipe from kid proc: $!";
 	is $kiddollars, $kidpid, '$$ is reset on fork';
     }
     else { # child
@@ -294,6 +302,9 @@ $$ = $pid; # Tests below use $$
     }
     elsif($Is_os2) {
        $wd = Cwd::sys_cwd();
+    }
+    elsif($Is_Ios) {
+       $wd = Cwd::getcwd();
     }
     else {
 	$wd = '.';
@@ -768,7 +779,7 @@ my @stuff;
 eval '
     BEGIN { ${^OPEN} = "a\0b"; $^H = 0;          push @stuff, ${^OPEN} }
     BEGIN { ${^OPEN} = "a\0b"; $^H = 0 } BEGIN { push @stuff, ${^OPEN} }
-1' or die $@;
+1' or warn $@;
 is $stuff[0], $stuff[1], '$^H modifies ${^OPEN} consistently';
 
 # deleting $::{"\cH"}

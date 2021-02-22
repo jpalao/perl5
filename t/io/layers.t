@@ -222,10 +222,14 @@ __EOH__
 
     # Check that PL_sigwarn's reference count is correct, and that 
     # &PerlIO::Layer::NoWarnings isn't prematurely freed.
+SKIP: {
+    skip("fresh_perl iOS", 1) if is_darwin_ios();
     fresh_perl_like (<<"EOT", qr/^CODE/, {}, "Check PL_sigwarn's reference count");
 open(UTF, "<:raw:encoding(utf8)", '$afile') or die \$!;
 print ref *PerlIO::Layer::NoWarnings{CODE};
 EOT
+
+    }
 
     # [perl #97956] Not calling FETCH all the time on tied variables
     my $f;
