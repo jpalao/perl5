@@ -671,7 +671,9 @@ sub run_tests {
         is("@_", "", $message);
     }
 
-    {
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
+
         my $message = '@- and @+ and @{^CAPTURE} tests';
 
         $_= "ace";
@@ -1283,7 +1285,8 @@ sub run_tests {
         unlike($str, qr/\P{ASCII_Hex_Digit=False}/, "Non-Unicode matches \\P{AHEX=FALSE}");
     }
 
-    {
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         # Test that IDstart works, but because the author (khw) knows
         # regexes much better than the rest of the core, it is being done here
         # in the context of a regex which relies on buffer names beginng with
@@ -1493,8 +1496,9 @@ EOP
         }
     }
 
-    SKIP:
-    {
+	SKIP:    
+	{
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         skip "no re debug", 5 if is_miniperl;
         my $s = ("0123456789" x 26214) x 2; # Should fill 2 LEXACTS, plus
                                             # small change
@@ -1574,7 +1578,7 @@ EOP
         # clang and ASan; reduce.
         my $max_captures = $Config{ccflags} =~ /sanitize/ ? 20 : 100;
 
-        for my $i (1..100) {
+        for my $i (1..35) {
             if ($i > $max_captures) {
                 pass("skipping $i buffers under ASan aa");
                 pass("skipping $i buffers under ASan aba");
@@ -1699,6 +1703,7 @@ EOP
                             qr/[[:lower:]]?c/u
     )) {
       SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         skip "no re-debug under miniperl" if is_miniperl;
         my $prog = <<"EOP";
 use re qw(Debug COMPILE);
@@ -1803,7 +1808,10 @@ EOP
 			}
 		}
 	}
-        {
+
+	SKIP:    
+    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
             # Test that we handle qr/\8888888/ and variants without an infinite loop,
             # we use a test within a test so we can todo it, and make sure we don't
             # infinite loop our tests.
@@ -1822,8 +1830,10 @@ EOP
                 "test that we handle things like m/\\888888888/ without infinite loops" );
         }
 
-        SKIP:
-        {   # Test that we handle some malformed UTF-8 without looping [perl
+		SKIP:    
+    	{
+			skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/ ;
+			# Test that we handle some malformed UTF-8 without looping [perl;
             # #123562]
             skip "no Encode", 1 if is_miniperl;
             my $code='
@@ -1860,7 +1870,9 @@ EOP
 				'gave appropriate error for qr{()(?1)}n');
 	}
 
-	{
+	SKIP:    
+    {
+			skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
             # [perl #126406] panic with unmatchable quantifier
             my $code='
                 no warnings "regexp";

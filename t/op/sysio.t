@@ -221,7 +221,7 @@ close(I);
 
 unlink_all $outfile;
 
-chdir('..');
+chdir('..') if (!is_darwin_ios());
 
 1;
 
