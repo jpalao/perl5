@@ -1919,7 +1919,8 @@ EOP
             fresh_perl_is($code, "", {},
                             "perl [#126406] panic");
 	}
-        {
+    SKIP:    {
+		    skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
             my $bug="[perl #126182]"; # test for infinite pattern recursion
             for my $tuple (
                     [ 'q(a)=~/(.(?2))((?<=(?=(?1)).))/', "died", "look ahead left recursion fails fast" ],
@@ -1956,7 +1957,8 @@ EOP
                 fresh_perl_is($code, $expect, {}, "$bug - $test_name" );
             }
         }
-        {
+SKIP:   {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
             my $is_cygwin = $^O eq "cygwin";
             local $::TODO = "this flaps on github cygwin vm, but not on cygwin iron #18129"
               if $is_cygwin;
@@ -2054,7 +2056,8 @@ EOF_CODE
 
 
 
-    {
+SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         # [perl #130495] /x comment skipping stopped a byte short, leading
         # to assertion failure or 'malformed utf-8 character" warning
         fresh_perl_is(
@@ -2084,7 +2087,8 @@ EOF_CODE
     {
 	# [perl #129377] backref to an unmatched capture should not cause
 	# reading before start of string.
-	SKIP: {
+    SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
 	    skip "no re-debug under miniperl" if is_miniperl;
 	    my $prog = <<'EOP';
 use re qw(Debug EXECUTE);
@@ -2095,7 +2099,8 @@ EOP
 	    }msx, { stderr => 1 }, "Offsets in debug output are not negative");
 	}
     }
-    {
+    SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         # buffer overflow
 
         # This test also used to leak - fixed by the commit which added
@@ -2105,11 +2110,13 @@ EOP
                       "Unmatched [ in regex; marked by <-- HERE in m/[ <-- HERE (?{/ at (eval 1) line 1.\n",
                       {}, "buffer overflow for regexp component");
     }
-    {
+    SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         # [perl #129281] buffer write overflow, detected by ASAN, valgrind
         fresh_perl_is('/0(?0)|^*0(?0)|^*(^*())0|/', '', {}, "don't bump whilem_c too much");
     }
-    {
+    SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         # RT #131893 - fails with ASAN -fsanitize=undefined
         fresh_perl_is('qr/0(0?(0||00*))|/', '', {}, "integer overflow during compilation");
     }
@@ -2123,22 +2130,28 @@ EOP
         pos($text) = 3;
         ok(scalar($text !~ m{(~*=[a-z]=)}g), "RT #131575");
     }
-    {
+    SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         fresh_perl_is('"AA" =~ m/AA{1,0}/','',{},"handle OPFAIL insert properly");
     }
-    {
+    SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         fresh_perl_is('$_="0\x{1000000}";/^000?\0000/','',{},"dont throw assert errors trying to fbm past end of string");
     }
-    {   # [perl $132227]
+    SKIP: {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
+		# [perl $132227]
         fresh_perl_is("('0ba' . ('ss' x 300)) =~ m/0B\\N{U+41}" . $sharp_s x 150 . '/i and print "1\n"',  1,{},"Use of sharp s under /di that changes to /ui");
 
         # A variation, but as far as khw knows not part of 132227
         fresh_perl_is("'0bssa' =~ m/0B" . $sharp_s . "\\N{U+41}" . '/i and print "1\n"',  1,{},"Use of sharp s under /di that changes to /ui");
     }
-    {   # [perl $132164]
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # [perl $132164]
         fresh_perl_is('m m0*0+\Rm', "",{},"Undefined behavior in address sanitizer");
     }
-    {   # [perl #133642]
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # [perl #133642]
         fresh_perl_is('no warnings "experimental::vlb";
                       m/((?<=(0?)))/', "",{},"Was getting 'Double free'");
     }
@@ -2150,24 +2163,30 @@ while( "\N{U+100}bc" =~ /(..?)(?{$^N})/g ) {
 }
 CODE
     }
-    {   # [perl #133871], ASAN/valgrind out-of-bounds access
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # [perl #133871], ASAN/valgrind out-of-bounds access
         fresh_perl_like('qr/(?|(())|())|//', qr/syntax error/, {}, "[perl #133871]");
     }
-    {   # [perl #133871], ASAN/valgrind out-of-bounds access
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # [perl #133871], ASAN/valgrind out-of-bounds access
         fresh_perl_like('qr/\p{nv:NAnq}/', qr/Can't find Unicode property definition/, {}, "GH #17367");
     }
-    {   # GH #17370, ASAN/valgrind out-of-bounds access
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # GH #17370, ASAN/valgrind out-of-bounds access
         fresh_perl_like('qr/\p{nv:qnan}/', qr/Can't find Unicode property definition/, {}, "GH #17370");
     }
-    {   # GH #17371, segfault
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # GH #17371, segfault
         fresh_perl_like('qr/\p{nv=\\\\\}(?0)|\337ss|\337ss//', qr/Unicode property wildcard not terminated/, {}, "GH #17371");
     }
-    {   # GH #17384, ASAN/valgrind out-of-bounds access
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # GH #17384, ASAN/valgrind out-of-bounds access
         fresh_perl_like('"q0" =~ /\p{__::Is0}/', qr/Unknown user-defined property name \\p\{__::Is0}/, {}, "GH #17384");
     }
 
-  SKIP:
-    {   # [perl #133921], segfault
+SKIP:    {
+		skip('fresh_perl not yet implemented', 5) if $Config{archname} =~ /darwin-ios/;
+		# [perl #133921], segfault
         skip "Not valid for EBCDIC", 5 if $::IS_EBCDIC;
 
         fresh_perl_is('qr0||ß+p00000F00000ù\Q00000ÿ00000x00000x0c0e0\Qx0\Qx0\x{0c!}\;\;î0\x ÿÿÿþ   ù\Q`\Qx` {0c!}e;   ù\ò`\Qm`\x{0c!}\;\;îçÿ  ç   ! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!}e;   ù\Q`\Qx`\x{c!}\;\;îç!}\;îçÿù\Q \x ÿÿÿÿ  >=\Qx`\Qx`  ù\ò`\Qx`\x{0c!};\;îçÿ  F n0t0 c  d;t    ù  ç  !00000000000000000000000m/0000000000000000000000000000000m/\x{){} )|i', "", {}, "[perl #133921]");
@@ -2245,19 +2264,22 @@ x{1c!}\;\;îçÿp  qr/elsif/! eF  /;îçÿù\Q   xÿÿÿÿ   ùHQx   `Lx{1c
 x{0c!}\;\;îçÿ  /0f/! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!};   ù\Q`\Qx`\x{0c!}\;ÿÿÿÿ!}\;îçÿù\Q\x ÿÿÿÿ  >=\Qx`\Qx`  ù\ò`ÿ  >=\Qx`\Qx`  ù\ò`\Qx`\x{0c!};\;îçÿ  000t0F 000t0 p  d?n    ù  ç  !00000000000000000000000m/0000000000000000000000000000000m/ \   } )|i', "", {}, "[perl #133933]");
     }
 
-    {   # perl #133998]
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # perl #133998]
         fresh_perl_is('print "\x{110000}" =~ qr/(?l)|[^\S\pC\s]/', 1, {},
         '/[\S\s]/l works');
     }
 
-    {   # perl #133995]
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # perl #133995]
         use utf8;
         fresh_perl_is('"έδωσαν ελληνικήვე" =~ m/[^0](?=0)0?/', "",
                       {wide_chars => 1},
                       '[^0] doesnt crash on UTF-8 target string');
     }
 
-    {   # [perl #133992]  This is a tokenizer bug of parsing a pattern
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # [perl #133992]  This is a tokenizer bug of parsing a pattern
         fresh_perl_is(q:$z = do {
                                 use utf8;
                                 "q!ÑÐµÑÑ! =~ m'"
@@ -2267,7 +2289,8 @@ x{0c!}\;\;îçÿ  /0f/! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!};   ù\Q
                         eval $z;:, "", {}, 'foo');
     }
 
-    {   # [perl #134325]
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;   # [perl #134325]
         my $quote="\\Q";
         my $back="\\\\";
         my $ff="\xff";
@@ -2278,7 +2301,8 @@ x{0c!}\;\;îçÿ  /0f/! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!};   ù\Q
         like(fresh_perl("$s", { stderr => 1, }), qr/Unmatched \(/);
    }
 
-   {    # GitHub #17196, caused assertion failure
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;    # GitHub #17196, caused assertion failure
         fresh_perl_like('("0" x 258) =~ /(?l)0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000/',
                         qr/^$/,
                         {},
@@ -2287,6 +2311,7 @@ x{0c!}\;\;îçÿ  /0f/! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!};   ù\Q
 
 SKIP:
     {   # [perl #134334], Assertion failure
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         my $utf8_locale = find_utf8_ctype_locale();
         skip "no UTF-8 locale available" unless $utf8_locale;
         fresh_perl_like("use POSIX; POSIX::setlocale(&LC_CTYPE, '$utf8_locale'); 'ssss' =~ /\xDF+?sX/il;",
@@ -2325,26 +2350,30 @@ SKIP:
     }
 
     # gh16947: test regexp corruption (GOSUB)
-    {
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         fresh_perl_is(q{
             'xy' =~ /x(?0)|x(?|y|y)/ && print 'ok'
         }, 'ok', {}, 'gh16947: test regexp corruption (GOSUB)');
     }
     # gh16947: test fix doesn't break SUSPEND
-    {
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         fresh_perl_is(q{ 'sx' =~ m{ss++}i; print 'ok' },
                 'ok', {}, "gh16947: test fix doesn't break SUSPEND");
     }
 
     # gh17730: should not crash
-    {
+SKIP:    {
+		skip('fresh_perl not yet implemented', 1) if $Config{archname} =~ /darwin-ios/;
         fresh_perl_is(q{
             "q00" =~ m{(((*ACCEPT)0)*00)?0(?1)}; print "ok"
         }, 'ok', {}, 'gh17730: should not crash');
     }
 
     # gh17743: more regexp corruption via GOSUB
-    {
+SKIP:    {
+		skip('fresh_perl not yet implemented', 2) if $Config{archname} =~ /darwin-ios/;
         fresh_perl_is(q{
             "0" =~ /((0(?0)|000(?|0000|0000)(?0))|)/; print "ok"
         }, 'ok', {}, 'gh17743: test regexp corruption (1)');
