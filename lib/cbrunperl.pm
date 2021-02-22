@@ -11,9 +11,9 @@ use Cwd qw/abs_path chdir getcwd/;
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
-our @EXPORT = ('ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl', 'capture_test');
-our @EXPORT_OK = ('ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl', 'capture_test');
-our $DEBUG = 1;
+our @EXPORT = ('ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl', 'exec_perl_capture', 'capture_test', 'yield');
+our @EXPORT_OK = ('ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl',  'exec_perl_capture', 'capture_test', 'yield');
+our $DEBUG = 0;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -22,10 +22,16 @@ sub check_error {
   warn "CBRunPerl error: $error" if $error;
 }
 
+sub yield {
+  CamelBones::CBYield();
+}
+
 sub ios_runperl {
   my ($pwd, $test) = @_;
   die ('Could not chdir to $pwd') if (! chdir $pwd);
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
+  my $yield = CamelBones::CBYield();
+  print "CamelBones::CBYield() returned $yield\n" if $DEBUG;
   my $exec = exec_perl($test);
   my $result = check_error($exec);
 }
@@ -59,9 +65,30 @@ sub exec_perl {
     verbose => $req->{verbose},
     pwd => $req->{pwd},    
   };
-  my $exec = $json->utf8->pretty->encode($runPerl);
+  my $exec = $json->canonical->utf8->pretty->encode($runPerl);
   print $exec . "\n" if $DEBUG;
   my $t = CamelBones::CBRunPerl($exec);
+  return $t;
+}
+
+sub exec_perl_capture {
+  my ($req) = @_;
+  my $runPerl = {
+	switches => $req->{switches},
+	nolib => $req->{nolib},
+	non_portable => $req->{non_portable},
+	prog => $req->{prog},
+    progs => $req->{progs},
+    progfile => $req->{progfile},
+	stdin => $req->{stdin},
+	stderr => $req->{stderr},
+    args => $req->{args},
+    verbose => $req->{verbose},
+    pwd => $req->{pwd}
+  };
+  my $exec = $json->utf8->pretty->encode($runPerl);
+  print $exec . "\n" if $DEBUG;
+  my $t = CamelBones::CBRunPerlCaptureStdout($exec);
   return $t;
 }
 
@@ -125,6 +152,7 @@ sub exec_test {
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
   my $json = parse_test($pwd, $test);
   my $exec = exec_perl($json);
+  CamelBones::CBYield();
   my $result = check_error($exec);
 }
 
