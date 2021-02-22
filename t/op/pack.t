@@ -706,7 +706,7 @@ sub byteorder
     SKIP: {
       my($nat,$be,$le) = eval { map { pack $format.$_, $value } '', '>', '<' };
       skip "cannot pack '$format' on this perl", 5
-        if is_valid_error($@);
+        if is_valid_error($@) || is_darwin_ios();
 
       {
         use warnings qw(NONFATAL utf8);
@@ -715,7 +715,7 @@ sub byteorder
 
       SKIP: {
         skip "cannot compare native byteorder with big-/little-endian", 1
-            if $ByteOrder eq 'unknown';
+            if $ByteOrder eq 'unknown' || is_darwin_ios();
 
         is($nat, $ByteOrder eq 'big' ? $be : $le);
       }
@@ -936,7 +936,8 @@ is("@{[unpack('U*', pack('U*', 100, 200, 300))]}", "100 200 300");
 # is unpack U the reverse of pack U for byte string?
 is("@{[unpack('U*', pack('U*', 100, 200))]}", "100 200");
 
-{
+SKIP: {
+    skip ('fresh_perl_* not working on iOS', 3) if (is_darwin_ios());
     # does pack U0C create Unicode?
     my $cp202 = chr(202);
     utf8::upgrade $cp202;
@@ -1362,7 +1363,7 @@ SKIP: {
 	     my $p = eval { pack $junk1, @list2 };
              skip "cannot pack '$type' on this perl", 12
                if is_valid_error($@);
-	     die "pack $junk1 failed: $@" if $@;
+	     warn "pack $junk1 failed: $@" if $@;
 
 	     my $half = int( (length $p)/2 );
 	     for my $move ('', "X$half", "X!$half", 'x1', 'x!8', "x$half") {
@@ -1451,7 +1452,7 @@ foreach my $template (qw(A Z c C s S i I l L n N v V q Q j J f d F D u U w)) {
   SKIP: {
     my $packed = eval {pack "${template}4", 1, 4, 9, 16};
     if ($@) {
-      die unless $@ =~ /Invalid type '$template'/;
+      warn unless $@ =~ /Invalid type '$template'/;
       skip ("$template not supported on this perl",
             $cant_checksum{$template} ? 4 : 8);
     }
@@ -2045,7 +2046,8 @@ ok(1, "argument underflow did not crash");
 }
 
 SKIP:
-{
+SKIP: {
+    skip ('fresh_perl_* not working on iOS', 1) if is_darwin_ios();
     # [perl #129149] the code below would write one past the end of the output
     # buffer, only detected by ASAN, not by valgrind
     skip "ASCII-centric test",1 if $::IS_EBCDIC;
@@ -2057,8 +2059,8 @@ print pack("ucW", "0000", 0, 140737488355327) eq "\$,#`P,```\n\0\x{7fffffffffff}
 EOS
 }
 
-SKIP:
-{
+SKIP: {
+    skip ('fresh_perl_* not working on iOS', 4) if is_darwin_ios();
   # [perl #131844] pointer addition overflow
     $Config{ptrsize} == 4
       or skip "[perl #131844] need 32-bit build for this test", 4;
@@ -2079,9 +2081,10 @@ SKIP:
 		    "integer overflow calculating allocation (multiply)");
 }
 
-{
+SKIP: {
     # [perl #132655] heap-buffer-overflow READ of size 11
     # only expect failure under ASAN (and maybe valgrind)
+    skip ('fresh_perl_* not working on iOS', 1) if is_darwin_ios();
     fresh_perl_is('0.0 + unpack("u", "ab")', "", { stderr => 1 },
                   "ensure unpack u of invalid data nul terminates result");
 }
