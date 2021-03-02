@@ -11,8 +11,16 @@ use Cwd qw/abs_path chdir getcwd/;
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
-our @EXPORT = ('ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl', 'exec_perl_capture', 'capture_test', 'yield');
-our @EXPORT_OK = ('ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl',  'exec_perl_capture', 'capture_test', 'yield');
+our @EXPORT = (
+    'ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl', 
+    'exec_perl_capture', 'capture_test', 'yield'
+);
+
+our @EXPORT_OK = (
+    'ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl',
+    'exec_perl_capture', 'capture_test', 'yield'
+);
+
 our $DEBUG = 0;
 
 my $json = JSON::PP->new->convert_blessed(1);
@@ -23,14 +31,14 @@ sub check_error {
 }
 
 sub yield {
-  CamelBones::CBYield();
+  CamelBones::CBYield(shift);
 }
 
 sub ios_runperl {
   my ($pwd, $test) = @_;
   die ('Could not chdir to $pwd') if (! chdir $pwd);
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
-  my $yield = CamelBones::CBYield();
+  my $yield = CamelBones::CBYield(.1);
   print "CamelBones::CBYield() returned $yield\n" if $DEBUG;
   my $exec = exec_perl($test);
   my $result = check_error($exec);
@@ -152,7 +160,7 @@ sub exec_test {
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
   my $json = parse_test($pwd, $test);
   my $exec = exec_perl($json);
-  CamelBones::CBYield();
+  CamelBones::CBYield(.1);
   my $result = check_error($exec);
 }
 
