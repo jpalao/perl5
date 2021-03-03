@@ -10,6 +10,7 @@ BEGIN {
 }
 
 use Config;
+use Cwd qw/getcwd/;
 use File::Path;
 use File::Spec::Functions qw(catfile curdir rel2abs);
 
@@ -59,6 +60,8 @@ if ($::local_tests && $::local_tests =~ /\D/) {
     plan $tests + ($::local_tests || 0);
 }
 
-run_multiple_progs('../..', @prgs);
+my $abs_path = getcwd;
+
+run_multiple_progs("$abs_path/../..", @prgs);
 
 1;
