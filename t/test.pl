@@ -1085,7 +1085,8 @@ sub register_tempfile {
 }
 
 # This is the temporary file for fresh_perl
-my $tmpfile = tempfile();
+#my $tmpfile = tempfile();
+$tmpfile = tempfile(DIR => getcwd());
 
 sub fresh_perl {
     my($prog, $runperl_args) = @_;

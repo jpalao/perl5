@@ -12,6 +12,7 @@ my $torture; # torture testing?
 use TAP::Harness 3.13;
 use strict;
 use Config;
+use Data::Dumper;
 
 $::do_nothing = $::do_nothing = 1;
 require './TEST';
@@ -357,7 +358,144 @@ $h->callback(
 	     }
 	     );
 
-@tests = exclude_tests(@tests) if $^O =~ /darwin-ios/;
+
+#my $test_dumper = Data::Dumper->new([@tests])->Dump();
+#print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
+
+my @ios_blacklist = (
+	'cmd/switch.t',
+	'cpan/File-Temp/t/lock.t',
+	'cpan/IO-Compress/t/cz-14gzopen.t',
+	'cpan/IPC-Cmd/t/01_IPC-Cmd.t',
+	'cpan/IPC-Cmd/t/02_Interactive.t',
+	'cpan/IPC-Cmd/t/03_run-forked.t',
+	'cpan/IPC-SysV/t/ipcsysv.t',
+	'cpan/IPC-SysV/t/msg.t',
+	'cpan/IPC-SysV/t/pod.t',
+	'cpan/IPC-SysV/t/podcov.t',
+	'cpan/IPC-SysV/t/sem.t',
+	'cpan/IPC-SysV/t/shm.t',
+	'cpan/Test-Harness/t/compat/inc_taint.t',
+	'cpan/Test-Harness/t/compat/inc-propagation.t',
+	'cpan/Test-Harness/t/compat/test-harness-compat.t',
+    'cpan/Test-Harness/t/regression.t',
+	'comp/hints.t',
+	'dist/IO/t/io_dup.t',
+	'dist/threads-shared/t/clone.t',
+	'ext/Pod-Functions/t/Functions.t',
+	'ext/Devel-Peek/t/Peek.t',
+	'ext/File-Find/t/find.t',
+	'ext/IPC-Open3/t/fd.t',
+	'ext/File-Find/t/taint.t',
+	'ext/B/t/sv_stash.t',
+	'ext/I18N-Langinfo/t/Langinfo.t',
+	'ext/POSIX/t/export.t',
+	'ext/Fcntl/t/syslfs.t',
+	'ext/Hash-Util/t/Util.t',
+	'io/argv.t',
+	'io/bom.t',
+	'io/closepid.t',
+	'io/crlf_through.t',
+	'io/crlf.t',
+	'io/data.t',
+	'io/defout.t',
+	'io/dup.t',
+	'io/eintr_print.t',
+	'io/eintr.t',
+	'io/errno.t',
+	'io/errnosig.t',
+	'io/fflush.t',
+	'io/inplace.t',
+	'io/iprefix.t',
+	'io/msg.t',
+	'io/nargv.t',
+	'io/open.t',
+	'io/openpid.t',
+	'io/perlio_leaks.t',
+	'io/perlio_open.t',
+	'io/pipe.t',
+	'io/sem.t',
+	'io/semctl.t',
+	'io/shm.t',
+	'io/socket.t',
+	'lib/feature/unicode_strings.t',
+	'lib/no_load.t',
+	'lib/overload_fallback.t',
+	'lib/universal.t',
+	'mro/basic.t',
+	'mro/package_aliases_utf8.t',
+	'mro/package_aliases.t',
+	'op/attrhand.t',
+	'op/attrproto.t',
+	'op/attrs.t',
+	'op/index_thr.t',
+	'op/lvref.t',
+	'op/substr_thr.t',
+	'op/taint.t',
+	'op/threads-dirh.t',
+	'op/threads.t',
+	're/anyof.t',
+	're/bigfuzzy_not_utf8.t',
+	're/charset.t',
+	're/pat_advanced_thr.t',
+	're/pat_advanced.t',
+	're/pat_psycho_thr.t',
+	're/pat_psycho.t',
+	're/pat_re_eval_thr.t',
+	're/pat_re_eval.t',
+	're/pat_rt_report_thr.t',
+	're/pat_rt_report.t',
+	're/pat_special_cc_thr.t',
+	're/pat_special_cc.t',
+	're/pat_thr.t',
+	're/pat.t',
+	're/recompile.t',
+	're/recompile.t', 
+	're/reg_60508.t',
+	're/reg_email_thr.t',
+	're/reg_eval_scope.t',
+	're/reg_eval.t',
+	're/reg_fold.t',
+	're/regex_sets.t',
+	're/regexp_qr_embed_thr.t',
+	're/regexp_unicode_prop_thr.t',
+	're/regexp_unicode_prop.t',
+	're/script_run.t',
+	're/speed_thr.t',
+	're/speed.t',
+	're/subst.t',
+	're/user_prop_race_thr.t',
+	'run/switchC.t',
+	'run/switchd-78586.t',
+	'run/switchd.t',
+	'run/switchDx.t',
+	'run/switches.t',
+	'run/switchF.t',
+	'run/switchF1.t',
+	'run/switchF2.t',
+	'run/switchI.t',
+	'run/switchM.t',
+	'run/switchn.t',
+	'run/switchp.t',
+	'run/switcht.t',
+	'run/switchx.t',
+	'uni/fold.t',
+	'uni/overload.t',
+);
+
+for my $black_list (@ios_blacklist)
+{
+	for (my $index = 0; $index < scalar @tests;  $index ++)
+	{
+		if ($tests[$index] =~ m!$black_list!)
+		{
+			print STDOUT "iOS: Removing blacklisted test: $tests[$index]\n";
+			splice(@tests, $index, 1);
+		}
+	}
+}
+
+# print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
 
 my $agg = $h->runtests(@tests);
 _cleanup_valgrind(\$htoolnm, \$hgrind_ct);
