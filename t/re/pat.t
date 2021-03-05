@@ -672,7 +672,6 @@ sub run_tests {
     }
 
     {
-
         my $message = '@- and @+ and @{^CAPTURE} tests';
 
         $_= "ace";
@@ -1287,7 +1286,6 @@ SKIP:{
     }
 
     {
-
         # Test that IDstart works, but because the author (khw) knows
         # regexes much better than the rest of the core, it is being done here
         # in the context of a regex which relies on buffer names beginng with
@@ -1703,7 +1701,7 @@ EOP
                             qr/\s?c/a
                             qr/[[:lower:]]?c/u
     )) {
-      {
+      SKIP: {
         skip "no re-debug under miniperl" if is_miniperl;
         my $prog = <<"EOP";
 use re qw(Debug COMPILE);
@@ -1808,8 +1806,7 @@ EOP
 			}
 		}
 	}
-
-    {
+        {
             # Test that we handle qr/\8888888/ and variants without an infinite loop,
             # we use a test within a test so we can todo it, and make sure we don't
             # infinite loop our tests.
