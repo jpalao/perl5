@@ -27,7 +27,7 @@ elsif ( $^O =~ /android/ || $^O eq 'nto' ) {
     # won't cut it
     $wd = `sh -c pwd`;
 }
-elsif ( $Config{archname} =~ /darwin-ios/ ) {
+elsif (is_darwin_ios) {
 	use Cwd qw/getcwd/;
     $wd = getcwd();
 }
@@ -80,7 +80,7 @@ elsif ($^O eq 'VMS') {
     `if f\$search("$tmpdir.dir") .nes. "" then delete/nolog/noconfirm $tmpdir.dir;`;
     `create/directory [.$tmpdir]`;
 }
-elsif ( $Config{archname} =~ /darwin-ios/ ) {
+elsif (is_darwin_ios) {
 	use File::Path;
 	File::Path::rmtree($tmpdir);
 	mkdir $tmpdir;
@@ -463,7 +463,7 @@ SKIP: {
     elsif ($^O eq 'VMS') {
         `create/directory [.$tmpdir]`;
     }
-    elsif ( $^O =~ /darwin/ && $Config{archname} =~ /darwin-ios/ ) {
+    elsif (is_darwin_ios) {
     	mkdir $tmpdir;
     }
     else {
