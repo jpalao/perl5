@@ -171,23 +171,17 @@ for my $char ("٠", "٥", "٩") {
 	like("\c]", qr/(?[\c]])/, '\c] should match itself');
 }
 
-if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) {
-  SKIP: {
-    skip("Darwin ios: fresh_perl_like needs backtick operator support which we don't have")
-  }
-} else {
-  # RT #126481 !! with syntax error panics
-  {
-      fresh_perl_like('no warnings "experimental::regex_sets"; qr/(?[ ! ! (\w])/',
-                      qr/^Unmatched \(/, {},
-                      'qr/(?[ ! ! (\w])/ doesnt panic');
+# RT #126481 !! with syntax error panics
+{
+    fresh_perl_like('no warnings "experimental::regex_sets"; qr/(?[ ! ! (\w])/',
+                    qr/^Unmatched \(/, {},
+                    'qr/(?[ ! ! (\w])/ doesnt panic');
 
-      # The following didn't panic before, but easy to add this here with a
-      # paren between the !!
-      fresh_perl_like('no warnings "experimental::regex_sets";qr/(?[ ! ( ! (\w)])/',
-                      qr/^Unmatched \(/, {},
-                      'qr/qr/(?[ ! ( ! (\w)])/');
-  }
+    # The following didn't panic before, but easy to add this here with a
+    # paren between the !!
+    fresh_perl_like('no warnings "experimental::regex_sets";qr/(?[ ! ( ! (\w)])/',
+                    qr/^Unmatched \(/, {},
+                    'qr/qr/(?[ ! ( ! (\w)])/');
 }
 
 {   # RT #129122
@@ -205,32 +199,25 @@ if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) {
     unlike("g", qr/$pat/, "'g' doesn't match /$pat/");
 }
 
-
 {   # [perl #129322 ]  This crashed perl, so keep after the ones that don't
     my $pat = '(?[[!]&[0]^[!]&[0]+[a]])';
     like("a", qr/$pat/, "/$pat/ compiles and matches 'a'");
 }
 
-if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) {
-  SKIP: {
-    skip("Darwin ios: fresh_perl_like needs backtick operator support which we don't have")
-  }
-} else {
-  {   # [perl #132167]
-      fresh_perl_is('no warnings "experimental::regex_sets";
-          print "c" =~ qr/(?[ ( \p{Uppercase} ) + (\p{Lowercase} - ([a] + [b]))  ])/;',
-          1, {},
-          'qr/(?[ ( \p{Uppercase} ) + (\p{Lowercase} - ([a] + [b]))  ]) compiles and properly matches');
-      fresh_perl_is('no warnings "experimental::regex_sets";
-          print "b" =~ qr/(?[ ( \p{Uppercase} ) + (\p{Lowercase} - ([a] + [b]))  ])/;',
-          "", {},
-          'qr/(?[ ( \p{Uppercase} ) + (\p{Lowercase} - ([a] + [b]))  ]) compiles and properly matches');
-  }
+{   # [perl #132167]
+    fresh_perl_is('no warnings "experimental::regex_sets";
+        print "c" =~ qr/(?[ ( \p{Uppercase} ) + (\p{Lowercase} - ([a] + [b]))  ])/;',
+        1, {},
+        'qr/(?[ ( \p{Uppercase} ) + (\p{Lowercase} - ([a] + [b]))  ]) compiles and properly matches');
+    fresh_perl_is('no warnings "experimental::regex_sets";
+        print "b" =~ qr/(?[ ( \p{Uppercase} ) + (\p{Lowercase} - ([a] + [b]))  ])/;',
+        "", {},
+        'qr/(?[ ( \p{Uppercase} ) + (\p{Lowercase} - ([a] + [b]))  ]) compiles and properly matches');
+}
 
-  {   # [perl #133889]    Caused assertion failure
-      fresh_perl_like('no warnings "experimental::regex_sets";
-          qr/(?[\P{Is0}])/', qr/\QUnknown user-defined property name "Is0"/, {}, "[perl #133889]");
-  }
+{   # [perl #133889]    Caused assertion failure
+    fresh_perl_like('no warnings "experimental::regex_sets";
+        qr/(?[\P{Is0}])/', qr/\QUnknown user-defined property name "Is0"/, {}, "[perl #133889]");
 }
 
 {
@@ -238,7 +225,6 @@ if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) {
     like("x", qr/(?[ $s ])/ , "Modifier flags in interpolated set don't"
                             . " disrupt");
 }
-
 
 done_testing();
 
