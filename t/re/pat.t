@@ -2097,7 +2097,7 @@ EOP
         # this line.
 
         fresh_perl_is("BEGIN{\$^H=0x200000}\ns/[(?{//xx",
-                      "Unmatched [ in regex; marked by <-- HERE in m/[ <-- HERE (?{/ at (eval \d*) line 1.\n",
+                      "Unmatched [ in regex; marked by <-- HERE in m/[ <-- HERE (?{/ at (eval 1) line 1.\n",
                       {}, "buffer overflow for regexp component");
     }
     {
