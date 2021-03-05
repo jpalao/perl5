@@ -10,8 +10,6 @@ BEGIN {
     set_up_inc( qw(. ../lib ) );
 }
 
-skip_all_if_darwin_ios();
-
 plan(7);
 
 # [perl #130814] can reallocate lineptr while looking ahead for
