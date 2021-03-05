@@ -2039,8 +2039,7 @@ EOF_CODE
     {
 	# [perl #129377] backref to an unmatched capture should not cause
 	# reading before start of string.
-	SKIP:
-	{
+	SKIP: {
 	    skip "no re-debug under miniperl" if is_miniperl;
 	    my $prog = <<'EOP';
 use re qw(Debug EXECUTE);
