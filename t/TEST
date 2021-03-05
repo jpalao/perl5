@@ -177,7 +177,7 @@ sub is_darwin_ios {
 	return;
     }
     use Config;
-    return ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+    return ($Config{archname} =~ /darwin-ios/);
 }
 
 # Roll your own File::Find!

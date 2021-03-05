@@ -17,7 +17,7 @@ else {print "not ok 1\n";}
 
 # check `` processing
 use Config;
-if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) {
+if ($Config{archname} =~ /darwin-ios/) {
   print "ok 2 # skipped on ios: no `` processing\n"
 } else {
   $x = `$^X -le "print 'hi there'"`;
