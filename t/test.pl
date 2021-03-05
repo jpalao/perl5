@@ -115,8 +115,8 @@ sub is_miniperl {
 
 sub is_darwin_ios {
     unless (eval {require Config; 1}) {
-	warn "test.pl had problems loading Config: $@";
-	return;
+        warn "test.pl had problems loading Config: $@";
+        return;
     }
     use Config;
     return $Config{archname} =~ /darwin-ios/;
