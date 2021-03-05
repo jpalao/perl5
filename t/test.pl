@@ -124,7 +124,7 @@ sub is_darwin_ios {
 
 sub set_up_inc {
     # Don’t clobber @INC under miniperl
-    @INC = () unless (is_miniperl || is_darwin_ios());
+    @INC = () unless (is_miniperl || is_darwin_ios);
     unshift @INC, @_;
 }
 
@@ -157,7 +157,7 @@ sub skip_all_if_miniperl {
 }
 
 sub skip_all_if_darwin_ios {
-    skip_all("Running on $Config{archname}... skipping all tests") if is_darwin_ios();
+    skip_all("Running on iOS... skipping all tests") if is_darwin_ios();
 }
 
 sub skip_all_without_dynamic_extension {
