@@ -1574,8 +1574,8 @@ EOP
 
         # Compiling for all 100 nested captures blows the stack under
         # clang and ASan; reduce.
-        my $max_captures = $Config{ccflags} =~ /sanitize/ ? 20 : 100;
-        $max_captures = 20 if is_darwin_ios;
+        my $max_captures = $Config{ccflags} =~ /sanitize/ || is_darwin_ios ? 20 : 100;
+
         for my $i (1..100) {
             if ($i > $max_captures) {
                 pass("skipping $i buffers under ASan aa");
