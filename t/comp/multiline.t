@@ -84,7 +84,7 @@ $out = (($^O eq 'MSWin32') || $^O eq 'NetWare') ? `type $filename`
     : `cat $filename`;
 
 use Config;
-if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) {
+if ($Config{archname} =~ /darwin-ios/) {
   is(1, 1, "skipped on ios: no `` processing");
 } else {
   like($out, qr/.*\n.*\n.*\n$/);

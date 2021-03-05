@@ -24,7 +24,6 @@ like($@, qr/Modification of a read-only value attempted/, '[perl #19566]');
 }
 
 SKIP: {
-  skip( 'no stdin pipe on iOS' ) if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
   # [perl #21614]: 82 is chosen to exceed the length for sv_grow in
   # do_readline (80)
   foreach my $k (1, 82) {
@@ -36,7 +35,7 @@ SKIP: {
     is ($result, "end", '[perl #21614] for length ' . length('k' x $k));
   }
 
-
+  skip( 'no STDIN access on iOS', 2 ) if is_darwin_ios;
   foreach my $k (1, 21) {
     my $result
       = runperl (stdin => ' rules', stderr => 1,
@@ -90,9 +89,12 @@ fresh_perl_is('BEGIN{<>}', '',
               { switches => ['-w'], stdin => '', stderr => 1 },
               'No ARGVOUT used only once warning');
 
+SKIP: {
+skip( 'STDIN not accessible on iOS', 1 ) if is_darwin_ios;
 fresh_perl_is('print readline', 'foo',
               { switches => ['-w'], stdin => 'foo', stderr => 1 },
               'readline() defaults to *ARGV');
+}
 
 # [perl #72720] Test that sv_gets clears any variables that should be
 # empty so if the read() aborts with EINTER, the TARG is actually
@@ -178,7 +180,7 @@ SKIP: {
     TODO: {
         todo_skip( 'alarm() on Windows does not interrupt system calls' ) if $^O eq 'MSWin32';
         todo_skip( 'readline not interrupted by alarm on VMS -- why?' ) if $^O eq 'VMS';
-        todo_skip( 'readline not interrupted by alarm on iOS?' ) if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+        todo_skip( 'readline not interrupted by alarm on iOS' ) if is_darwin_ios;
         $twice = test_eintr_readline( $in, 1 );
         isnt( $twice, "once\n", "readline didn't re-return things when interrupted" );
     }
@@ -186,7 +188,7 @@ SKIP: {
     TODO: {
         todo_skip( 'alarm() on Windows does not interrupt system calls' ) if $^O eq 'MSWin32';
         todo_skip( 'readline not interrupted by alarm on VMS -- why?' ) if $^O eq 'VMS';
-        todo_skip( 'readline not interrupted by alarm on iOS?' ) if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/);
+        todo_skip( 'readline not interrupted by alarm on iOS' ) if is_darwin_ios;
         local our $TODO = "bad readline returns '', not undef";
         is( $twice, undef, "readline returned undef when interrupted" );
     }
