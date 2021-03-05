@@ -10,7 +10,7 @@ use Config;
 chdir 't' if -d 't';
 require './test.pl';
 
-skip_all_if_darwin_ios();
+skip_all_if_darwin_ios("iOS: STDIN not accessible");
 
 plan( tests => 16 );
 
