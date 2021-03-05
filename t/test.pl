@@ -998,8 +998,7 @@ sub register_tempfile {
 }
 
 # This is the temporary file for fresh_perl
-#my $tmpfile = tempfile();
-$tmpfile = tempfile(DIR => getcwd());
+$tmpfile = is_darwin_ios ? tempfile(DIR => getcwd()) : tempfile();
 
 sub fresh_perl {
     my($prog, $runperl_args) = @_;
