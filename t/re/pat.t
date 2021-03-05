@@ -1236,10 +1236,10 @@ sub run_tests {
 
     }
 
-SKIP:{
-        skip ("iOS this test breaks the suite", 8) if is_darwin_ios;
-        # Some constructs with Latin1 characters cause a utf8 string not
+    SKIP:
+    {   # Some constructs with Latin1 characters cause a utf8 string not
         # to match itself in non-utf8
+        skip ("iOS this test breaks the suite", 8) if is_darwin_ios;
         my $c = uni_to_native("\xc0");
         my $pattern = my $utf8_pattern = qr/(($c)+,?)/;
         utf8::upgrade($utf8_pattern);
@@ -1535,7 +1535,8 @@ EOP
         }
     }
 
-	SKIP: {
+    SKIP:
+    {
         skip "no re debug", 5 if is_miniperl;
         my $s = ("0123456789" x 26214) x 2; # Should fill 2 LEXACTS, plus
                                             # small change
@@ -1562,8 +1563,7 @@ EOP
         like($s, qr/$s/, "Check that LEXACT_REQ8 nodes match");
     }
 
-    SKIP: {
-        skip ("iOS this test breaks the suite", 12) if is_darwin_ios;
+    {
         for my $char (":", uni_to_native("\x{f7}"), "\x{2010}") {
             my $utf8_char = $char;
             utf8::upgrade($utf8_char);
@@ -1865,8 +1865,8 @@ EOP
                 "test that we handle things like m/\\888888888/ without infinite loops" );
         }
 
-    	SKIP: {
-			# Test that we handle some malformed UTF-8 without looping [perl;
+        SKIP:
+        {   # Test that we handle some malformed UTF-8 without looping [perl
             # #123562]
             skip "no Encode", 1 if is_miniperl;
             my $code='
@@ -1903,7 +1903,7 @@ EOP
 				'gave appropriate error for qr{()(?1)}n');
 	}
 
-    {
+	{
             # [perl #126406] panic with unmatchable quantifier
             my $code='
                 no warnings "regexp";
@@ -1912,8 +1912,7 @@ EOP
             fresh_perl_is($code, "", {},
                             "perl [#126406] panic");
 	}
-    {
-
+        {
             my $bug="[perl #126182]"; # test for infinite pattern recursion
             for my $tuple (
                     [ 'q(a)=~/(.(?2))((?<=(?=(?1)).))/', "died", "look ahead left recursion fails fast" ],
@@ -2056,7 +2055,8 @@ EOF_CODE
             '[perl #130495] utf-8 character at end of /x comment should not misparse',
         );
     }
-SKIP:{
+    SKIP:
+    {
         skip ("iOS this test breaks the suite", 6) if is_darwin_ios;
         # [perl #130522] causes out-of-bounds read detected by clang with
         # address=sanitized when length of the STCLASS string is greater than
@@ -2079,7 +2079,8 @@ SKIP:{
     {
 	# [perl #129377] backref to an unmatched capture should not cause
 	# reading before start of string.
-    SKIP: {
+	SKIP:
+	{
 	    skip "no re-debug under miniperl" if is_miniperl;
 	    my $prog = <<'EOP';
 use re qw(Debug EXECUTE);
@@ -2124,17 +2125,16 @@ EOP
     {
         fresh_perl_is('$_="0\x{1000000}";/^000?\0000/','',{},"dont throw assert errors trying to fbm past end of string");
     }
-    {
-		# [perl $132227]
+    {   # [perl $132227]
         fresh_perl_is("('0ba' . ('ss' x 300)) =~ m/0B\\N{U+41}" . $sharp_s x 150 . '/i and print "1\n"',  1,{},"Use of sharp s under /di that changes to /ui");
 
         # A variation, but as far as khw knows not part of 132227
         fresh_perl_is("'0bssa' =~ m/0B" . $sharp_s . "\\N{U+41}" . '/i and print "1\n"',  1,{},"Use of sharp s under /di that changes to /ui");
     }
-    {
+    {   # [perl $132164]
         fresh_perl_is('m m0*0+\Rm', "",{},"Undefined behavior in address sanitizer");
     }
-    {
+    {   # [perl #133642]
         fresh_perl_is('no warnings "experimental::vlb";
                       m/((?<=(0?)))/', "",{},"Was getting 'Double free'");
     }
@@ -2146,24 +2146,24 @@ while( "\N{U+100}bc" =~ /(..?)(?{$^N})/g ) {
 }
 CODE
     }
-    {
+    {   # [perl #133871], ASAN/valgrind out-of-bounds access
         fresh_perl_like('qr/(?|(())|())|//', qr/syntax error/, {}, "[perl #133871]");
     }
-    {
+    {   # [perl #133871], ASAN/valgrind out-of-bounds access
         fresh_perl_like('qr/\p{nv:NAnq}/', qr/Can't find Unicode property definition/, {}, "GH #17367");
     }
-    {
+    {   # GH #17370, ASAN/valgrind out-of-bounds access
         fresh_perl_like('qr/\p{nv:qnan}/', qr/Can't find Unicode property definition/, {}, "GH #17370");
     }
-    {
+    {   # GH #17371, segfault
         fresh_perl_like('qr/\p{nv=\\\\\}(?0)|\337ss|\337ss//', qr/Unicode property wildcard not terminated/, {}, "GH #17371");
     }
-    {
+    {   # GH #17384, ASAN/valgrind out-of-bounds access
         fresh_perl_like('"q0" =~ /\p{__::Is0}/', qr/Unknown user-defined property name \\p\{__::Is0}/, {}, "GH #17384");
     }
 
-    SKIP: {
-		# [perl #133921], segfault
+  SKIP:
+    {   # [perl #133921], segfault
         skip "Not valid for EBCDIC", 5 if $::IS_EBCDIC;
 
         fresh_perl_is('qr0||ß+p00000F00000ù\Q00000ÿ00000x00000x0c0e0\Qx0\Qx0\x{0c!}\;\;î0\x ÿÿÿþ   ù\Q`\Qx` {0c!}e;   ù\ò`\Qm`\x{0c!}\;\;îçÿ  ç   ! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!}e;   ù\Q`\Qx`\x{c!}\;\;îç!}\;îçÿù\Q \x ÿÿÿÿ  >=\Qx`\Qx`  ù\ò`\Qx`\x{0c!};\;îçÿ  F n0t0 c  d;t    ù  ç  !00000000000000000000000m/0000000000000000000000000000000m/\x{){} )|i', "", {}, "[perl #133921]");
@@ -2241,22 +2241,19 @@ x{1c!}\;\;îçÿp  qr/elsif/! eF  /;îçÿù\Q   xÿÿÿÿ   ùHQx   `Lx{1c
 x{0c!}\;\;îçÿ  /0f/! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!};   ù\Q`\Qx`\x{0c!}\;ÿÿÿÿ!}\;îçÿù\Q\x ÿÿÿÿ  >=\Qx`\Qx`  ù\ò`ÿ  >=\Qx`\Qx`  ù\ò`\Qx`\x{0c!};\;îçÿ  000t0F 000t0 p  d?n    ù  ç  !00000000000000000000000m/0000000000000000000000000000000m/ \   } )|i', "", {}, "[perl #133933]");
     }
 
-    {
-		# perl #133998]
+    {   # perl #133998]
         fresh_perl_is('print "\x{110000}" =~ qr/(?l)|[^\S\pC\s]/', 1, {},
         '/[\S\s]/l works');
     }
 
-    {
-		# perl #133995]
+    {   # perl #133995]
         use utf8;
         fresh_perl_is('"έδωσαν ελληνικήვე" =~ m/[^0](?=0)0?/', "",
                       {wide_chars => 1},
                       '[^0] doesnt crash on UTF-8 target string');
     }
 
-    {
-		# [perl #133992]  This is a tokenizer bug of parsing a pattern
+    {   # [perl #133992]  This is a tokenizer bug of parsing a pattern
         fresh_perl_is(q:$z = do {
                                 use utf8;
                                 "q!ÑÐµÑÑ! =~ m'"
@@ -2266,8 +2263,7 @@ x{0c!}\;\;îçÿ  /0f/! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!};   ù\Q
                         eval $z;:, "", {}, 'foo');
     }
 
-    {
-		# [perl #134325]
+    {   # [perl #134325]
         my $quote="\\Q";
         my $back="\\\\";
         my $ff="\xff";
@@ -2276,17 +2272,17 @@ x{0c!}\;\;îçÿ  /0f/! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!};   ù\Q
                         $quote x 5 . $back x 4,
                         $ff x 48;
         like(fresh_perl("$s", { stderr => 1, }), qr/Unmatched \(/);
-    }
+   }
 
-    {
-		# GitHub #17196, caused assertion failure
+   {    # GitHub #17196, caused assertion failure
         fresh_perl_like('("0" x 258) =~ /(?l)0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000/',
                         qr/^$/,
                         {},
                         "Assertion failure with /l exact string longer than a single node");
     }
 
-    SKIP: {   # [perl #134334], Assertion failure
+SKIP:
+    {   # [perl #134334], Assertion failure
         my $utf8_locale = find_utf8_ctype_locale();
         skip "no UTF-8 locale available" unless $utf8_locale;
         fresh_perl_like("use POSIX; POSIX::setlocale(&LC_CTYPE, '$utf8_locale'); 'ssss' =~ /\xDF+?sX/il;",
