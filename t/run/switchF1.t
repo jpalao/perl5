@@ -3,6 +3,12 @@
 # This test file does not use test.pl because of the involved way in which it
 # generates its TAP output.
 
+unless (eval {require Config; 1}) {
+	warn "switchF1.t had problems loading Config: $@";
+	return;
+}
+use Config;
+
 print "1..5\n";
 
 my $file = "Run_switchF1.pl";
@@ -30,10 +36,13 @@ $prog =~ s/QQ/\x01\x80/;
 print F $prog;
 close F or die "Close $file: $!";
 
-if ($^O ne 'darwin' && $Config{archname} !~ /darwin-ios/) {
-  $count = 5;
-  $result = "ok $count - complete test of alternate delimiters in -F\n";
-  print system ($^X, $file) ? "not $result" : $result;
+$count = 5;
+$result = "ok $count - complete test of alternate delimiters in -F\n";
+
+if ($Config{archname} !~ /darwin-ios/) {
+    print system ($^X, $file) ? "not $result" : $result; 
+} else {
+   print "ok iOS: skipping: system call not supported\n";
 }
 
 unlink $file or die "Unlink $file: $!";
