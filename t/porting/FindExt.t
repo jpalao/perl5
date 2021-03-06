@@ -1,11 +1,11 @@
 #!../miniperl -w
 
 BEGIN {
-    @INC = qw(../win32 ../lib);
     require './test.pl';
     skip_all('FindExt not portable')
 	if $^O eq 'VMS';
 }
+use lib qw(../win32 ../lib);
 use strict;
 use Config;
 
@@ -27,26 +27,13 @@ FindExt::scan_ext("../$_")
     foreach qw(cpan dist ext);
 FindExt::set_static_extensions(split ' ', $^O eq 'MSWin32'
                                ? $ENV{PERL_STATIC_EXT} : $Config{static_ext});
-                               
-sub ios_check {
-  my (@ext) = @_;
-  for my $index (0 .. (scalar @ext - 1)) {
-    if ($ext[$index] eq 'DB_File') {
-      splice(@ext, $index, 1);
-      last;
-    }
-  }
-  return @ext;
-}
 
 sub compare {
     my ($desc, $want, @have) = @_;
     $want = [sort split ' ', $want]
         unless ref $want eq 'ARRAY';
     local $::Level = $::Level + 1;
-    if ($^O eq 'darwin' && $Config{archname} =~ /darwin-ios/) { 
-      @have = ios_check(@have);
-    }
+    @have = grep(!/DB_File/, @have) if is_darwin_ios;
     is(scalar @have, scalar @$want, "We find the same number of $desc");
     is("@have", "@$want", "We find the same list of $desc");
 }
