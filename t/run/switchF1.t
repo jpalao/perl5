@@ -38,9 +38,8 @@ close F or die "Close $file: $!";
 
 $count = 5;
 $result = "ok $count - complete test of alternate delimiters in -F\n";
-
 if ($Config{archname} !~ /darwin-ios/) {
-    print system ($^X, $file) ? "not $result" : $result; 
+    print system ($^X, $file) ? "not $result" : $result;
 } else {
    print "ok iOS: skipping: system call not supported\n";
 }
