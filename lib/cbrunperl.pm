@@ -12,8 +12,7 @@ use Cwd qw/abs_path chdir getcwd/;
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
 our @EXPORT = (
-    'ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl', 
-    'exec_perl_capture', 'capture_test', 'yield'
+    'exec_test', 'exec_perl', 'exec_perl_capture', 'capture_test', 'yield'
 );
 
 our @EXPORT_OK = (
@@ -21,7 +20,7 @@ our @EXPORT_OK = (
     'exec_perl_capture', 'capture_test', 'yield'
 );
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -32,16 +31,6 @@ sub check_error {
 
 sub yield {
   CamelBones::CBYield(shift);
-}
-
-sub ios_runperl {
-  my ($pwd, $test) = @_;
-  die ('Could not chdir to $pwd') if (! chdir $pwd);
-  print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
-  my $yield = CamelBones::CBYield(.1);
-  print "CamelBones::CBYield() returned $yield\n" if $DEBUG;
-  my $exec = exec_perl($test);
-  my $result = check_error($exec);
 }
 
 # runperl, run_perl - Runs a separate perl interpreter and returns its output.
@@ -71,11 +60,12 @@ sub exec_perl {
 	stderr => $req->{stderr},
     args => $req->{args},
     verbose => $req->{verbose},
-    pwd => $req->{pwd},    
+    pwd => $req->{pwd},
   };
   my $exec = $json->canonical->utf8->pretty->encode($runPerl);
-  print $exec . "\n" if $DEBUG;
+  print "\$exec: $exec\n" if $DEBUG;
   my $t = CamelBones::CBRunPerl($exec);
+  print "\$t: $t\n" if $DEBUG;
   return $t;
 }
 
@@ -92,25 +82,12 @@ sub exec_perl_capture {
 	stderr => $req->{stderr},
     args => $req->{args},
     verbose => $req->{verbose},
-    pwd => $req->{pwd}
+    pwd => $req->{pwd},
   };
   my $exec = $json->utf8->pretty->encode($runPerl);
-  print $exec . "\n" if $DEBUG;
+  print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
   my $t = CamelBones::CBRunPerlCaptureStdout($exec);
-  return $t;
-}
-
-sub popen_perl {
-  my ($req) = @_;
-  my $runPerl = {
-    progfile => $req->{progfile},
-    pwd =>  $req->{pwd},
-    switches => $req->{switches},
-    args => $req->{args}
-  };
-  my $exec = $json->utf8->pretty->encode($runPerl);
-  print $exec . "\n" if $DEBUG;
-  my $t = CamelBones::CBRunPerlCaptureStdout($exec);
+  print "\$t: $t\n" if $DEBUG;
   return $t;
 }
 
@@ -159,29 +136,15 @@ sub exec_test {
   die ('Could not chdir to $pwd') if (! chdir $pwd);
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
   my $json = parse_test($pwd, $test);
+  print  Dumper("json", $json) if $DEBUG;
   my $exec = exec_perl($json);
+  print "exec_test \$exec: $exec\n" if $DEBUG;  
   CamelBones::CBYield(.1);
   my $result = check_error($exec);
-}
-
-sub capture_test {
-  my ($pwd, $test) = @_;
-  die ('Could not chdir to $pwd') if (! chdir $pwd);
-  print "Capturing: $test\nPWD: $pwd\n" if $DEBUG;
-  my $json = parse_test($pwd, $test);
-  my $exec = popen_perl($json);
+  print "result: $result\n" if $DEBUG;    
   return $exec;
 }
 
-sub exec_file_tests {
-  my ($pwd, $testsfile) = @_;
-  open(my $fh, '<:encoding(UTF-8)', $testsfile)
-    or die "Could not open file '$testsfile' $!";
-  while (my $test = <$fh>) {
-    chomp $test;
-    exec_test($pwd, $test);
-  }
-}
 
 
 
