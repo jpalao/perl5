@@ -177,7 +177,7 @@ sub is_darwin_ios {
 	return;
     }
     use Config;
-    return ($Config{archname} =~ /darwin-ios/);
+    return $Config{archname} =~ /darwin-ios/;
 }
 
 # Roll your own File::Find!
@@ -354,8 +354,8 @@ sub _before_fork {
 sub _after_fork {
     my ($options) = @_;
 
-    use Data::Dumper;
-    print STDERR "\$options: ----->" .Data::Dumper->new([$options])->Dump() ."\n";
+#     use Data::Dumper;
+#     print STDERR "\$options: ----->" .Data::Dumper->new([$options])->Dump() ."\n";
 
     if ($options->{return_dir}) {
 	my $return_dir = $options->{return_dir};
