@@ -24,6 +24,7 @@ like($@, qr/Modification of a read-only value attempted/, '[perl #19566]');
 }
 
 SKIP: {
+  skip( 'breaks on iOS', 8 ) if is_darwin_ios;
   # [perl #21614]: 82 is chosen to exceed the length for sv_grow in
   # do_readline (80)
   foreach my $k (1, 82) {
@@ -35,7 +36,6 @@ SKIP: {
     is ($result, "end", '[perl #21614] for length ' . length('k' x $k));
   }
 
-  skip( 'no STDIN access on iOS', 2 ) if is_darwin_ios;
   foreach my $k (1, 21) {
     my $result
       = runperl (stdin => ' rules', stderr => 1,

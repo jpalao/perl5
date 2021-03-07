@@ -7,6 +7,9 @@ BEGIN {
     use lib '../lib';
 }
 
+$ENV{PERL_SKIP_PSYCHO_TEST} = 1;
+$ENV{PERL_DEBUG_READONLY_COW} = 1;
+
 my $torture; # torture testing?
 
 use TAP::Harness 3.13;
@@ -360,8 +363,12 @@ $h->callback(
 	     );
 
 
-#my $test_dumper = Data::Dumper->new([@tests])->Dump();
+my $test_dumper = Data::Dumper->new([@tests])->Dump();
 #print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
+
+my @do_only = (
+	'lib/mypragma.t'
+);
 
 my @ios_blacklist = (
 	'cmd/switch.t',
@@ -419,10 +426,11 @@ my @ios_blacklist = (
 	'io/semctl.t',
 	'io/shm.t',
 	'io/socket.t',
-	'lib/feature/unicode_strings.t',
+	
+	# passing but breaking the harness
+	'lib/deprecate.t',
 	'lib/no_load.t',
-	'lib/overload_fallback.t',
-	'lib/universal.t',
+
 	'mro/basic.t',
 	'mro/package_aliases_utf8.t',
 	'mro/package_aliases.t',
@@ -435,51 +443,65 @@ my @ios_blacklist = (
 	'op/taint.t',
 	'op/threads-dirh.t',
 	'op/threads.t',
+
 	're/anyof.t',
+	're/alpha_assertions.t',
 	're/bigfuzzy_not_utf8.t',
-	're/charset.t',
-	're/pat_advanced_thr.t',
-	're/pat_advanced.t',
-	're/pat_psycho_thr.t',
-	're/pat_psycho.t',
-	're/pat_re_eval_thr.t',
-	're/pat_re_eval.t',
-	're/pat_rt_report_thr.t',
-	're/pat_rt_report.t',
-	're/pat_special_cc_thr.t',
-	're/pat_special_cc.t',
-	're/pat_thr.t',
-	're/pat.t',
-	're/recompile.t',
-	're/recompile.t', 
-	're/reg_60508.t',
-	're/reg_email_thr.t',
-	're/reg_eval_scope.t',
-	're/reg_eval.t',
-	're/reg_fold.t',
-	're/regex_sets.t',
-	're/regexp_qr_embed_thr.t',
-	're/regexp_unicode_prop_thr.t',
-	're/regexp_unicode_prop.t',
-	're/script_run.t',
-	're/speed_thr.t',
-	're/speed.t',
-	're/subst.t',
-	're/user_prop_race_thr.t',
-	'run/switchC.t',
-	'run/switchd-78586.t',
-	'run/switchd.t',
-	'run/switchDx.t',
-	'run/switches.t',
-	'run/switchF.t',
-	'run/switchF1.t',
-	'run/switchF2.t',
-	'run/switchI.t',
-	'run/switchM.t',
-	'run/switchn.t',
-	'run/switchp.t',
-	'run/switcht.t',
-	'run/switchx.t',
+#	're/charset.t',
+#	're/pat_advanced_thr.t',
+#	're/pat_advanced.t',
+#	're/pat_psycho_thr.t',
+#	're/pat_psycho.t',
+#	're/pat_re_eval_thr.t',
+#	're/pat_re_eval.t',
+# 	're/pat_rt_report_thr.t',
+# 	're/pat_rt_report.t',
+# 	're/pat_special_cc_thr.t',
+# 	're/pat_special_cc.t',
+#	're/pat_thr.t',
+#	're/pat.t',
+#	're/recompile.t',
+
+# 	're/reg_60508.t',
+# 	're/reg_email_thr.t',
+# 	're/reg_eval_scope.t',
+# 	're/reg_eval.t',
+# 	're/reg_fold.t',
+# 	're/regex_sets.t',
+# 	're/regexp_qr_embed_thr.t',
+# 	're/regexp_unicode_prop_thr.t',
+# 	're/regexp_unicode_prop.t',
+# 	're/script_run.t',
+#	're/speed_thr.t',
+#	're/speed.t',
+# 	're/subst.t',
+# 	're/user_prop_race_thr.t',
+'re/uniprops01.t',
+'re/uniprops02.t',
+'re/uniprops03.t',
+'re/uniprops04.t',
+'re/uniprops05.t',
+'re/uniprops06.t',
+'re/uniprops07.t',
+'re/uniprops08.t',
+'re/uniprops09.t',
+'re/uniprops10.t',
+
+# 	'run/switchC.t',
+# 	'run/switchd-78586.t',
+# 	'run/switchd.t',
+# 	'run/switchDx.t',
+# 	'run/switches.t',
+# 	'run/switchF.t',
+# 	'run/switchF1.t',
+# 	'run/switchF2.t',
+# 	'run/switchI.t',
+# 	'run/switchM.t',
+# 	'run/switchn.t',
+# 	'run/switchp.t',
+# 	'run/switcht.t',
+# 	'run/switchx.t',
+
 	'uni/fold.t',
 	'uni/overload.t',
 );
@@ -496,7 +518,13 @@ for my $black_list (@ios_blacklist)
 	}
 }
 
-# print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
+@tests = grep(/^re/, @tests);
+
+$test_dumper = Data::Dumper->new([@tests])->Dump();
+#print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
+
+
+
 
 my $agg = $h->runtests(@tests);
 _cleanup_valgrind(\$htoolnm, \$hgrind_ct);
