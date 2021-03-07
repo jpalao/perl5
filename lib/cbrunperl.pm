@@ -20,7 +20,7 @@ our @EXPORT_OK = (
     'exec_perl_capture', 'capture_test', 'yield'
 );
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -138,10 +138,10 @@ sub exec_test {
   my $json = parse_test($pwd, $test);
   print  Dumper("json", $json) if $DEBUG;
   my $exec = exec_perl($json);
-  print "exec_test \$exec: $exec\n" if $DEBUG;  
+  print  Dumper("exec_test", $exec) if $DEBUG;
   CamelBones::CBYield(.1);
   my $result = check_error($exec);
-  print "result: $result\n" if $DEBUG;    
+  print  Dumper("result", $result) if $DEBUG;
   return $exec;
 }
 
