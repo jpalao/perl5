@@ -758,6 +758,9 @@ not_lexical11();
   eval q{ my sub george () { 2 } };
   is $w, undef, 'no double free from constant my subs';
 }
+
+SKIP: {
+    skip('iOS: this test breaks the harness') if is_darwin_ios;
 like runperl(
       switches => [ '-Mfeature=lexical_subs,state' ],
       prog     => 'my sub a { foo ref } a()',
@@ -765,6 +768,8 @@ like runperl(
      ),
      qr/syntax error/,
     'referencing a my sub after a syntax error does not crash';
+}
+
 {
   state $stuff;
   package A {
