@@ -62,7 +62,7 @@ sub exec_perl {
     verbose => $req->{verbose},
     pwd => $req->{pwd},
   };
-  my $exec = $json->canonical->utf8->pretty->encode($runPerl);
+  my $exec = $json->utf8->canonical->pretty->encode($runPerl);
   print "\$exec: $exec\n" if $DEBUG;
   my $t = CamelBones::CBRunPerl($exec);
   print "\$t: $t\n" if $DEBUG;
@@ -84,7 +84,7 @@ sub exec_perl_capture {
     verbose => $req->{verbose},
     pwd => $req->{pwd},
   };
-  my $exec = $json->utf8->pretty->encode($runPerl);
+  my $exec = $json->utf8->canonical->pretty->encode($runPerl);
   print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
   my $t = CamelBones::CBRunPerlCaptureStdout($exec);
   print "\$t: $t\n" if $DEBUG;
