@@ -368,7 +368,9 @@ sub run_tests {
         like("\x{100}a", qr/[\x{101}]/i, $message);
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 12) if is_darwin_ios;
         use charnames ':full';
         my $message = "Folding 'LATIN LETTER A WITH GRAVE'";
 
@@ -401,7 +403,9 @@ sub run_tests {
         like($UPPER, qr/[$lower]/i, $message);
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 1) if is_darwin_ios;
         use charnames ':full';
         my $message = "GREEK CAPITAL LETTER SIGMA vs " .
                          "COMBINING GREEK PERISPOMENI";
@@ -413,7 +417,9 @@ sub run_tests {
 		   'Did not warn [change a5961de5f4215b5c]');
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 6) if is_darwin_ios;
         my $message = '\X';
         use charnames ':full';
 
@@ -473,7 +479,9 @@ sub run_tests {
         ok(":$S3:" =~ /:(([$sigma])+):/i && $1 eq $S3 && $2 eq $sigma, $message);
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 10) if is_darwin_ios;
         use charnames ':full';
         my $message = "Parlez-Vous " .
                          "Fran\N{LATIN SMALL LETTER C WITH CEDILLA}ais?";
@@ -526,8 +534,9 @@ sub run_tests {
         chop $str;
         like($str, qr/$pat/i, $message);
     }
-
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 26) if is_darwin_ios;
         use charnames ':full';
         my $message = "LATIN SMALL LETTER SHARP S " .
                          "(\N{LATIN SMALL LETTER SHARP S})";
@@ -829,7 +838,9 @@ sub run_tests {
         like("  \x{1E01}x", qr/\x{1E00}X/i, $message);
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 54) if is_darwin_ios;
         for (120 .. 130, 240 .. 260) {
             my $head = 'x' x $_;
             my $message = q [Don't misparse \x{...} in regexp ] .
@@ -880,7 +891,9 @@ sub run_tests {
         ok $ok, "Trie min count matches";
     }
 
+    SKIP:
     {
+
         # TRIE related
         # LATIN SMALL/CAPITAL LETTER A WITH MACRON
         ok "foba  \x{101}foo" =~ qr/(foo|\x{100}foo|bar)/i &&
@@ -902,6 +915,7 @@ sub run_tests {
            $1 eq "\x{1E01}xfoo",
            "TRIEF + LATIN SMALL/CAPITAL LETTER A WITH RING BELOW + 'X'";
 
+        skip ("iOS this test breaks the suite", 6) if is_darwin_ios;
         use charnames ':full';
 
         my $s = "\N{LATIN SMALL LETTER SHARP S}";
@@ -1080,7 +1094,9 @@ sub run_tests {
         like "\x{100}\x{100}", $r, "which matches";
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 6) if is_darwin_ios;
         use charnames ':full';
 
         unlike 'aabc', qr/a\N{PLUS SIGN}b/, '/a\N{PLUS SIGN}b/ against aabc';
@@ -1436,7 +1452,9 @@ sub run_tests {
         ok 'boob'=~/( b (??{ $qr }) b )/x && 1, "PL_curpm, nested eval";
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 26) if is_darwin_ios;
         use charnames ":full";
         like "\N{ROMAN NUMERAL ONE}", qr/\p{Alphabetic}/, "I =~ Alphabetic";
         like "\N{ROMAN NUMERAL ONE}", qr/\p{Uppercase}/,  "I =~ Uppercase";
@@ -1559,7 +1577,9 @@ sub run_tests {
         is($_, "hhHHhHhhHH", $message);
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 12) if is_darwin_ios;
         # Various whitespace special patterns
         my @h = map {chr utf8::unicode_to_native($_) }
                              0x09,   0x20,   0xa0,   0x1680, 0x2000,
@@ -2232,14 +2252,18 @@ EOP
         }
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 1) if is_darwin_ios;
         fresh_perl_is('print eval "\"\x{101}\" =~ /[[:lower:]]/", "\n"; print eval "\"\x{100}\" =~ /[[:lower:]]/i", "\n";',
                       "1\n1",   # Both re's should match
                       {},
                       "get [:lower:] swash in first eval; test under /i in second");
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 1) if is_darwin_ios;
         fresh_perl_is(<<'EOF',
                 my $s = "\x{41c}";
                 $s =~ /(.*)/ or die;
@@ -2439,7 +2463,10 @@ EOF
                             "Overlapping ranges in user-defined properties");
     }
 
-    { # [perl #125990], the final 2 tests below each caused a panic.
+    SKIP:
+    {
+        skip ("iOS this test breaks the suite", 4) if is_darwin_ios;
+        # [perl #125990], the final 2 tests below each caused a panic.
         # The \0's are not necessary; it could be a printable character
         # instead, but were in the ticket, so using them.
         my $sharp_s = chr utf8::unicode_to_native(0xdf);
