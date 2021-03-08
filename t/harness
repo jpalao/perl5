@@ -12,6 +12,7 @@ $ENV{PERL_DEBUG_READONLY_COW} = 1;
 
 my $torture; # torture testing?
 
+use Fcntl;
 use TAP::Harness 3.13;
 use strict;
 use Config;
@@ -397,7 +398,7 @@ my @ios_blacklist = (
 	'ext/POSIX/t/export.t',
 	'ext/Fcntl/t/syslfs.t',
 	'ext/Hash-Util/t/Util.t',
-	
+
 	#'op/lvref.t',
  	'op/magic.t',
  	'op/taint.t',
@@ -405,6 +406,19 @@ my @ios_blacklist = (
 
 	# passing but breaking the harness afterwards
 	'io/dup.t',
+	'io/eintr_print.t',
+	'io/eintr.t',
+	'io/msg.t',
+	'io/nargv.t',
+	'io/open.t',
+	'io/openpid.t',
+	'io/perlio_leaks.t',
+	'io/perlio_open.t',
+	'io/pipe.t',
+	'io/sem.t',
+	'io/semctl.t',
+	'io/shm.t',
+
 
 	'lib/deprecate.t',
 	'lib/no_load.t',
@@ -439,7 +453,7 @@ for my $black_list (@ios_blacklist)
 	}
 }
 
-# @tests = grep(/cpan\//, @tests);
+#@tests = grep(/porting\/authors.t/, @tests);
 
 $test_dumper = Data::Dumper->new([@tests])->Dump();
 print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
