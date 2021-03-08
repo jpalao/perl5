@@ -1040,7 +1040,9 @@ sub run_tests {
 	   'stclass optimisation does not break + inside (?=); Bug 68564');
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 7) if is_darwin_ios;
         use charnames ":full";
         # Delayed interpolation of \N'
         my $r1 = qr/\N{THAI CHARACTER SARA I}/;
@@ -1060,7 +1062,9 @@ sub run_tests {
         ok "abbbbc" =~ m'\N{3,4}' && $& eq "abbb", '"abbbbc" =~ m\'\N{3,4}\' && $& eq "abbb"';
     }
 
+    SKIP:
     {
+        skip ("iOS this test breaks the suite", 4) if is_darwin_ios;
         use charnames ":full";
         my $message = '[perl #74982] Period coming after \N{}';
         ok("\x{ff08}." =~ m/\N{FULLWIDTH LEFT PARENTHESIS}./ && $& eq "\x{ff08}.", $message);

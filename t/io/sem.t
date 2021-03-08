@@ -11,6 +11,7 @@ BEGIN {
     skip_all('-- IPC::SysV was not built');
   }
   skip_all_if_miniperl();
+  skip_all('iOS: this test breaks the suite');
   if ($Config{'d_sem'} ne 'define') {
     skip_all('-- $Config{d_sem} undefined');
   }
