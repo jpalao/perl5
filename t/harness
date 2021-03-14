@@ -128,7 +128,7 @@ if (@ARGV) {
         # after the above basic sanity tests, before any non-core ones.
         my $which = $ENV{PERL_TEST_HARNESS_ASAP} ? \@last : \@next;
 
-        push @$which, qw(io re opbasic op uni mro lib porting perf);
+        push @$which, qw(io re opbasic op uni mro lib perf);
 	push @$which, 'japh' if $torture;
 	push @$which, 'win32' if $^O eq 'MSWin32';
 	push @$which, 'benchmark' if $ENV{PERL_BENCHMARK};
