@@ -18,14 +18,38 @@
 # There's also a module exclusion list in Porting/cmpVERSION.pl.
 
 BEGIN {
-    @INC = '..' if -f '../TestInit.pm';
-    @INC = '.'  if -f  './TestInit.pm';
+    if (-f '../TestInit.pm') {
+        use lib '..';
+    }
+    if (-f './TestInit.pm') {
+        use lib '.';
+    }
 }
 use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 use strict;
-
+use Cwd;
 require './t/test.pl';
 my $source = find_git_or_skip('all');
+
+my $oldpwd = getcwd();
 chdir $source or die "Can't chdir to $source: $!";
 
-system "$^X Porting/cmpVERSION.pl --tap";
+if (is_darwin_ios())
+{
+    use Cwd;
+    use cbrunperl;    
+    warn "getcwd(): " . getcwd() ."\n";
+    exec_perl({
+        pwd => getcwd(), 
+        switches => [], 
+        progfile => "Porting/cmpVERSION.pl",
+        args => ["--tap"]
+    });
+    chdir $oldpwd && is_darwin_ios();
+    chdir 't' if -d 't' && is_darwin_ios();
+}
+else
+{
+    system "$^X Porting/cmpVERSION.pl --tap";
+}
+

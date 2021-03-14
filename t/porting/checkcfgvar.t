@@ -22,15 +22,36 @@
 # If this changes uconfig.sh, you'll also need to run perl regen/uconfig_h.pl
 
 use Config;
+
 BEGIN {
     require "./test.pl";
     skip_all("Won't ship a release from EBCDIC") if $::IS_EBCDIC;
-    @INC = '..' if -f '../TestInit.pm';
+    if (-f '../TestInit.pm'){
+        use lib '..' ;
+    }
 }
+
 use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 
 if ( $Config{usecrosscompile} ) {
   skip_all( "Not all files are available during cross-compilation" );
 }
 
-system "$^X -Ilib Porting/checkcfgvar.pl --tap";
+if (is_darwin_ios())
+{
+    use Cwd;
+    use cbrunperl;    
+    warn "getcwd(): " . getcwd() ."\n";
+    exec_perl({
+        pwd => getcwd(), 
+        switches => ["-Ilib"], 
+        progfile => "Porting/checkcfgvar.pl",
+        args => ["--tap"]
+    });
+    chdir 't' if -d 't' && is_darwin_ios;
+}
+else
+{
+    system "$^X -Ilib Porting/checkcfgvar.pl --tap";
+}
+
