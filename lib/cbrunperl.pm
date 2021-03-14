@@ -133,7 +133,7 @@ sub parse_test {
 
 sub exec_test {
   my ($pwd, $test) = @_;
-  die ('Could not chdir to $pwd') if (! chdir $pwd);
+  die ('Could not chdir to $pwd') if ($pwd && ! chdir $pwd);
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
   my $json = parse_test($pwd, $test);
   print  Dumper("json", $json) if $DEBUG;
