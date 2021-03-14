@@ -1,5 +1,5 @@
 #!./perl
 
 chdir 't' if -d 't';
-@INC = '../lib';
+use lib '../lib';
 require "../t/lib/common.pl";

@@ -2,7 +2,7 @@
 
 BEGIN {
 	chdir 't' if -d 't';
-	@INC = '../lib';
+	use lib '../lib';
 	require Config; import Config;
 	require './test.pl';
 	require './charset_tools.pl';
