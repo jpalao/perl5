@@ -9,6 +9,8 @@ BEGIN {
 
 $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
 $ENV{PERL_DEBUG_READONLY_COW} = 1;
+$ENV{LC_ALL} = 'C';
+$ENV{LC_CTYPE} = 'C';
 
 my $torture; # torture testing?
 
