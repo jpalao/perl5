@@ -4,7 +4,7 @@ my $has_perlio;
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require './test.pl'; require './charset_tools.pl';
     unless ($has_perlio = find PerlIO::Layer 'perlio') {
 	print <<EOF;

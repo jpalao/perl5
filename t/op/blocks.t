@@ -229,12 +229,15 @@ SKIP: {
         "CHECK{exit 1} should exit"
     );
 
-    fresh_perl_like(
+    SKIP: {
+        skip("iOS: this test breaks the harness", 1) if is_darwin_ios();
+        fresh_perl_like(
         "$testblocks CHECK { die; }",
         qr/\Abegin\nunitcheck\nDied[^\n]*\.\nCHECK failed[^\n]*\.\ncheck\nend\z/,
         {},
         "CHECK{die} should exit"
-    );
+        );
+    }
 }
 
 fresh_perl_is(
