@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require Config;
     if (($Config::Config{'extensions'} !~ m!\bList/Util\b!) ){
 	print "1..0 # Skip -- Perl configured without List::Util module\n";

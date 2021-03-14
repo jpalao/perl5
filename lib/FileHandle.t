@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require Config; import Config;
     if ($Config{'extensions'} !~ /\bIO\b/ && $^O ne 'VMS') {
 	print "1..0\n";

@@ -1,7 +1,7 @@
 #!./perl
 
 chdir 't' if -d 't';
-@INC = ( '.', '../lib' );
+use lib ( '.', '../lib' );
 
 our $UTF8 = (${^OPEN} || "") =~ /:utf8/;
 require "../t/lib/common.pl";
