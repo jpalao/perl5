@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require Config; import Config;
     if ($Config{'extensions'} !~ /\bIO\b/ && $^O ne 'VMS') {
 	print "1..0\n";
@@ -58,7 +58,7 @@ autoflush STDOUT 1;
 ok($|, "handle auto-flushing current output channel");
 
 SKIP: {
-    skip "No fork or pipe on DOS", 1 if ($^O eq 'dos');
+    skip "No fork or pipe on DOS", 1 if ($^O eq 'dos' || is_darwin_ios);
 
     my ($rd,$wr) = FileHandle::pipe;
     my $non_forking = (
