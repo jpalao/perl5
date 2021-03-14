@@ -370,6 +370,8 @@ print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
 my @ios_blacklist = (
 
 	# these tests break the harness
+
+	'../lib/feature/unicode_strings.t',
 # 	'cpan/File-Temp/t/lock.t',
 # 	'cpan/IO-Compress/t/cz-14gzopen.t',
 # 	'cpan/IPC-Cmd/t/01_IPC-Cmd.t',
@@ -437,7 +439,7 @@ my @ios_blacklist = (
 	're/uniprops08.t',
 	're/uniprops09.t',
 	're/uniprops10.t',
-	
+
 	'uni/fold.t',
 	'uni/overload.t',
 );
@@ -454,7 +456,7 @@ for my $black_list (@ios_blacklist)
 	}
 }
 
-#@tests = grep(/porting\/authors.t/, @tests);
+# @tests = grep(/\.\.\/lib\/utf8.t/, @tests);
 
 $test_dumper = Data::Dumper->new([@tests])->Dump();
 print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
