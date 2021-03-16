@@ -121,6 +121,7 @@ fresh_perl_like(
 );
 
 SKIP: {
+    skip('iOS: this test breaks the harness', 1) if is_darwin_ios;
     skip_if_miniperl('miniperl ignores -C', 1);
    $ee = uni_to_native("\xee");
    $bytes = byte_utf8a_to_utf8n("\xc3\xae");
