@@ -404,6 +404,8 @@ my @ios_blacklist = (
 	'ext/Fcntl/t/syslfs.t',
 	'ext/Hash-Util/t/Util.t',
 
+	'lib/feature.t',
+
 	#'op/lvref.t',
  	'op/magic.t',
  	'op/taint.t',
@@ -458,7 +460,7 @@ for my $black_list (@ios_blacklist)
 	}
 }
 
-# @tests = grep(/\.\.\/lib\/utf8.t/, @tests);
+#@tests = grep(/\.\.\/lib\/warnings.t/, @tests);
 
 $test_dumper = Data::Dumper->new([@tests])->Dump();
 print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
