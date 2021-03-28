@@ -146,7 +146,8 @@ $^W = 1;
 eval 'my $b ; chop $b ;' ;
 print $@ ;
 EXPECT
-Use of uninitialized value $b in scalar chop at (eval 1) line 1.
+OPTION regex
+Use of uninitialized value \$b in scalar chop at \(eval \d*\) line 1.
 ########
 
 eval '$^W = 1;' ;
