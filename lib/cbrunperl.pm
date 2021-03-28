@@ -4,6 +4,7 @@ package cbrunperl;
 $| = 1;
 use strict;
 #use warnings;
+use open ":std", ":encoding(UTF-8)";
 use CamelBones qw(:All);
 use JSON::PP;
 use Data::Dumper;
