@@ -3,7 +3,7 @@ BEGIN {
     $::IS_ASCII = (ord("A") == 65) ? 1 : 0;
     $::IS_EBCDIC = (ord("A") == 193) ? 1 : 0;
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require Config; import Config;
     if ($Config{'extensions'} !~ /\bStorable\b/) {
         print "1..0 # Skip: Storable was not built; Unicode::UCD uses Storable\n";
