@@ -461,6 +461,7 @@ for my $black_list (@ios_blacklist)
 }
 
 #@tests = grep(/\.\.\/lib\/warnings.t/, @tests);
+@tests = grep(!/\.\.\/(cpan|dist|ext)/, @tests);
 
 $test_dumper = Data::Dumper->new([@tests])->Dump();
 print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
