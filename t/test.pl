@@ -38,7 +38,7 @@ our $Tests_Are_Passing = 1;
 
 use Cwd qw/getcwd/;
 use cbrunperl;
-$cbrunperl::DEBUG = 1;
+$cbrunperl::DEBUG = 0;
 
 # Use this instead of print to avoid interference while testing globals.
 sub _print {
