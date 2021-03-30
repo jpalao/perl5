@@ -404,8 +404,9 @@ my @ios_blacklist = (
 	'ext/Hash-Util/t/Util.t',
 
 	'lib/feature.t',
-	'lib/warning.t',
+	'lib/warnings.t',
 
+	'op/alarm.t',
  	'op/magic.t',
  	'op/taint.t',
  	'op/threads-dirh.t',
