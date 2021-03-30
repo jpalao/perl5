@@ -14,6 +14,7 @@ $ENV{LC_CTYPE} = 'C';
 
 my $torture; # torture testing?
 
+use open ":std", ":encoding(UTF-8)"; 
 use Fcntl;
 use TAP::Harness 3.13;
 use strict;
@@ -426,17 +427,14 @@ my @ios_blacklist = (
 	'io/semctl.t',
 	'io/shm.t',
 
-
 	'lib/deprecate.t',
 	'lib/no_load.t',
 	
-	're/anyof.t',
-	're/charset.t',
-	're/pat_advanced_thr.t',
-	're/pat_advanced.t',
-	're/regexp_unicode_prop_thr.t',
-	
-	# these seem to pass or fail randomly
+ 	're/anyof.t',
+ 	're/regexp_unicode_prop.t',
+ 	're/regexp_unicode_prop_thr.t',
+
+# 	# these seem to pass or fail randomly
 	're/uniprops05.t',
 	're/uniprops06.t',
 	're/uniprops07.t',
