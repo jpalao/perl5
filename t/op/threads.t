@@ -382,7 +382,9 @@ EOF
 
 
 # [perl #78494] Pipes shared between threads block when closed
+SKIP:
 {
+  skip('iOS: popen not supported', 1);
   my $perl = which_perl;
   $perl = qq'"$perl"' if $perl =~ /\s/;
   open(my $OUT, "|$perl") || die("ERROR: $!");
