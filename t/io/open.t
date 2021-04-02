@@ -15,6 +15,7 @@ plan tests => 188;
 sub ok_cloexec {
     SKIP: {
 	skip "no fcntl", 1 unless $Config{d_fcntl};
+	skip 'iOS: open flavor not supported', 1 if is_darwin_ios();
 	my $fd = fileno($_[0]);
 	fresh_perl_is(qq(
 	    print open(F, "+<&=$fd") ? 1 : 0, "\\n";
@@ -89,7 +90,9 @@ my $afile = tempfile();
 
     unlink($afile);
 }
+SKIP:
 {
+    skip('iOS: pipe flavor not supported', 5) if is_darwin_ios();
     ok( open(my $f, '-|', <<EOC),     'open -|' );
     $Perl -e "print qq(a row\\n); print qq(another row\\n)"
 EOC
@@ -99,7 +102,9 @@ EOC
     is( scalar @rows, 2,                '       readline, list context' );
     ok( close($f),                      '       close' );
 }
+SKIP:
 {
+    skip('iOS: pipe flavor not supported', 5) if is_darwin_ios();
     ok( open(my $f, '|-', <<EOC),     'open |-' );
     $Perl -pe "s/^not //"
 EOC
@@ -195,7 +200,9 @@ ok( -s $afile < 20,                     '       -s' );
     unlink($afile);
 }
 
+SKIP:
 {
+    skip('iOS: open -| not supported', 5) if is_darwin_ios();
     ok( open(local $f, '-|', <<EOC),  'open local $f, "-|", ...' );
     $Perl -e "print qq(a row\\n); print qq(another row\\n)"
 EOC
@@ -206,7 +213,9 @@ EOC
     ok( close($f),                      '       close' );
 }
 
+SKIP:
 {
+    skip('iOS: open |- not supported', 5) if is_darwin_ios();
     ok( open(local $f, '|-', <<EOC),  'open local $f, "|-", ...' );
     $Perl -pe "s/^not //"
 EOC
@@ -229,7 +238,9 @@ EOC
 ok( !eval { open local $f, '<&', $afile; 1 },  'local <& on non-filehandle');
 like( $@, qr/Bad filehandle:\s+$afile/,          '       right error' );
 
+SKIP:
 {
+    skip('iOS: open -| not supported', 16) if is_darwin_ios();
     local *F;
     for (1..2) {
 	ok( open(F, qq{$Perl -le "print 'ok'"|}), 'open to pipe' );
@@ -373,7 +384,9 @@ is($@, '', 'no "Modification of a read-only value" when closing');
 
 # [perl#73626] mg_get wasn't run on the pipe arg
 
+SKIP:
 {
+    skip('iOS: open -| not supported', 1) if is_darwin_ios();
     package p73626;
     sub TIESCALAR { bless {} }
     sub FETCH { "$Perl -e 1"}
