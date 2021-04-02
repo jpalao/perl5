@@ -3,6 +3,8 @@
 BEGIN {
     chdir 't' if -d 't';
     require "./test.pl";
+    skip_all('iOS: this test breaks the harness')
+        if is_darwin_ios();
     set_up_inc(qw(. ../lib));
 }
 
