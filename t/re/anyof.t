@@ -18,6 +18,7 @@ BEGIN {
     set_up_inc('../lib','.','../ext/re');
     require Config; import Config;
     skip_all('no re module') unless defined &DynaLoader::boot_DynaLoader;
+    skip_all("iOS: These tests break the harness") if is_darwin_ios();
 }
 
 # An array is used instead of a hash, so that the tests are carried out in the
