@@ -2,8 +2,12 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = qw(../lib lib);
     require "./test.pl";
+    if (is_darwin_ios()) {
+        use lib qw(../lib lib);
+    } else {
+        @INC = qw(../lib lib);
+    }
 }
 
 # This test depends on t/lib/Devel/switchd*.pm.
@@ -147,16 +151,20 @@ like(
   "No crash when &DB::DB exists but isn't actually defined",
 );
 # or seen and defined later
-is(
-  runperl(
-    switches => [ '-Ilib', '-d:nodb' ], # nodb.pm contains *DB::DB...if 0
-    prog     => 'warn; sub DB::DB { print qq-ok\n-; exit }',
-    stderr   => 1,
-  ),
-  "ok\n",
-  "DB::DB works after '*DB::DB if 0'",
-);
-
+SKIP:
+{
+    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+    is(
+      runperl(
+        # nodb.pm contains *DB::DB...if 0
+        switches => [ '-Ilib', '-d:nodb' ], 
+        prog     => 'warn; sub DB::DB { print qq-ok\n-; exit }',
+        stderr   => 1,
+      ),
+      "ok\n",
+      "DB::DB works after '*DB::DB if 0'",
+    );
+}
 # [perl #115742] Recursive DB::DB clobbering its own pad
 like(
   runperl(
@@ -196,7 +204,9 @@ like(
 );
 
 # PERL5DB with embedded newlines
+SKIP:
 {
+    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
     local $ENV{PERL5DB} = "sub DB::DB{}\nwarn";
     is(
       runperl(
@@ -211,6 +221,9 @@ like(
 }
 
 # test that DB::goto works
+SKIP:
+{
+    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
 is(
   runperl(
    switches => [ '-Ilib', '-d:switchd_goto' ],
@@ -220,6 +233,7 @@ is(
   "goto<main::baz>;hello;\n",
   "DB::goto"
 );
+}
 
 # Test that %DB::lsub is not vivified
 is(
@@ -233,47 +247,55 @@ is(
 );
 
 # Test setting of breakpoints without *DB::dbline aliased
-is(
-  runperl(
-   switches => [ '-Ilib', '-d:nodb' ],
-   progs => [ split "\n",
-    'sub DB::DB {
-      $DB::single = 0, return if $DB::single; print qq[ok\n]; exit
-     }
-     ${q(_<).__FILE__}{6} = 1; # set a breakpoint
-     sub foo {
-         die; # line 6
-     }
-     foo();
-    '
-   ],
-   stderr => 1
-  ),
-  "ok\n",
-  "setting breakpoints without *DB::dbline aliased"
-);
+SKIP:
+{
+    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+    is(
+      runperl(
+       switches => [ '-Ilib', '-d:nodb' ],
+       progs => [ split "\n",
+        'sub DB::DB {
+          $DB::single = 0, return if $DB::single; print qq[ok\n]; exit
+         }
+         ${q(_<).__FILE__}{6} = 1; # set a breakpoint
+         sub foo {
+             die; # line 6
+         }
+         foo();
+        '
+       ],
+       stderr => 1
+      ),
+      "ok\n",
+      "setting breakpoints without *DB::dbline aliased"
+    );
+}
 
 # [perl #121255]
 # Check that utf8 caches are flushed when $DB::sub is set
-is(
-  runperl(
-   switches => [ '-Ilib', '-d:switchd_empty' ],
-   progs => [ split "\n",
-    'sub DB::sub{length($DB::sub); goto &$DB::sub}
-     ${^UTF8CACHE}=-1;
-     print
-       eval qq|sub oo\x{25f} { 42 }
-               sub ooooo\x{25f} { oo\x{25f}() }
-               ooooo\x{25f}()| 
-        || $@,
-       qq|\n|;
-    '
-   ],
-   stderr => 1
-  ),
-  "42\n",
-  'UTF8 length caches on $DB::sub are flushed'
-);
+SKIP:
+{
+    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+    is(
+      runperl(
+       switches => [ '-Ilib', '-d:switchd_empty' ],
+       progs => [ split "\n",
+        'sub DB::sub{length($DB::sub); goto &$DB::sub}
+         ${^UTF8CACHE}=-1;
+         print
+           eval qq|sub oo\x{25f} { 42 }
+                   sub ooooo\x{25f} { oo\x{25f}() }
+                   ooooo\x{25f}()| 
+            || $@,
+           qq|\n|;
+        '
+       ],
+       stderr => 1
+      ),
+      "42\n",
+      'UTF8 length caches on $DB::sub are flushed'
+    );
+}
 
 # [perl #122771] -d conflicting with sort optimisations
 is(
@@ -287,20 +309,21 @@ is(
 
 SKIP: {
   skip_if_miniperl("under miniperl", 1);
-is(
-  runperl(
-   switches => [ '-Ilib', '-d:switchd_empty' ],
-   progs => [ split "\n",
-    'use bignum;
-     $DB::single=2;
-     print qq/debugged\n/;
-    '
-   ],
-   stderr => 1
-  ),
-  "debugged\n",
-  "\$DB::single set to overload"
-);
+  skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+  is(
+    runperl(
+     switches => [ '-Ilib', '-d:switchd_empty' ],
+     progs => [ split "\n",
+      'use bignum;
+       $DB::single=2;
+       print qq/debugged\n/;
+      '
+     ],
+     stderr => 1
+    ),
+    "debugged\n",
+    "\$DB::single set to overload"
+  );
 }
 
 # [perl #123748]
