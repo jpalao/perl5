@@ -429,10 +429,6 @@ my @ios_blacklist = (
 
 	'lib/deprecate.t',
 	'lib/no_load.t',
-	
- 	're/anyof.t',
- 	're/regexp_unicode_prop.t',
- 	're/regexp_unicode_prop_thr.t',
 
 # 	# these seem to pass or fail randomly
 	're/uniprops05.t',
