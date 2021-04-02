@@ -10,6 +10,7 @@ BEGIN {
     set_up_inc(qw '../lib .');
     require './charset_tools.pl';
     skip_all_if_miniperl("miniperl can't load Tie::Hash::NamedCapture, need for %+ and %-");
+    skip_all("iOS: These tests break the harness") if is_darwin_ios();
 }
 
 use strict;
