@@ -814,12 +814,12 @@ sub untaint_path {
 sub runperl {
     die "test.pl:runperl() does not take a hashref"
 	if ref $_[0] and ref $_[0] eq 'HASH';
-	
-	if (is_darwin_ios()) {
-		my %args = @_;
-    	return exec_perl_capture(\%args);
-	}
-	
+
+    if (is_darwin_ios()) {
+        my %args = @_;
+        return exec_perl_capture(\%args);
+    }
+
     my $runperl = &_create_runperl;
     my $result;
 
@@ -1751,7 +1751,6 @@ sub watchdog ($;$)
     # Valgrind slows perl way down so give it more time before dying.
     $timeout *= 10 if $ENV{PERL_VALGRIND};
     $timeout *= 100 if is_darwin_ios();
-    
 
     my $pid_to_kill = $$;   # PID for this process
 
@@ -1852,7 +1851,7 @@ sub watchdog ($;$)
 
             # Kill test process if still running
             if (kill(0, $pid_to_kill)) {
-                _diag("FORK: $timeout_msg");
+                _diag($timeout_msg);
                 kill('KILL', $pid_to_kill);
 		if ($is_cygwin) {
 		    # sometimes the above isn't enough on cygwin
@@ -1887,10 +1886,14 @@ sub watchdog ($;$)
 
                 # Kill the parent (and ourself)
                 select(STDERR); $| = 1;
-                _diag("THREADS: $timeout_msg");
-                # POSIX::_exit(1) if (defined(&POSIX::_exit));
-                #my $sig = $is_vms ? 'TERM' : 'KILL';
-                #kill($sig, $pid_to_kill);
+                _diag($timeout_msg);
+                if (!is_darwin_ios()) {
+                    POSIX::_exit(1) if (defined(&POSIX::_exit));
+                }
+                my $sig = $is_vms ? 'TERM' : 'KILL';
+                if (!is_darwin_ios()) {
+                    kill($sig, $pid_to_kill);
+                }
                 return;
             })->detach();
         return;
