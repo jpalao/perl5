@@ -56,6 +56,12 @@ $Is_os2      = $^O eq 'os2';
 $Is_Cygwin   = $^O eq 'cygwin';
 $Is_Ios      = $Config{archname} =~ /darwin-ios/;
 
+my $orig_path;
+if ($Is_Ios) {
+    use Cwd qw/getcwd/;
+    $orig_path = getcwd;
+}
+
 $PERL =
    ($Is_VMS     ? $^X      :
     $Is_MSWin32 ? '.\perl' :
@@ -1018,6 +1024,8 @@ SKIP: {
     is delete $ENV{'foO'}, 'baz';
     is scalar(keys(%ENV)), 0;
 }
+
+chdir $orig_path if ($Is_Ios);
 
 __END__
 

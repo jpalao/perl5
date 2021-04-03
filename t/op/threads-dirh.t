@@ -4,8 +4,12 @@
 
 BEGIN {
      chdir 't' if -d 't';
-     @INC = '../lib';
      require './test.pl';
+     if (is_darwin_ios()) {
+          use lib qw(../lib lib);
+     } else {
+          @INC = qw(../lib lib);
+     }
      $| = 1;
 
      require Config;

@@ -5,6 +5,7 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
+    skip_all('iOS: exec not supported') if is_darwin_ios();
     set_up_inc('../lib');
     require Config;
     skip_all('no fork')
