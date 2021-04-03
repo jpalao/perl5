@@ -405,7 +405,8 @@ END
 	    $test++;
 	  }
 
-	  if ($Config{d_fork} and $^O ne 'VMS' and $^O ne 'MSWin32' and $^O ne 'NetWare') {
+	  if ($Config{d_fork} and $^O ne 'VMS' and $^O ne 'MSWin32' and $^O ne 'NetWare' 
+	    and !is_darwin_ios()) {
 	    # Fork off a new perl to run the tests.
 	    # (This is so we can catch spurious warnings.)
 	    $| = 1; print ""; $| = 0; # flush output before forking
@@ -454,7 +455,7 @@ END
 	    }
 	    if ($?) {
 	      printf "not ok: exited with error code %04X\n", $?;
-	      exit;
+	      exit if !is_darwin_ios();
 	    }
 	    { local $/; open IN, $errfile; $errors = <IN>; close IN }
 	  }
