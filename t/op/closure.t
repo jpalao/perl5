@@ -454,7 +454,7 @@ END
 	    }
 	    if ($?) {
 	      printf "not ok: exited with error code %04X\n", $?;
-	      exit;
+	      exit if !is_darwin_ios();
 	    }
 	    { local $/; open IN, $errfile; $errors = <IN>; close IN }
 	  }
