@@ -475,7 +475,7 @@ SKIP: {
 }
 
 SKIP: {
-   skip ("AUTOLOAD and DESTROY can be declared without a leading sub not working on iOS", 1) if (is_darwin_ios());
+   skip ("AUTOLOAD and DESTROY can be declared without a leading sub not working on iOS", 4) if (is_darwin_ios());
 
    # AUTOLOAD and DESTROY can be declared without a leading sub,
    # like BEGIN and friends.
