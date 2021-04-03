@@ -54,7 +54,7 @@ $Is_MSWin32  = $^O eq 'MSWin32';
 $Is_VMS      = $^O eq 'VMS';
 $Is_os2      = $^O eq 'os2';
 $Is_Cygwin   = $^O eq 'cygwin';
-$Is_Ios       = $Config{archname} =~ /darwin-ios/;
+$Is_Ios      = $Config{archname} =~ /darwin-ios/;
 
 $PERL =
    ($Is_VMS     ? $^X      :
@@ -83,8 +83,9 @@ sub env_is {
         $eqv = "\n" if length($eqv) == 2 and $eqv eq "\000\n";
         is $eqv, "$val\n", $desc;
     } else {
-        my @env = `env`;
         SKIP: {
+            my @env = `env`;
+            skip("iOS: no backticks", 1) if $Is_Ios;
             skip("env doesn't work on this android", 1) if !@env && $^O =~ /android/;
             chomp (my @env = grep { s/^$key=// } @env);
             is "@env", $val, $desc;
@@ -101,9 +102,14 @@ END {
     }
 }
 
-eval '$ENV{"FOO"} = "hi there";';	# check that ENV is inited inside eval
+SKIP: {
+
+eval '$ENV{"FOO"} = "hi there";'; # check that ENV is inited inside eval
 # cmd.exe will echo 'variable=value' but 4nt will echo just the value
 # -- Nikola Knezevic
+
+skip('iOS: no backticks', 2) if $Is_Ios;
+
 if ($Is_MSWin32)  { like `set FOO`, qr/^(?:FOO=)?hi there$/m; }
 elsif ($Is_VMS)   { is `write sys\$output f\$trnlnm("FOO")`, "hi there\n"; }
 else              { is `echo \$FOO`, "hi there\n"; }
@@ -113,6 +119,8 @@ $! = 0;
 open(FOO,'ajslkdfpqjsjfk');
 isnt($!, 0, "Unlinked file can't be opened");
 close FOO; # just mention it, squelch used-only-once
+
+}
 
 SKIP: {
     skip('SIGINT not safe on this platform', 5)
@@ -218,12 +226,16 @@ is $&, 'bar';
 is $', 'baz';
 is $+, 'a';
 
+SKIP:
+{
 # [perl #24237]
+skip('iOS: this test breaks the harness', 4) if $Is_Ios;
 for (qw < ` & ' >) {
  fresh_perl_is
   qq < \@$_; q "fff" =~ /(?!^)./; print "[\$$_]\\n" >,
   "[f]\n", {},
   "referencing \@$_ before \$$_ etc. still saws off ampersands";
+}
 }
 
 # $"
@@ -246,7 +258,7 @@ is((keys %h)[0], "foo\034bar");
 }
 
 SKIP: {
-	skip('no system on iOS', 2)
+	skip('iOS: no system', 2)
 	if $Is_MSWin32 || $Is_NetWare || $Is_Dos || $Is_Ios;
 	# $?, $@, $$
 	system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(0)"];
@@ -258,7 +270,11 @@ SKIP: {
 eval { warn "foo\n" };
 is $@, "foo\n";
 
-ok !*@{HASH}, 'no %@';
+SKIP:
+{
+    skip('iOS: this test breaks the harness', 1);
+    ok !*@{HASH}, 'no %@';
+}
 
 cmp_ok($$, '>', 0);
 my $pid = $$;
@@ -266,7 +282,7 @@ eval { $$ = 42 };
 is $$, 42, '$$ can be modified';
 SKIP: {
     skip "no fork", 1 unless $Config{d_fork};
-    skip "no fork", 1 if $IsIos;
+    skip "no fork", 1 if $Config{archname} =~ /darwin-ios/;
     (my $kidpid = open my $fh, "-|") // skip "cannot fork: $!", 1;
     if($kidpid) { # parent
 	my $kiddollars = <$fh>;
@@ -298,6 +314,8 @@ $$ = $pid; # Tests below use $$
        $wd =~ /(.*)/; $wd = $1; # untaint
        if ($Is_Cygwin) {
 	   $wd = Cygwin::win_to_posix_path(Cygwin::posix_to_win_path($wd, 1));
+       } elsif($Is_Ios) {
+       $wd = Cwd::getcwd();
        }
     }
     elsif($Is_os2) {
@@ -399,7 +417,9 @@ is $^O, $orig_osname, 'Assigning $^I does not clobber $^O';
 }
 $^O = $orig_osname;
 
+SKIP:
 {
+    skip('iOS: this test breaks the harness', 2);
     #RT #72422
     foreach my $p (0, 1) {
 	fresh_perl_is(<<"EOP", '2 4 8', undef, "test \$^P = $p");
@@ -600,6 +620,7 @@ foreach (['powie::!', 'Errno']) {
     my ($symbol, $package) = @$_;
     SKIP: {
 	(my $extension = $package) =~ s|::|/|g;
+	skip('iOS: this test breaks the harness', 2) if $Is_Ios;
 	skip "$package is statically linked", 2
 	    if $Config{static_ext} =~ m|\b\Q$extension\E\b|;
 	foreach my $scalar_first ('', '$$symbol;') {
@@ -726,7 +747,8 @@ SKIP: {
 
 SKIP: {
     skip_if_miniperl("No XS in miniperl", 1);
-
+	skip('iOS: this test breaks the harness', 1) if $Is_Ios;
+	
     for ( [qw( %! Errno )] ) {
 	my ($var, $mod) = @$_;
 	my $modfile = $mod =~ s|::|/|gr . ".pm";
@@ -754,21 +776,32 @@ is ${^LAST_FH}, \*STDIN, '${^LAST_FH} after another tell';
 # This also tests that ${^LAST_FH} is a weak reference:
 is ${^LAST_FH}, undef, '${^LAST_FH} is undef when PL_last_in_gv is NULL';
 
+SKIP:
+{
+skip('iOS: this test breaks the harness', 4) if $Is_Ios;
 # all of these would set PL_last_in_gv to a non-GV which would
 # assert when referenced by the magic for ${^LAST_FH}.
-# The approach to fixing this has changed (#128263), but it's still useful
-# to check each op.
-for my $code ('tell $0', 'sysseek $0, 0, 0', 'seek $0, 0, 0', 'eof $0') {
-    fresh_perl_is("$code; print defined \${^LAST_FH} ? qq(not ok\n) : qq(ok\n)", "ok\n",
-                  undef, "check $code doesn't define \${^LAST_FH}");
+# The approach to fixing this has changed (#128263), but it's still 
+# useful to check each op.
+    for my $code ('tell $0', 'sysseek $0, 0, 0', 'seek $0, 0, 0', 'eof $0') {
+        fresh_perl_is(
+            "$code; print defined \${^LAST_FH} ? qq(not ok\n) : qq(ok\n)", 
+            "ok\n", undef, "check $code doesn't define \${^LAST_FH}"
+        );
+    }
 }
 
+SKIP:
+{
+skip('iOS: this test breaks the harness', 2) if $Is_Ios;
 # $|
 fresh_perl_is 'print $| = ~$|', "1\n", {switches => ['-l']},
  '[perl #4760] print $| = ~$|';
 fresh_perl_is
  'select f; undef *f; ${q/|/}; print STDOUT qq|ok\n|', "ok\n", {},
  '[perl #115206] no crash when vivifying $| while *{+select}{IO} is undef';
+}
+
 
 # ${^OPEN} and $^H interaction
 # Setting ${^OPEN} causes $^H to change, but setting $^H would only some-
