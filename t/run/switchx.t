@@ -8,6 +8,13 @@ use strict;
 
 require './test.pl';
 
+my $orig_path;
+if (is_darwin_ios()) {
+    use Cwd qw/getcwd/;
+    $orig_path = getcwd;
+}
+
+
 # Test '-x'
 print runperl( switches => ['-x'],
                progfile => 'run/switchx.aux' );
@@ -33,4 +40,8 @@ SKIP: {
     is(runperl(progs => \@progs, stderr => 1, non_portable => 1,
 	       switches => ['-x']),
        "No Perl script found in input\n", '-x and -e gives expected error');
+}
+
+if (is_darwin_ios()) {
+    chdir $orig_path;
 }
