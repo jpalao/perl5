@@ -37,6 +37,10 @@
 
 package TestInit;
 
+use Config;
+
+my $is_ios = $Config{archname} =~ /darwin-ios/;
+
 $VERSION = 1.04;
 
 # Let tests know they're running in the perl core.  Useful for modules
@@ -60,7 +64,11 @@ sub import {
 	    @INC = @up_2_t;
 	    $setopt = 1;
 	} elsif ($_ eq 'U1') {
-	    use lib '../lib';
+        if ($is_ios) {
+            use lib qw(../lib);
+        } else {
+            @INC = qw(../lib);
+        }
 	    $setopt = 1;
 	} elsif ($_ eq 'NC') {
 	    delete $ENV{PERL_CORE}
@@ -69,7 +77,11 @@ sub import {
 	} elsif ($_ eq 'T') {
 	    $chdir = '..'
 		unless -f 't/TEST' && -f 'MANIFEST' && -d 'lib' && -d 'ext';
-	    use lib 'lib';
+        if ($is_ios) {
+            use lib 'lib';
+        } else {
+            @INC = 'lib';
+        }
 	    $setopt = 1;
 	} elsif ($_ eq 'DOT') {
             $add_dot = 1;
@@ -94,14 +106,22 @@ sub import {
 		$^X =~ s!^\.([\\/])!..$1..$1!;
 	    } else {
 		$chdir = 't';
-		use lib '../lib';
+        if ($is_ios) {
+            use lib '../lib';
+        } else {
+            @INC = '../lib';
+        }
 		$setopt = $0 =~ m!^lib/!;
 	    }
 	} else {
 	    # (likely) we're being run by t/TEST or t/harness, and we're a test
 	    # in t/
 	    if (defined &DynaLoader::boot_DynaLoader) {
-			use lib '../lib';
+            if ($is_ios) {
+                use lib '../lib';
+            } else {
+                @INC = '../lib';
+            }
 	    }
 	    else {
 		# miniperl/minitest
