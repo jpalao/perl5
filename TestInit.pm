@@ -61,7 +61,11 @@ sub import {
     my ($abs, $chdir, $setopt);
     foreach (@_) {
 	if ($_ eq 'U2T') {
-	    @INC = @up_2_t;
+        if ($is_ios) {
+            use lib @up_2_t;
+        } else {
+            @INC = @up_2_t;
+        }
 	    $setopt = 1;
 	} elsif ($_ eq 'U1') {
         if ($is_ios) {
@@ -101,7 +105,11 @@ sub import {
 	    if ($0 =~ s!^((?:ext|dist|cpan)[\\/][^\\/]+)[\\/](.*\.t)$!$2!) {
 		# Looks like a test in ext.
 		$chdir = $1;
-		@INC = @up_2_t;
+        if ($is_ios) {
+            use lib @up_2_t;
+        } else {
+            @INC = @up_2_t;
+        }
 		$setopt = 1;
 		$^X =~ s!^\.([\\/])!..$1..$1!;
 	    } else {
