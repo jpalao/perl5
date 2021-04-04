@@ -19967,6 +19967,7 @@ __DATA__
 
 use strict;
 use warnings;
+use Config;
 
 use feature 'signatures';
 
@@ -19980,6 +19981,10 @@ no warnings 'experimental::uniprop_wildcards';
 
 # Standard test packages are not used because this manipulates SIG_WARN.  It
 # exits 0 if every non-skipped test succeeded; -1 if any failed.
+
+if ($Config{archname} =~ /darwin-ios/) {
+    use cbrunperl;
+}
 
 my $Tests = 0;
 my $Fails = 0;
@@ -20043,6 +20048,7 @@ sub Expect($expected, $ord, $regex, $warning_type='') {
         else {
             print "ok $Tests - got $result for $string =~ qr/$regex/; line $line\n";
         }
+        yield (.05) if ($Config{archname} =~ /darwin-ios/);
     }
     return;
 }
