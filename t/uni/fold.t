@@ -18,6 +18,10 @@ BEGIN {
 use feature 'unicode_strings';
 use Unicode::UCD qw(all_casefolds);
 
+if (is_darwin_ios()) {
+    use cbrunperl;
+}
+
 binmode *STDOUT, ":utf8";
 
 our $TODO;
@@ -83,6 +87,7 @@ foreach my $test_ref (@CF) {
             qq[":$f:" =~ /:$c:/i],
     ) {
         ok eval $test, "$code - $name - $mapping - $type - $test";
+        yield (.001) if is_darwin_ios();
     }
 
     {
@@ -371,6 +376,7 @@ foreach my $test_ref (@CF) {
         is( "\L$orig", $lower,   '\L works' );
         is( uc($orig), $upper,   "uc('$orig') returns '$upper'" );
         is( "\U$orig", $upper,   '\U works' );
+        yield(.001) if is_darwin_ios();
     }
 }
 
@@ -446,7 +452,8 @@ foreach my $test_ref (@CF) {
 
 SKIP: {
     use feature qw( fc unicode_strings );
-    skip "locales not available", 256 unless locales_enabled('LC_ALL') && !is_darwin_ios();
+
+    skip "locales not available", 256 unless locales_enabled('LC_ALL');
 
     setlocale(&POSIX::LC_ALL, "C");
 
@@ -473,22 +480,21 @@ SKIP: {
 
 my $utf8_locale = find_utf8_ctype_locale();
 
-SKIP: {
-    skip "locales not available", 1 if is_darwin_ios();
+{
     use feature qw( fc );
     use locale;
     no warnings 'locale';   # Would otherwise warn
     is(fc("\x{1E9E}"), fc("\x{17F}\x{17F}"), 'fc("\x{1E9E}") eq fc("\x{17F}\x{17F}")');
     use warnings 'locale';
     SKIP: {
-        skip 'Can\'t find a UTF-8 locale', 1 unless defined $utf8_locale && !is_darwin_ios();
+        skip 'Can\'t find a UTF-8 locale', 1 unless defined $utf8_locale;
         setlocale(&LC_CTYPE, $utf8_locale);
         is(fc("\x{1E9E}"), "ss", 'fc("\x{1E9E}") eq "ss" in a UTF-8 locale)');
     }
 }
 
 SKIP: {
-    skip 'Can\'t find a UTF-8 locale', 256 unless defined $utf8_locale && !is_darwin_ios();
+    skip 'Can\'t find a UTF-8 locale', 256 unless defined $utf8_locale;
 
     use feature qw( fc unicode_strings );
 
