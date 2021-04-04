@@ -15,7 +15,7 @@ print runperl( switches => ['-x'],
 # Test '-xdir'
 print runperl( switches => ['-x./run'],
                progfile => 'run/switchx2.aux',
-               args     => [ 4 ] );
+               args     => [ '4' ] );
 
 curr_test(6);
 
