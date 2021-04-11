@@ -1821,7 +1821,7 @@ WATCHDOG_VIA_ALARM:
         # Alarm handler will do the actual 'killing'
         $SIG{'ALRM'} = sub {
             select(STDERR); $| = 1;
-            _diag("WATCHDOG_VIA_ALARM: $timeout_msg");
+            _diag($timeout_msg);
             POSIX::_exit(1) if (defined(&POSIX::_exit));
             my $sig = $is_vms ? 'TERM' : 'KILL';
             kill($sig, $pid_to_kill);
