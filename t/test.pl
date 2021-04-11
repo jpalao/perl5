@@ -835,9 +835,9 @@ sub runperl {
 	$runperl =~ /(.*)/s;
 	$runperl = $1;
 
-    $result = `$runperl`;
+	$result = `$runperl`;
     } else {
-    $result = `$runperl`;
+	$result = `$runperl`;
     }
     $result =~ s/\n\n/\n/g if $is_vms; # XXX pipes sometimes double these
     return $result;
