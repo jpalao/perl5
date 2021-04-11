@@ -1,10 +1,7 @@
 #!./perl
 
 BEGIN {
-    use Cwd ('getcwd');
-    my $abs_pwd = getcwd();
-    unshift @INC, $abs_pwd;
-    unshift @INC, "$abs_pwd/../ext/B/t";
+    unshift @INC, 't';
     require Config;
     if (($Config::Config{'extensions'} !~ /\bB\b/) ){
         print "1..0 # Skip -- Perl configured without B module\n";
@@ -227,6 +224,7 @@ is(ref B::sv_yes(), "B::SPECIAL", "B::sv_yes()");
 is(ref B::sv_no(), "B::SPECIAL", "B::sv_no()");
 is(ref B::sv_undef(), "B::SPECIAL", "B::sv_undef()");
 SKIP: {
+    skip('iOS: no fork', 1) if $Config::Config{archname} =~ /darwin-ios/;
     skip('no fork', 1)
 	unless ($Config::Config{d_fork} or $Config::Config{d_pseudofork});
     my $pid;
