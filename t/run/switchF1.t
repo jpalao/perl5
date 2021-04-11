@@ -3,10 +3,6 @@
 # This test file does not use test.pl because of the involved way in which it
 # generates its TAP output.
 
-unless (eval {require Config; 1}) {
-	warn "switchF1.t had problems loading Config: $@";
-	return;
-}
 use Config;
 
 print "1..5\n";
