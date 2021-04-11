@@ -883,8 +883,7 @@ sub preamble {
 
 BEGIN {
     chdir q(t);
-    use lib qw(../lib ../ext/B/t);
-    #\@INC = qw(../lib ../ext/B/t);
+    \@INC = qw(../lib ../ext/B/t);
     require q(./test.pl);
 }
 use OptreeCheck;
