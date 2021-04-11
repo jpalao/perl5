@@ -69,7 +69,7 @@ sub import {
 	    $setopt = 1;
 	} elsif ($_ eq 'U1') {
         if ($is_ios) {
-            use lib qw(../lib);
+            use lib qw(../lib  ../../t);
         } else {
             @INC = qw(../lib);
         }
