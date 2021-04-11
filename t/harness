@@ -9,7 +9,6 @@ BEGIN {
 
 $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
 $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
-$ENV{PERL_DEBUG_READONLY_COW} = 1;
 $ENV{LC_ALL} = 'C';
 $ENV{LC_CTYPE} = 'C';
 
@@ -426,6 +425,9 @@ $Config{archname} =~ /darwin-ios/ && eval {
 			}
 		}
 	}
+	@tests = ('run/switchF1.t');
+	#@tests = grep(!/\.\.\/(cpan)/, @tests);
+	#@tests = grep(/\.\.\/ext\//, @tests);
 
 	$test_dumper = Data::Dumper->new([@tests])->Dump();
 	print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
