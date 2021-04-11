@@ -1,7 +1,6 @@
 #!perl
 use strict;
 use warnings;
-use Config;
 
 # As perlfunc.pod says:
 # Note that the file will not be included twice under the same specified name.
