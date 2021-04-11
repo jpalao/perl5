@@ -7,9 +7,6 @@ use Config;
 use Test::More;
 
 BEGIN {
-    use Cwd ('getcwd');
-    my $abs_pwd = getcwd();
-    unshift @INC, $abs_pwd;
     if ( ( $Config{'extensions'} !~ /\bB\b/ ) ) {
         plan skip_all => "Perl was not compiled with B";
         exit 0;

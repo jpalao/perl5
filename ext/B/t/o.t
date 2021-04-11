@@ -1,10 +1,7 @@
 #!./perl -w
 
 BEGIN {
-    use Cwd ('getcwd');
-    my $abs_pwd = getcwd();
-    unshift @INC, $abs_pwd;
-    unshift @INC, "$abs_pwd/../ext/B/t";
+	unshift @INC, 't';
 	require Config;
 	if (($Config::Config{'extensions'} !~ /\bB\b/) ){
 		print "1..0 # Skip -- Perl configured without B module\n";
