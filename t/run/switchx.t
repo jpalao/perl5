@@ -13,7 +13,7 @@ print runperl( switches => ['-x'],
                progfile => 'run/switchx.aux' );
 
 # Test '-xdir'
-if (!is_darwin_ios) {
+if (!is_darwin_ios()) {
 print runperl( switches => ['-x./run'],
                progfile => 'run/switchx2.aux',
                args     => [ 4 ] );
