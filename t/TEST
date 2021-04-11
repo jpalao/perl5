@@ -246,8 +246,12 @@ sub _scan_test {
     if (!defined $testswitch) {
 	if ($test =~ s!^(\.\./(cpan|dist|ext)/[^/]+)/t!t!) {
 	    $run_dir = $1;
-        use Cwd qw/getcwd/;
-	    $return_dir = getcwd();
+	    if (is_darwin_ios()){
+	        use Cwd qw/getcwd/;
+	        $return_dir = getcwd();
+	    } else {
+	    	$return_dir = '../../t';
+	    }
 	    $lib = '../../lib';
 	    $perl = '../../t/perl';
 	    $testswitch = "-I../.. -MTestInit=U2T";
