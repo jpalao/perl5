@@ -1752,7 +1752,7 @@ sub watchdog ($;$)
 
     # Valgrind slows perl way down so give it more time before dying.
     $timeout *= 10 if $ENV{PERL_VALGRIND};
-    $timeout *= 100 if is_darwin_ios();
+    $timeout *= 15 if is_darwin_ios();
 
     my $pid_to_kill = $$;   # PID for this process
 
