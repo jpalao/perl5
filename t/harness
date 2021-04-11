@@ -7,6 +7,7 @@ BEGIN {
     use lib '../lib';
 }
 
+$ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
 $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
 $ENV{PERL_DEBUG_READONLY_COW} = 1;
 $ENV{LC_ALL} = 'C';
@@ -131,7 +132,7 @@ if (@ARGV) {
         # after the above basic sanity tests, before any non-core ones.
         my $which = $ENV{PERL_TEST_HARNESS_ASAP} ? \@last : \@next;
 
-        push @$which, qw(io re opbasic op uni mro lib perf);
+        push @$which, qw(re io opbasic op uni mro lib perf);
 	push @$which, 'japh' if $torture;
 	push @$which, 'win32' if $^O eq 'MSWin32';
 	push @$which, 'benchmark' if $ENV{PERL_BENCHMARK};
@@ -365,100 +366,70 @@ $h->callback(
 	     }
 	     );
 
+$Config{archname} =~ /darwin-ios/ && eval {
+	my $test_dumper = Data::Dumper->new([@tests])->Dump();
+	print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
 
-my $test_dumper = Data::Dumper->new([@tests])->Dump();
-print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
+	my @ios_blacklist = (
+		# on iOS these tests may either:
+		# hang, crash or exit unexpectedly,
+		# or may pass, causing havoc afterwards,
+		# or they may pass or hang/crash indistinctly
 
-my @ios_blacklist = (
+		'lib/feature.t',
+		'lib/warnings.t',
+		'lib/deprecate.t',
+		'lib/no_load.t',
 
-	# these tests break the harness
+		're/uniprops05.t',
+		're/uniprops06.t',
+		're/uniprops07.t',
+		're/uniprops08.t',
+		're/uniprops09.t',
+		're/uniprops10.t',
 
-	'../lib/feature/unicode_strings.t',
-# 	'cpan/File-Temp/t/lock.t',
-# 	'cpan/IO-Compress/t/cz-14gzopen.t',
-# 	'cpan/IPC-Cmd/t/01_IPC-Cmd.t',
-# 	'cpan/IPC-Cmd/t/02_Interactive.t',
-# 	'cpan/IPC-Cmd/t/03_run-forked.t',
-# 	'cpan/IPC-SysV/t/ipcsysv.t',
-# 	'cpan/IPC-SysV/t/msg.t',
-# 	'cpan/IPC-SysV/t/pod.t',
-# 	'cpan/IPC-SysV/t/podcov.t',
-# 	'cpan/IPC-SysV/t/sem.t',
-# 	'cpan/IPC-SysV/t/shm.t',
-# 	'cpan/Test-Harness/t/compat/inc_taint.t',
-# 	'cpan/Test-Harness/t/compat/inc-propagation.t',
-# 	'cpan/Test-Harness/t/compat/test-harness-compat.t',
-#     'cpan/Test-Harness/t/regression.t',
+		'uni/fold.t',
 
-	'dist/IO/t/io_dup.t',
-	'dist/threads-shared/t/clone.t',
+		'../cpan/IO-Compress/t/cz-14gzopen.t',
+		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
+		'../cpan/IPC-SysV/t/ipcsysv.t',
+		'../cpan/IPC-SysV/t/msg.t',
+		'../cpan/IPC-SysV/t/pod.t',
+		'../cpan/IPC-SysV/t/podcov.t',
+		'../cpan/IPC-SysV/t/sem.t',
+		'../cpan/IPC-SysV/t/shm.t',
 
-	'ext/Pod-Functions/t/Functions.t',
-	'ext/Devel-Peek/t/Peek.t',
-	'ext/File-Find/t/find.t',
-	'ext/IPC-Open3/t/fd.t',
-	'ext/File-Find/t/taint.t',
-	'ext/B/t/sv_stash.t',
-	'ext/I18N-Langinfo/t/Langinfo.t',
-	'ext/POSIX/t/export.t',
-	'ext/Fcntl/t/syslfs.t',
-	'ext/Hash-Util/t/Util.t',
+		'../cpan/autodie/t/exec.t',
 
-	'lib/feature.t',
-	'lib/warnings.t',
+		'../cpan/Test-Harness/t/compat/inc-propagation.t',
+		'../cpan/Test-Harness/t/compat/inc_taint.t',
+		'../cpan/Test-Harness/t/compat/test-harness-compat.t',
+		'../cpan/Test-Harness/t/compat/regression.t',
+		'../cpan/Test-Harness/t/regression.t',
 
-	'op/alarm.t',
- 	'op/magic.t',
- 	'op/taint.t',
- 	'op/threads-dirh.t',
+		'../dist/IO/t/io_dup.t',
+		'../dist/threads/t/exit.t',
+		'../ext/Devel-Peek/t/Peek.t',
+		'../ext/DynaLoader/t/DynaLoader.t',
+		'../ext/POSIX/t/posix.t',
+		'../ext/POSIX/t/sigaction.t',
+	);
 
-	# passing but breaking the harness afterwards
-	'io/dup.t',
-	'io/eintr_print.t',
-	'io/eintr.t',
-	'io/msg.t',
-	'io/nargv.t',
-	'io/open.t',
-	'io/openpid.t',
-	'io/perlio_leaks.t',
-	'io/perlio_open.t',
-	'io/pipe.t',
-	'io/sem.t',
-	'io/semctl.t',
-	'io/shm.t',
-
-	'lib/deprecate.t',
-	'lib/no_load.t',
-
-# 	# these seem to pass or fail randomly
-	're/uniprops05.t',
-	're/uniprops06.t',
-	're/uniprops07.t',
-	're/uniprops08.t',
-	're/uniprops09.t',
-	're/uniprops10.t',
-
-	'uni/fold.t',
-	'uni/overload.t',
-);
-
-for my $black_list (@ios_blacklist)
-{
-	for (my $index = 0; $index < scalar @tests;  $index ++)
+	for my $black_list (@ios_blacklist)
 	{
-		if ($tests[$index] =~ m!$black_list!)
+		for (my $index = 0; $index < scalar @tests;  $index ++)
 		{
-			print STDOUT "iOS: Removing blacklisted test: $tests[$index]\n";
-			splice(@tests, $index, 1);
+			if ($tests[$index] =~ m!$black_list!)
+			{
+				print STDOUT "iOS: Blacklisted test: $tests[$index]\n";
+				splice(@tests, $index, 1);
+			}
 		}
 	}
-}
 
-#@tests = grep(/\.\.\/lib\/warnings.t/, @tests);
-@tests = grep(!/\.\.\/(cpan|dist|ext)/, @tests);
-
-$test_dumper = Data::Dumper->new([@tests])->Dump();
-print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
+	$test_dumper = Data::Dumper->new([@tests])->Dump();
+	print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
+};
 
 my $agg = $h->runtests(@tests);
 _cleanup_valgrind(\$htoolnm, \$hgrind_ct);
