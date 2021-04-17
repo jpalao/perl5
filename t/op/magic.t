@@ -651,8 +651,8 @@ SKIP: {
 
 SKIP: {
     skip_if_miniperl("No XS in miniperl", 1);
-	skip('iOS: this test breaks the harness', 1) if $Is_Ios;
-	
+    skip('iOS: this test breaks the harness', 1) if $Is_Ios;
+
     for ( [qw( %! Errno )] ) {
 	my ($var, $mod) = @$_;
 	my $modfile = $mod =~ s|::|/|gr . ".pm";
