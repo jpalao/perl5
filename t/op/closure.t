@@ -405,7 +405,7 @@ END
 	    $test++;
 	  }
 
-	  if ($Config{d_fork} and $^O ne 'VMS' and $^O ne 'MSWin32' and $^O ne 'NetWare' 
+	  if ($Config{d_fork} and $^O ne 'VMS' and $^O ne 'MSWin32' and $^O ne 'NetWare'
 	    and !is_darwin_ios()) {
 	    # Fork off a new perl to run the tests.
 	    # (This is so we can catch spurious warnings.)
