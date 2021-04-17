@@ -4,6 +4,7 @@
 use Test::More;
 use strict;
 use Fcntl;
+use Config;
 
 BEGIN {
 # see if we have O_EXLOCK
@@ -37,8 +38,11 @@ eval {
    alarm 0;
 };
 if ($@) {
-   die unless $@ eq "alarm\n";   # propagate unexpected errors
-   # timed out
+   if ($Config{archname} !~ /darwin-ios/){
+       die unless $@ eq "alarm\n";   # propagate unexpected errors
+   } else {
+       warn "timeout" unless $@ eq "alarm\n";
+   }   # timed out
 }
 ok( !$status, "File $fh is locked" );
 
@@ -54,7 +58,11 @@ eval {
    alarm 0;
 };
 if ($@) {
-   die unless $@ eq "alarm\n";   # propagate unexpected errors
+   if ($Config{archname} !~ /darwin-ios/){
+       die unless $@ eq "alarm\n";   # propagate unexpected errors
+   } else {
+       warn "timeout" unless $@ eq "alarm\n";
+   }
    # timed out
 }
 ok( $status, "File $fh is not locked");
