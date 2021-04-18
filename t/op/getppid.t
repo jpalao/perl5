@@ -17,7 +17,7 @@ BEGIN {
 }
 
 use strict;
-skip_all('iOS: fork, pipe, waitpid not supported') || is_darwin_ios();
+skip_all('iOS: fork, pipe, waitpid not supported') if is_darwin_ios();
 skip_all_without_config(qw(d_pipe d_fork d_waitpid d_getppid));
 plan (8);
 
