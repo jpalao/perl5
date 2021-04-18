@@ -11,6 +11,7 @@ $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
 $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
 $ENV{LC_ALL} = 'C';
 $ENV{LC_CTYPE} = 'C';
+$ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 1;
 
 my $torture; # torture testing?
 
@@ -389,6 +390,16 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		're/uniprops10.t',
 
 		'uni/fold.t',
+		
+		'../cpan/autodie/t/recv.t',
+		
+		# DB_File not built in
+		'../cpan/DB_File/t/db-threads.t',
+		'../cpan/DB_File/t/db-recno.t',
+		'../cpan/DB_File/t/db-hash.t',
+		'../cpan/DB_File/t/db-btree.t',
+		
+		'../cpan/File-Temp/t/lock.t',
 
 		'../cpan/IO-Compress/t/cz-14gzopen.t',
 		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
@@ -426,9 +437,6 @@ $Config{archname} =~ /darwin-ios/ && eval {
 			}
 		}
 	}
-	@tests = ('run/switchF1.t');
-	#@tests = grep(!/\.\.\/(cpan)/, @tests);
-	#@tests = grep(/\.\.\/ext\//, @tests);
 
 	$test_dumper = Data::Dumper->new([@tests])->Dump();
 	print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
