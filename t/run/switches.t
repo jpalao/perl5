@@ -6,7 +6,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require Config; import Config;
 }
 
@@ -227,6 +227,8 @@ SWTESTPM
 
   {
     local $TODO = '';  # these work on VMS
+
+    skip('iOS: this test breakes the harness', 6) if $Config{archname} =~ /darwin-ios/;
 
     is( runperl( switches => [ '-MTie::Hash' ], stderr => 1, prog => 1 ),
 	  '', "-MFoo::Bar allowed" );
@@ -497,6 +499,7 @@ __EOF__
         my ($osvers) = ($Config{osvers} =~ /^(\d+(?:\.\d+)?)/);
         skip "NetBSD 6 libc defines at functions, but they're incomplete", 3
           if $^O eq "netbsd" && $osvers < 7;
+        skip "iOS: this test breaks the harness", 3 if $Config{archname} =~ /darwin-ios/;
         my $code = <<'CODE';
 @ARGV = ("tmpinplace/foo");
 $^I = "";
@@ -661,6 +664,7 @@ CODE
               && ($Config{d_dirfd} || $Config{d_dir_dd_fd})
               && $Config{d_linkat}
               && $Config{ccflags} !~ /-DNO_USE_ATFUNCTIONS\b/;
+        skip "iOS: this test breaks the harness", 1 if $Config{archname} =~ /darwin-ios/;
         my $code = <<'CODE';
 @ARGV = ("tmpinplace/foo");
 $^I = "";

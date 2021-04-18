@@ -1,7 +1,7 @@
 #!./perl
 
 chdir 't' if -d 't';
-@INC = ( '.', '../lib' );
+use lib ( '.', '../lib' );
 
 our $local_tests = 7;
 require "../t/lib/common.pl";

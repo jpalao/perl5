@@ -11,7 +11,7 @@ use FindBin;
 use File::Spec::Functions;
 BEGIN {
     chdir catdir $FindBin::Bin, (updir)x3, 't';
-    @INC = '../lib';
+    use lib '../lib';
 }
 
 use Test::More tests => 21;

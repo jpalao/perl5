@@ -78,42 +78,47 @@ sub test_for_echo {
 
 #---------------- Tests begin
 
-test_for_echo(
-    [["Foo", "bar.txt"]],
-    "Foo\n",
-    "simple echo"
-);
+SKIP: {
+    skip ('iOS: no make', 18);
 
-test_for_echo(
-    [["Foo\nBar\nBaz Biff\n", "something.txt"]],
-    "Foo\nBar\nBaz Biff\n",
-    "multiline echo"
-);
+    test_for_echo(
+        [["Foo", "bar.txt"]],
+        "Foo\n",
+        "simple echo"
+    );
 
-test_for_echo(
-    [['$something$', "something.txt"]],
-    '$something$'."\n",
-    "dollar signs escaped"
-);
+    test_for_echo(
+        [["Foo\nBar\nBaz Biff\n", "something.txt"]],
+        "Foo\nBar\nBaz Biff\n",
+        "multiline echo"
+    );
 
-test_for_echo(
-    [['$(something)', "something.txt"]],
-    '$(something)'."\n",
-    "variables escaped"
-);
+    test_for_echo(
+        [['$something$', "something.txt"]],
+        '$something$'."\n",
+        "dollar signs escaped"
+    );
 
-test_for_echo(
-    [['Answer: $(FOO)', "bar.txt", { allow_variables => 1 }]],
-    "Answer: 42\n",
-    "allow_variables"
-);
+    test_for_echo(
+        [['$(something)', "something.txt"]],
+        '$(something)'."\n",
+        "variables escaped"
+    );
 
-test_for_echo(
-    [
-        ["Foo", "bar.txt"],
-        ["Bar", "bar.txt", { append => 1 }],
-        ["Baz", "bar.txt", 1],
-    ],
-    "Foo\nBar\nBaz\n",
-    "append"
-);
+    test_for_echo(
+        [['Answer: $(FOO)', "bar.txt", { allow_variables => 1 }]],
+        "Answer: 42\n",
+        "allow_variables"
+    );
+
+    test_for_echo(
+        [
+            ["Foo", "bar.txt"],
+            ["Bar", "bar.txt", { append => 1 }],
+            ["Baz", "bar.txt", 1],
+        ],
+        "Foo\nBar\nBaz\n",
+        "append"
+    );
+}
+

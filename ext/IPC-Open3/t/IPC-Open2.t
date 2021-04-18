@@ -3,7 +3,7 @@
 use Config;
 BEGIN {
     require Test::More;
-    if (!$Config{'d_fork'}
+    if ((!$Config{'d_fork'}
        # open2/3 supported on win32
        && $^O ne 'MSWin32')
     {
