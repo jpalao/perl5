@@ -2,7 +2,7 @@
 
 BEGIN {
     if( $ENV{PERL_CORE} ) {
-        @INC = '../lib';
+        use lib '../lib';
         chdir 't';
     }
 }
