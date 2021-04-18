@@ -88,13 +88,18 @@ else {
     $fail_arg = 'fail';
 }
 
-open $fh, "$echo_command $pass_arg|" or die $!;
+SKIP:
+{
+    skip ('iOS: this test breaks the harness', 2) if is_darwin_ios();
+    if (!is_darwin_ios()) {
+        open $fh, "$echo_command $pass_arg|" or die $!;
+        do $fh or die;
 
-do $fh or die;
+        open $fh, "$echo_command $fail_arg|" or die $!;
 
-open $fh, "$echo_command $fail_arg|" or die $!;
-
-do [$fh, sub {s/$_[1]/pass/; return;}, 'fail'] or die;
+        do [$fh, sub {s/$_[1]/pass/; return;}, 'fail'] or die;
+    }
+}
 
 sub rot13_filter {
     filter_add(sub {

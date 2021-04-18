@@ -10,6 +10,8 @@ if ($^O eq 'dos') {
     skip_all("no multitasking");
 }
 
+skip_all("iOS: no mulitasking") if is_darwin_ios();
+
 plan tests => 3;
 watchdog(10, $^O eq 'MSWin32' ? "alarm" : '');
 

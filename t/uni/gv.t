@@ -297,6 +297,7 @@ is($Ｊ[0], 1);
 {
     SKIP: {
         skip_if_miniperl('no dynamic loading on miniperl, no Encode', 2);
+        skip('iOS: this test breaks the harness', 2) if is_darwin_ios();
         # Need some sort of die or warn to get the global destruction text if the
         # bug is still present
         my $prog = <<'EOPROG';

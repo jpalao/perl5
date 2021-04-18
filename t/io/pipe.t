@@ -6,6 +6,8 @@ BEGIN {
     set_up_inc('../lib');
     require Config; import Config;
 }
+
+skip_all('iOS: pipe not supported') if is_darwin_ios();
 if (!$Config{'d_fork'}) {
     skip_all("fork required to pipe");
 }
