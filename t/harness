@@ -380,6 +380,7 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		'lib/feature.t',
 		'lib/warnings.t',
 		'lib/deprecate.t',
+	    'lib/diagnostics.t',
 		'lib/no_load.t',
 
 		're/uniprops05.t',
