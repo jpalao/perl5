@@ -544,10 +544,12 @@ is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', @path ],
    "sub BEGIN {\n    \$main::{'f'} = \\1;\n}\n",
    '&PL_sv_yes constant (used to croak)';
 
+if ($Config{'archname'} !~ /darwin-ios/) {
 is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path, '-T' ],
            prog => '$x =~ (1?/$a/:0)'),
   '$x =~ ($_ =~ /$a/);'."\n",
   '$foo =~ <branch-folded match> under taint mode';
+}
 
 unlike runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path, '-w' ],
                prog => 'BEGIN { undef &foo }'),
