@@ -26,7 +26,13 @@
 
 use Config;
 BEGIN {
-    @INC = '..' if -f '../TestInit.pm';
+    if (-f '../TestInit.pm') {
+        if ($Config{archname} =~ /darwin-ios/) {
+            use lib '..';
+        } else {
+            @INC = '..';
+        }
+    };
 }
 use TestInit qw(T); # T is chdir to the top level
 
