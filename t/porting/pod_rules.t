@@ -24,7 +24,7 @@ BEGIN {
     if (-f 'test.pl' && -f 'harness') {
       chdir '..';
     }
-    @INC = qw(lib .); # Special @INC.
+    use lib qw(.); # Special @INC.
     require './t/test.pl';
 }
 
