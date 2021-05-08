@@ -115,7 +115,7 @@ sub import {
 	    } else {
 		$chdir = 't';
         if ($is_ios) {
-            use lib '../lib';
+            use lib ('../lib', '../../lib');
         } else {
             @INC = '../lib';
         }
