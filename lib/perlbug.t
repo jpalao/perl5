@@ -6,7 +6,7 @@ use strict;
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
 }
 
 require './test.pl';
