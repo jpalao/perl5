@@ -20,8 +20,15 @@ package main;
 
 use Cwd;
 use File::Spec;
+use Config;
 
 my $Orig_Dir = cwd;
+my $Is_Ios = 0;
+
+if ($Config{archname} =~ /darwin-ios/) {
+    $Is_Ios = 1;
+    use cbrunperl;
+};
 
 my $Perl = File::Spec->rel2abs($^X);
 if( $^O eq 'VMS' ) {
@@ -66,8 +73,14 @@ END { 1 while unlink "exit_map_test" }
 
 for my $exit (0..255) {
     # This correctly emulates Test::Builder's behavior.
+
     my $out = qx[$Perl exit_map_test $exit];
+    # iOS: qx not supported, still $? == 0
+    $out = exec_perl_capture({ progfile => 'exit_map_test', args => ["$exit"]})
+        if($Is_Ios);
+
     $TB->like( $out, qr/^exit $exit\n/, "exit map test for $exit" );
+
     $Exit_Map{$exit} = exitstatus($?);
 }
 print "# Done.\n";
