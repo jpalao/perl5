@@ -421,10 +421,12 @@ $Config{archname} =~ /darwin-ios/ && eval {
 
 		'../dist/IO/t/io_dup.t',
 		'../dist/threads/t/exit.t',
+
 		'../ext/Devel-Peek/t/Peek.t',
 		'../ext/DynaLoader/t/DynaLoader.t',
 		'../ext/POSIX/t/posix.t',
 		'../ext/POSIX/t/sigaction.t',
+		'../ext/XS-APItest/t/clone-with-stack.t',
 	);
 
 	for my $black_list (@ios_blacklist)
