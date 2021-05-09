@@ -10,9 +10,13 @@ BEGIN {
 }
 
 use Config;
-use Cwd qw/getcwd/;
 use File::Path;
 use File::Spec::Functions qw(catfile curdir rel2abs);
+
+my $Is_Ios = $Config{archname} =~ /darwin-ios/;
+if ($Is_Ios) {
+    use Cwd qw/getcwd/;
+}
 
 use strict;
 use warnings;
@@ -39,7 +43,11 @@ if ($::IS_EBCDIC) { # Skip Latin1 files
 my ($tests, @prgs) = setup_multiple_progs(@w_files);
 
 $^X = rel2abs($^X);
-use lib map { rel2abs($_) } @INC;
+if ($Is_Ios) {
+    use lib map { rel2abs($_) } @INC;
+} else {
+    @INC = map { rel2abs($_) } @INC;
+}
 my $tempdir = tempfile;
 
 mkdir $tempdir, 0700 or die "Can't mkdir '$tempdir': $!";
@@ -60,8 +68,11 @@ if ($::local_tests && $::local_tests =~ /\D/) {
     plan $tests + ($::local_tests || 0);
 }
 
-my $abs_path = getcwd;
-
-run_multiple_progs("$abs_path/../..", @prgs);
+if ($Is_Ios) {
+    my $abs_path = getcwd;
+    run_multiple_progs("$abs_path/../..", @prgs);
+} else {
+    run_multiple_progs('../..', @prgs);
+}
 
 1;
