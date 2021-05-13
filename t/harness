@@ -11,7 +11,7 @@ $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
 $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
 $ENV{LC_ALL} = 'C';
 $ENV{LC_CTYPE} = 'C';
-$ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 1;
+$ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 0;
 
 my $torture; # torture testing?
 
@@ -376,12 +376,13 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		# or may pass, causing havoc afterwards,
 		# or they may pass or hang/crash indistinctly
 
+		'lib/croak.t',
 		'lib/feature.t',
 		'lib/warnings.t',
 		'lib/deprecate.t',
-	    'lib/diagnostics.t',
 		'lib/no_load.t',
 
+#		breaking on systems with 1GB RAM, sometimes on systems w/ 2GB
 		're/uniprops05.t',
 		're/uniprops06.t',
 		're/uniprops07.t',
@@ -389,7 +390,7 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		're/uniprops09.t',
 		're/uniprops10.t',
 
-		'uni/fold.t',
+		# 'uni/fold.t', # does not work on simulator?
 		
 		'../cpan/autodie/t/recv.t',
 		
