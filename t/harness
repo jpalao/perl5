@@ -381,8 +381,9 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		'lib/warnings.t',
 		'lib/deprecate.t',
 		'lib/no_load.t',
-
-#		breaking on systems with 1GB RAM, sometimes on systems w/ 2GB
+		# this breaks sometimes even if skipped
+		're/pat_psycho_thr.t',
+		# breaking on systems with 1GB RAM, sometimes on systems w/ 2GB
 		're/uniprops05.t',
 		're/uniprops06.t',
 		're/uniprops07.t',
