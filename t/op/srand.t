@@ -51,12 +51,15 @@ ok( !eq_array(\@first_run, \@second_run),
                        'srand(), no arg, not affected by $_');
 }
 
+SKIP: {
+skip('iOS: no backticks', 1) if is_darwin_ios();
 # This test checks whether Perl called srand for you.
 @first_run  = `$^X -le "print int rand 100 for 1..100"`;
 sleep(1); # in case our srand() is too time-dependent
 @second_run = `$^X -le "print int rand 100 for 1..100"`;
 
 ok( !eq_array(\@first_run, \@second_run), 'srand() called automatically');
+}
 
 # check srand's return value
 my $seed = srand(1764);
