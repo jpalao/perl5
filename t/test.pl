@@ -1833,7 +1833,7 @@ sub watchdog ($;$)
         # Try using fork() to generate a watchdog process
         my $watchdog;
         eval { $watchdog = fork() };
-        if (defined($watchdog)) {
+        if (!is_darwin_ios() && defined($watchdog)) {
             if ($watchdog) {   # Parent process
                 # Add END block to parent to terminate and
                 #   clean up watchdog process
