@@ -421,6 +421,8 @@ $Config{archname} =~ /darwin-ios/ && eval {
 
 		'../dist/IO/t/io_dup.t',
 		'../dist/threads/t/exit.t',
+		'../dist/Time-HiRes/t/itimer.t',
+		'../dist/Time-HiRes/t/ualarm.t',
 
 		'../ext/Devel-Peek/t/Peek.t',
 		'../ext/DynaLoader/t/DynaLoader.t',
