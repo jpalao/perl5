@@ -265,3 +265,5 @@ Uncaught exception from user code:
 	panic: gremlins at -e line 1.
 	BEGIN failed--compilation aborted at -e line 1.
 EOX
+
+chdir 't' if is_darwin_ios();
