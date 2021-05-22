@@ -392,7 +392,7 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		're/uniprops09.t',
 		're/uniprops10.t',
 
-		# 'uni/fold.t', # does not work on simulator?
+		'uni/fold.t',
 		
 		'../cpan/autodie/t/recv.t',
 		
