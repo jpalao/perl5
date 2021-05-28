@@ -43,11 +43,7 @@ if ($::IS_EBCDIC) { # Skip Latin1 files
 my ($tests, @prgs) = setup_multiple_progs(@w_files);
 
 $^X = rel2abs($^X);
-if ($Is_Ios) {
-    use lib map { rel2abs($_) } @INC;
-} else {
-    @INC = map { rel2abs($_) } @INC;
-}
+@INC = map { rel2abs($_) } @INC;
 my $tempdir = tempfile;
 
 mkdir $tempdir, 0700 or die "Can't mkdir '$tempdir': $!";
