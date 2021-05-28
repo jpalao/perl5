@@ -42,7 +42,7 @@ binmode STDERR, ':utf8';
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib '../lib';
+    @INC = '../lib';
     unshift @INC, '.';
     require './loc_tools.pl';
     unless (locales_enabled('LC_CTYPE')) {
