@@ -2,7 +2,7 @@
 use strict;
 BEGIN {
 	chdir 't' if -d 't';
-	use lib '../lib';
+	@INC = '../lib';
 }
 
 use File::Basename;

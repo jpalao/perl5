@@ -3,7 +3,7 @@ use warnings;
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib '../lib';
+    @INC = '../lib';
 
     use Config;
     if (! $Config{usethreads}) {

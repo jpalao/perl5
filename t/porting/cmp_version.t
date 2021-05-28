@@ -18,12 +18,8 @@
 # There's also a module exclusion list in Porting/cmpVERSION.pl.
 
 BEGIN {
-    if (-f '../TestInit.pm') {
-        use lib '..';
-    }
-    if (-f './TestInit.pm') {
-        use lib '.';
-    }
+    @INC = '..' if -f '../TestInit.pm';
+    @INC = '.'  if -f  './TestInit.pm';
 }
 use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 use strict;

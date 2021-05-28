@@ -2,7 +2,7 @@
 
 BEGIN {
 	chdir 't' if -d 't';
-	use lib '../lib';
+	@INC = '../lib';
 }
 
 # this must come before main, or tests will fail

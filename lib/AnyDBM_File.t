@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib '../lib';
+    @INC = '../lib';
     require Config; import Config;
     require Test::More; import Test::More;
     plan(tests, 12);

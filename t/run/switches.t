@@ -6,7 +6,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib '../lib';
+    @INC = '../lib';
     require Config; import Config;
 }
 

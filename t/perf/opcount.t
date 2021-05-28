@@ -14,11 +14,7 @@ BEGIN {
     chdir 't';
     require './test.pl';
     skip_all_if_miniperl("No B under miniperl");
-    if (is_darwin_ios()) {
-        use lib '../lib';
-    } else {
-        @INC = '../lib';
-    }
+    @INC = '../lib';
 }
 
 use warnings;
