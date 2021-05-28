@@ -2,12 +2,8 @@
 
 BEGIN {
     chdir 't' if -d 't';
+    @INC = qw(../lib lib);
     require "./test.pl";
-    if (is_darwin_ios()) {
-        use lib qw(../lib lib);
-    } else {
-        @INC = qw(../lib lib);
-    }
 }
 
 # This test depends on t/lib/Devel/switchd*.pm.

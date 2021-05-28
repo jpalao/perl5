@@ -22,15 +22,11 @@
 # If this changes uconfig.sh, you'll also need to run perl regen/uconfig_h.pl
 
 use Config;
-
 BEGIN {
     require "./test.pl";
     skip_all("Won't ship a release from EBCDIC") if $::IS_EBCDIC;
-    if (-f '../TestInit.pm'){
-        use lib '..' ;
-    }
+    @INC = '..' if -f '../TestInit.pm';
 }
-
 use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 
 if ( $Config{usecrosscompile} ) {

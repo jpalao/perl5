@@ -4,7 +4,7 @@ use Carp;
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib qw(. ../lib);
+    @INC = qw(. ../lib);
 }
 
 our $db ;

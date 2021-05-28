@@ -7,7 +7,7 @@ my ($BigWidth, $BigEnough, $RootWidth, $ItemFormat, @TestSizes, $WellSoaked);
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib qw(../lib);
+    @INC = qw(../lib);
     $BigWidth  = 6;				# Digits in $BigEnough-1
     $BigEnough = 10**$BigWidth;			# Largest array we'll attempt
     $RootWidth = int(($BigWidth+1)/2);		# Digits in sqrt($BigEnough-1)
