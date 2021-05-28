@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir '..' if -d '../pod' && -d '../t';
-    use lib 'lib';
+    @INC = 'lib';
     require './t/test.pl';
     plan(31);
 }

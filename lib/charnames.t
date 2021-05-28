@@ -21,7 +21,7 @@ my @WARN;
 BEGIN {
     unless(grep /blib/, @INC) {
 	chdir 't' if -d 't';
-	use lib '../lib';
+	@INC = '../lib';
     }
     $SIG{__WARN__} = sub { push @WARN, @_ };
 }

@@ -5,7 +5,7 @@ use warnings;
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib '../lib';
+    @INC = '../lib';
 }
 
 use Test::More tests => 31;
