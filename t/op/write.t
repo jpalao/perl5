@@ -2061,12 +2061,9 @@ if ($^O eq 'VMS' || $^O eq 'MSWin32' ||
  SKIP: {
       skip "'|-' and '-|' not supported", $tests - $test + 1;
   }
-  if (is_darwin_ios()) {
-     done_testing();
-  } else {
-      exit(0);
-  }
+  exit(0);
 }
+
 
 $^  = "STDOUT_TOP";
 $=  =  7;		# Page length
