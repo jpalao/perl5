@@ -7,6 +7,8 @@ BEGIN {
 }
 plan(tests => 3);
 
+skip_all('iOS: stdin not supported') if is_darwin_ios();
+
 { # perl #116190
   fresh_perl_is('print qq!@F!', '1 2',
 		{
