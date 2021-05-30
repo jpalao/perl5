@@ -2054,18 +2054,15 @@ fresh_perl_is('for(1..2){formline*0}', '', { stderr => 1 } , "#130722 - assertio
 # Just a complete test for format, including top-, left- and bottom marging
 # and format detection through glob entries
 
-if ($^O eq 'VMS' || $^O eq 'MSWin32' || $^O eq 'dos' $^O eq 'darwin' ||
+if ($^O eq 'VMS' || $^O eq 'MSWin32' || $^O eq 'dos' || is_darwin_ios() ||
     ($^O eq 'os2' and not eval '$OS2::can_fork')) {
   $test = curr_test();
  SKIP: {
       skip "'|-' and '-|' not supported", $tests - $test + 1;
   }
-  if (is_darwin_ios()) {
-     done_testing();
-  } else {
-      exit(0);
-  }
+  exit(0);
 }
+
 
 $^  = "STDOUT_TOP";
 $=  =  7;		# Page length
