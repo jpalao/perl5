@@ -2,10 +2,12 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require './test.pl';	# for which_perl() etc
     plan(3);
 }
+
+skip_all("iOS: no backtick operator") if (is_darwin_ios());
 
 my $Perl = which_perl();
 
