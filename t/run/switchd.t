@@ -161,7 +161,10 @@ SKIP:
       "DB::DB works after '*DB::DB if 0'",
     );
 }
+
+SKIP: {
 # [perl #115742] Recursive DB::DB clobbering its own pad
+skip('iOS: this test breaks the harness', 1) if is_darwin_ios();
 like(
   runperl(
     switches => [ '-Ilib' ],
@@ -187,6 +190,7 @@ like(
   qr/42/,
   "Recursive DB::DB does not clobber its own pad",
 );
+}
 
 # [perl #118627]
 like(
