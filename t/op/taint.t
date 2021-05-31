@@ -10,7 +10,6 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
-    skip_all('iOS: this test breaks the harness') if is_darwin_ios();
     set_up_inc('../lib');
     require './loc_tools.pl';
 }
@@ -1542,6 +1541,7 @@ SKIP: {
     # test shmread
     SKIP: {
         skip "shm*() not available", 1 unless $Config{d_shm};
+        skip "iOS: shm*() not available", 1 if is_darwin_ios();
 
         no strict 'subs';
         my $sent = "foobar";
@@ -1579,6 +1579,7 @@ SKIP: {
     # test msgrcv
     SKIP: {
         skip "msg*() not available", 1 unless $Config{d_msg};
+        skip "iOS: msg*() not available", 1 if is_darwin_ios();
 
 	no strict 'subs';
         my $id;
@@ -2020,6 +2021,7 @@ SKIP:
 	skip "fork() is not available", 3 unless $Config{'d_fork'};
 	skip "opening |- is not stable on threaded Open/MirBSD with taint", 3
             if $Config{useithreads} and $Is_OpenBSD || $Is_MirBSD;
+	skip "iOS: opening |- not supported", 3 if is_darwin_ios();
 
 	$ENV{'PATH'} = $TAINT;
 	local $SIG{'PIPE'} = 'IGNORE';
@@ -2378,7 +2380,8 @@ end
     is($s, 'xbc', "match bare regex taint value");
 }
 
-{
+SKIP: {
+    skip "iOS: this test breaks the harness", 2 if is_darwin_ios();
     # [perl #82616] security Issues with user-defined \p{} properties
     # A using a tainted user-defined property should croak
 
