@@ -18,8 +18,6 @@
 BEGIN {
   chdir 't' if -d 't';
   require "./test.pl";
-  skip_all('iOS: this test passe but breaks the harness')
-        if is_darwin_ios();
   set_up_inc('../lib') if -d '../lib' && -d '../ext';
 
   require Config; import Config;
@@ -28,6 +26,8 @@ BEGIN {
     skip_all('-- IPC::SysV was not built');
   }
   skip_all_if_miniperl();
+  skip_all('iOS: this test breaks the harness')
+        if is_darwin_ios();  
   if ($Config{'d_shm'} ne 'define') {
     skip_all('-- $Config{d_shm} undefined');
   }
