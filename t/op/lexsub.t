@@ -390,7 +390,9 @@ like runperl(
   eval 'sub cvgv2 {42}'; # uses the stub already present
   is foo, 42, 'defining state sub body via package sub declaration';
 }
-{
+
+SKIP: {
+  skip('iOS: no STDIN access', 2) if is_darwin_ios();
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
@@ -801,7 +803,8 @@ like runperl(
 # We would have crashed by now if it weren’t fixed.
 pass "pad taking ownership once more of packagified my-sub";
 
-{
+SKIP: {
+  skip('iOS: no STDIN access', 1) if is_darwin_ios();
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
