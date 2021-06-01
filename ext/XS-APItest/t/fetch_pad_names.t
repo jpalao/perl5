@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Config;
 use Encode ();
 
 use Test::More;
@@ -14,7 +15,11 @@ else {
 
 use XS::APItest qw( fetch_pad_names pad_scalar );
 
-local $SIG{__WARN__} = sub { warn $_[0] unless $_[0] =~ /Wide character in print at/ };
+if ($Config{'archname'} =~ /darwin-ios/) {
+    use no warnings;
+} else {
+    local $SIG{__WARN__} = sub { warn $_[0] unless $_[0] =~ /Wide character in print at/ };
+}
 
 ok defined &fetch_pad_names, "sub imported";
 ok defined &pad_scalar;
