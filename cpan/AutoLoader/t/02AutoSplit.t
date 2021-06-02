@@ -22,9 +22,16 @@ my $runperl = "$^X $lib";
 
 use warnings;
 use strict;
+use Config;
 use Test::More tests => 58;
 use File::Spec;
 use File::Find;
+
+my $Is_ios = $Config{'archname'} =~ /darwin-ios/;
+if ($Is_ios) {
+    use Cwd qw(getcwd);
+    use cbrunperl;
+}
 
 my $Is_VMS   = $^O eq 'VMS';
 my $Is_VMS_mode = 0;
@@ -82,6 +89,14 @@ sub split_a_file {
     open FILE, ">$file" or die "Can't open $file: $!";
     print FILE $contents;
     close FILE or die "Can't close $file: $!";
+  }
+
+  if ($Is_ios) {
+      return exec_perl_capture ({
+        prog => "use AutoSplit; autosplit (qw(@_))",
+        pwd => getcwd(),
+        stderr => 1,
+      });
   }
 
   # Assumption: no characters in arguments need escaping from the shell or perl
