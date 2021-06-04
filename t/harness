@@ -21,6 +21,7 @@ use TAP::Harness 3.13;
 use strict;
 use Config;
 use Data::Dumper;
+use FileCache;
 
 $::do_nothing = $::do_nothing = 1;
 require './TEST';
@@ -431,6 +432,14 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		'../ext/POSIX/t/sigaction.t',
 		'../ext/XS-APItest/t/clone-with-stack.t',
 		
+		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
+		'../cpan/IPC-Cmd/t/02_Interactive.t',
+		'../cpan/IPC-Cmd/t/03_run-forked.t',
+
+		'../ext/IPC-Open3/t/fd.t',
+		'../ext/IPC-Open3/t/IPC-Open2.t',
+		'../ext/IPC-Open3/t/IPC-Open3.t',
+
 		'../lib/feature/unicode_strings.t',
 	);
 
