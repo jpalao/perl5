@@ -39,6 +39,7 @@ our $Tests_Are_Passing = 1;
 if (is_darwin_ios()) {
     use Cwd qw/getcwd/;
     use cbrunperl;
+    use FileCache;
     $cbrunperl::DEBUG = 0;
 }
 
@@ -1027,6 +1028,7 @@ sub fresh_perl {
     $runperl_args->{stderr}     = 1 unless exists $runperl_args->{stderr};
 
     open TEST, '>', $tmpfile or die "Cannot open $tmpfile: $!";
+    cacheout '>', $tmpfile;
     binmode TEST, ':utf8' if $runperl_args->{wide_chars};
     print TEST $prog;
     close TEST or die "Cannot close $tmpfile: $!";
@@ -1188,6 +1190,7 @@ sub setup_multiple_progs {
         next if -d $file;
 
         open my $fh, '<', $file or die "Cannot open $file: $!\n" ;
+        cacheout '<', $file;
         my $found;
         while (<$fh>) {
             if (/^__END__/) {
@@ -1306,6 +1309,7 @@ sub run_multiple_progs {
 		    push(@temp_path, $1);
 		}
 		open my $fh, '>', $filename or die "Cannot open $filename: $!\n";
+		cacheout '>', $filename;
 		print $fh $code;
 		close $fh or die "Cannot close $filename: $!\n";
 	    }
@@ -1314,6 +1318,7 @@ sub run_multiple_progs {
 	}
 
 	open my $fh, '>', $tmpfile or die "Cannot open >$tmpfile: $!";
+	cacheout '>', $filename;
 	print $fh q{
         BEGIN {
             push @INC, '.';
