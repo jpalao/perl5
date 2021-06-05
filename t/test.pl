@@ -1807,11 +1807,9 @@ sub watchdog ($;$)
                 # Kill the parent (and ourself)
                 select(STDERR); $| = 1;
                 _diag($timeout_msg);
-
                 POSIX::_exit(1) if (defined(&POSIX::_exit));
                 my $sig = $is_vms ? 'TERM' : 'KILL';
                 kill($sig, $pid_to_kill);
-                return;
             })->detach();
         return;
     }
