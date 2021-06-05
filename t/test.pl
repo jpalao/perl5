@@ -1664,13 +1664,13 @@ sub warning_like {
 #        _AFTER_ the 'threads' module is loaded.
 sub watchdog ($;$)
 {
+    return if is_darwin_ios();
     my $timeout = shift;
     my $method  = shift || "";
     my $timeout_msg = 'Test process timed out - terminating';
 
     # Valgrind slows perl way down so give it more time before dying.
     $timeout *= 10 if $ENV{PERL_VALGRIND};
-    $timeout *= 15 if is_darwin_ios();
 
     my $pid_to_kill = $$;   # PID for this process
 
@@ -1751,7 +1751,7 @@ sub watchdog ($;$)
         # Try using fork() to generate a watchdog process
         my $watchdog;
         eval { $watchdog = fork() };
-        if (!is_darwin_ios() && defined($watchdog)) {
+        if (defined($watchdog)) {
             if ($watchdog) {   # Parent process
                 # Add END block to parent to terminate and
                 #   clean up watchdog process
@@ -1807,13 +1807,10 @@ sub watchdog ($;$)
                 # Kill the parent (and ourself)
                 select(STDERR); $| = 1;
                 _diag($timeout_msg);
-                if (!is_darwin_ios()) {
-                    POSIX::_exit(1) if (defined(&POSIX::_exit));
-                }
+
+                POSIX::_exit(1) if (defined(&POSIX::_exit));
                 my $sig = $is_vms ? 'TERM' : 'KILL';
-                if (!is_darwin_ios()) {
-                    kill($sig, $pid_to_kill);
-                }
+                kill($sig, $pid_to_kill);
                 return;
             })->detach();
         return;
