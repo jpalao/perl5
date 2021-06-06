@@ -438,7 +438,7 @@ is $kalled, 1, 'calling a class method via a magic variable';
 
 
 SKIP: {
-    skip ("fresh_perl_is not working on iOS", 1) if (is_darwin_ios());
+    skip ("iOS: #TODO DESTROY creating a new reference crashes", 1) if (is_darwin_ios());
     fresh_perl_is(
     q! sub T::DESTROY { $x = $_[0]; } bless [], "T";!,
     "DESTROY created new reference to dead object 'T' during global destruction.",
