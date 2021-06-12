@@ -4018,8 +4018,8 @@ CODE:
     /* call the real 'exit' not PerlProc_exit */
 #if !TARGET_OS_IPHONE
 #undef exit
-#endif
     exit(0);
+#endif
 }
 
 #endif /* USE_ITHREDS */
