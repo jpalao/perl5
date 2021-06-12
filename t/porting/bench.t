@@ -16,7 +16,6 @@ use warnings;
 use strict;
 use Config;
 
-chdir 't' if -d 't' && is_darwin_ios;
 
 # Only test on git checkouts - this is more of a perl core developer
 # tool than an end-user tool.
