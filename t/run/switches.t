@@ -160,7 +160,7 @@ SWTEST
     close $f or die "Could not close: $!";
     $r = runperl(
 	progfile    => $filename,
-	args	    => [ '-x=foo -y' ],
+	args	    => [ '-x=foo', '-y' ],
     );
     is( $r, 'foo1', '-s on the shebang line' );
 }
@@ -284,7 +284,8 @@ is runperl(stderr => 1, prog => '#!perl -M'),
     # regexp lookup
     # platforms that don't like this quoting can either skip this test
     # or fix test.pl _quote_args
-    $r = runperl( switches => ['"-V:i\D+size"'] );
+    my $switches_str = is_darwin_ios() ? '-V:i\D+size' : '"-V:i\D+size"';
+    $r = runperl( switches => [$switches_str] );
     # should be unlike( $r, qr/^$|not found|UNKNOWN/ );
     like( $r, qr/^(?!.*(not found|UNKNOWN))./, 'perl -V:re got a result' );
 
@@ -305,8 +306,9 @@ is runperl(stderr => 1, prog => '#!perl -M'),
         my $v = sprintf "%vd", $^V;
         my $ver = $Config{PERL_VERSION};
         my $rel = $Config{PERL_SUBVERSION};
+        my $archname = is_darwin_ios() ? 'darwin-thread-multi-2level' : $Config{archname};
         like( runperl( switches => ['-v'] ),
-	      qr/This is perl 5, version \Q$ver\E, subversion \Q$rel\E \(v\Q$v\E(?:[-*\w]+| \([^)]+\))?\) built for \Q$Config{archname}\E.+Copyright.+Larry Wall.+Artistic License.+GNU General Public License/s,
+	      qr/This is perl 5, version \Q$ver\E, subversion \Q$rel\E \(v\Q$v\E(?:[-*\w]+| \([^)]+\))?\) built for \Q$archname\E.+Copyright.+Larry Wall.+Artistic License.+GNU General Public License/s,
               '-v looks okay' );
     }
 }
@@ -534,6 +536,7 @@ CODE
   SKIP:
     {
         skip "Need fork", 3 if !$Config{d_fork};
+        skip "iOS: Need fork", 3 if is_darwin_ios();
         open my $fh, ">", $work
           or die "Cannot open $work: $!";
         # we want only a single line for this test, otherwise
