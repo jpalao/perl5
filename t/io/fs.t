@@ -282,6 +282,7 @@ SKIP: {
 
 SKIP: {
     skip "has futimes", 1 if ($Config{d_futimes} || "") eq "define";
+    skip "has futimes", 1 if is_darwin_ios();
     open(my $fh, "<", "b") || die;
     eval { utime(undef, undef, $fh); };
     like($@, qr/^The futimes function is unimplemented at/, "futimes is unimplemented");
