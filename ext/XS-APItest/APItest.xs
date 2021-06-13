@@ -4019,6 +4019,8 @@ CODE:
 #if !TARGET_OS_IPHONE
 #undef exit
     exit(0);
+#else
+    PerlProc_exit(0);
 #endif
 }
 
