@@ -377,6 +377,10 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		# or may pass, causing havoc afterwards,
 		# or they may pass or hang/crash indistinctly
 
+		'io/perlio_leaks.t',
+
+		'op/die_keeperr.t',
+
 		'lib/croak.t',
 		'lib/feature.t',
 		'lib/warnings.t',
