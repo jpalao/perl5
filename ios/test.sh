@@ -150,6 +150,20 @@ test_perl_device() {
     rm -Rf "$IOS_MOUNTPOINT/*"
     check_exit_code
 
+    pushd "$WORKDIR/perl-$PERL_VERSION/"
+
+    # substitute @INC = list with use lib list in t
+    find . | grep -E "\.t$" | xargs grep -El "^\s*[^#]\s*@INC\s*=" | \
+        xargs perl -0777 -p -i -e 's|(\s*[^#]\s*)\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
+
+    find . | grep -E "\.(pl|pm|t)$" | xargs grep -El "^\s*[^#]\s*@INC\s*=.*if.*" | \
+        xargs perl -0644 -p -i -e \
+        's|(\s*[^#]\s*)\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
+
+    git checkout op/inccode.t
+
+    popd
+
     echo "Copy perl build directory to iOS device..."
     cp -RL "$WORKDIR/perl-$PERL_VERSION/." $IOS_MOUNTPOINT 2>/dev/null
     #check_exit_code
