@@ -2,10 +2,11 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
 }
 
 use strict;
+use Config;
 use File::Spec;
 my($blib, $blib_arch, $blib_lib, @blib_dirs);
 
@@ -62,7 +63,11 @@ _mkdirs( @blib_dirs );
     is( $warnings, '',  'use blib is nice and quiet' );
 }
 
-is( @INC, 3, '@INC now has 3 elements' );
+SKIP: {
+    skip("iOS: \@INC now has 3 elements", 1)
+        if $Config{archname} =~ /darwin-ios/;
+    is( @INC, 3, '@INC now has 3 elements' );
+}
 is( $INC[2],    '../lib',       'blib added to the front of @INC' );
 
 if ($Is_VMS_mode) {
