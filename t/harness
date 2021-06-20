@@ -15,7 +15,7 @@ $ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 0;
 
 my $torture; # torture testing?
 
-use open ":std", ":encoding(UTF-8)"; 
+use open ":std", ":encoding(UTF-8)";
 use Fcntl;
 use TAP::Harness 3.13;
 use strict;
@@ -382,13 +382,9 @@ $Config{archname} =~ /darwin-ios/ && eval {
 
 		'op/die_keeperr.t',
 
-		'lib/croak.t',
-		'lib/feature.t',
-		'lib/warnings.t',
-		'lib/deprecate.t',
-		'lib/no_load.t',
 		# this breaks sometimes even if skipped
 		're/pat_psycho_thr.t',
+
 		# breaking on systems with 1GB RAM, sometimes on systems w/ 2GB
 		're/uniprops05.t',
 		're/uniprops06.t',
@@ -398,17 +394,14 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		're/uniprops10.t',
 
 		'uni/fold.t',
-		
+
 		'../cpan/autodie/t/recv.t',
-		
 		# DB_File not built in
 		'../cpan/DB_File/t/db-threads.t',
 		'../cpan/DB_File/t/db-recno.t',
 		'../cpan/DB_File/t/db-hash.t',
 		'../cpan/DB_File/t/db-btree.t',
-		
 		'../cpan/File-Temp/t/lock.t',
-
 		'../cpan/IO-Compress/t/cz-14gzopen.t',
 		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
 		'../cpan/IPC-SysV/t/ipcsysv.t',
@@ -417,9 +410,10 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		'../cpan/IPC-SysV/t/podcov.t',
 		'../cpan/IPC-SysV/t/sem.t',
 		'../cpan/IPC-SysV/t/shm.t',
-
 		'../cpan/autodie/t/exec.t',
-
+		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
+		'../cpan/IPC-Cmd/t/02_Interactive.t',
+		'../cpan/IPC-Cmd/t/03_run-forked.t',
 		'../cpan/Test-Harness/t/compat/inc-propagation.t',
 		'../cpan/Test-Harness/t/compat/inc_taint.t',
 		'../cpan/Test-Harness/t/compat/test-harness-compat.t',
@@ -427,6 +421,7 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		'../cpan/Test-Harness/t/regression.t',
 
 		'../dist/IO/t/io_dup.t',
+		'../dist/IO/t/io_utf8.t',
 		'../dist/threads/t/exit.t',
 		'../dist/Time-HiRes/t/itimer.t',
 		'../dist/Time-HiRes/t/ualarm.t',
@@ -435,16 +430,15 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		'../ext/DynaLoader/t/DynaLoader.t',
 		'../ext/POSIX/t/posix.t',
 		'../ext/POSIX/t/sigaction.t',
-		'../ext/XS-APItest/t/clone-with-stack.t',
-		
-		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
-		'../cpan/IPC-Cmd/t/02_Interactive.t',
-		'../cpan/IPC-Cmd/t/03_run-forked.t',
-
 		'../ext/IPC-Open3/t/fd.t',
 		'../ext/IPC-Open3/t/IPC-Open2.t',
 		'../ext/IPC-Open3/t/IPC-Open3.t',
+		'../ext/XS-APItest/t/clone-with-stack.t',
 
+		#'../lib/croak.t',
+		#'../lib/feature.t',
+		#'../lib/warnings.t',
+		'../lib/deprecate.t',
 		'../lib/feature/unicode_strings.t',
 	);
 
@@ -459,6 +453,11 @@ $Config{archname} =~ /darwin-ios/ && eval {
 			}
 		}
 	}
+
+	#@tests = grep(/^\.\.\/lib\/blib.t/, @tests);
+	#@tests = grep(/^op/, @tests);
+	#@tests = grep(/^(io|op|opbasic|lib|perf|mro|uni)/, @tests);
+	#@tests = ('re/pat.t');
 
 	$test_dumper = Data::Dumper->new([@tests])->Dump();
 	print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
