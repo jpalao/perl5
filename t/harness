@@ -9,6 +9,11 @@ BEGIN {
 
 $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
 $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
+# $ENV{PERL_BENCHMARK} = 1;
+# $ENV{PERL_TEST_MEMORY} = 1;
+# $ENV{PERL_VALGRIND} = 1;
+# $ENV{PERL_TEST_HARNESS_ASAP} = 1;
+# $ENV{PERL_USE_UNSAFE_INC}
 $ENV{LC_ALL} = 'C';
 $ENV{LC_CTYPE} = 'C';
 $ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 0;
@@ -379,6 +384,9 @@ $Config{archname} =~ /darwin-ios/ && eval {
 
 		'io/perlio_leaks.t',
 
+		'lib/deprecate.t',
+
+		'op/groups.t',
 		'op/die_keeperr.t',
 
 		# this breaks sometimes even if skipped
@@ -437,7 +445,6 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		#'../lib/croak.t',
 		#'../lib/feature.t',
 		#'../lib/warnings.t',
-		'../lib/deprecate.t',
 		'../lib/feature/unicode_strings.t',
 	);
 
