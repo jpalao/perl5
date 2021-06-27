@@ -9,7 +9,6 @@ use IO::Handle;
 use base 'TAP::Parser::Iterator';
 
 my $IS_WIN32 = ( $^O =~ /^(MS)?Win32$/ );
-my $IS_DARWIN_IOS = $^O eq 'darwin' && $Config{archname} =~ /darwin-ios/ ;
 
 =head1 NAME
 
@@ -163,20 +162,7 @@ sub _initialize {
         }
         else {
             $err = $merge ? '' : IO::Handle->new;
-            if (!$IS_DARWIN_IOS) {
-              eval { $pid = open3( '<&STDIN', $out, $err, @command ); };
-            } else {
-              eval {
-                use Cwd qw/getcwd/;
-                use cbrunperl;
-                my $cmd = '';
-                for my $c (@command) {
-                  $cmd .= $c . ' ';
-                }
-                exec_test( getcwd(), $cmd);
-              }
-            }
-
+            eval { $pid = open3( '<&STDIN', $out, $err, @command ); };
             die "Could not execute (@command): $@" if $@;
             $sel = $merge ? undef : IO::Select->new( $out, $err );
         }
