@@ -4,7 +4,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require "./test.pl";
 
     skip_all_without_perlio();
@@ -23,16 +23,19 @@ my $b = chr 256; utf8::encode $b;
 $r = runperl( switches => [ '-CO', '-w' ],
 	      prog     => 'print chr(256)',
               stderr   => 1 );
+utf8::encode $r if is_darwin_ios();
 like( $r, qr/^$b(?:\r?\n)?$/s, '-CO: no warning on UTF-8 output' );
 
 $r = runperl( switches => [ '-C2', '-w' ],
 	      prog     => 'print chr(256)',
               stderr   => 1 );
+utf8::encode $r if is_darwin_ios();
 like( $r, qr/^$b(?:\r?\n)?$/s, '-C2: no warning on UTF-8 output' );
 
 SKIP: {
     if (exists $ENV{PERL_UNICODE} &&
-	($ENV{PERL_UNICODE} eq "" || $ENV{PERL_UNICODE} =~ /[SO]/)) {
+	($ENV{PERL_UNICODE} eq "" || $ENV{PERL_UNICODE} =~ /[SO]/)
+	    || is_darwin_ios()) {
 	skip(qq[cannot test with PERL_UNICODE "" or /[SO]/], 1);
     }
     $r = runperl( switches => [ '-CI', '-w' ],
@@ -45,6 +48,7 @@ SKIP: {
 $r = runperl( switches => [ '-CE', '-w' ],
 	      prog     => 'warn chr(256), qq(\n)',
               stderr   => 1 );
+utf8::encode $r if is_darwin_ios();
 like( $r, qr/^$b(?:\r?\n)?$/s, '-CE: UTF-8 stderr' );
 
 $r = runperl( switches => [ '-Co', '-w' ],
@@ -75,21 +79,25 @@ $r = runperl( switches => [ '-CA', '-w' ],
 	      prog     => 'print ord shift',
               stderr   => 1,
               args     => [ chr(256) ] );
+utf8::encode $r if is_darwin_ios();
 like( $r, qr/^256(?:\r?\n)?$/s, '-CA: @ARGV' );
 
 $r = runperl( switches => [ '-CS', '-w' ],
 	      progs    => [ '#!perl -CS', 'print chr(256)'],
               stderr   => 1, );
+utf8::encode $r if is_darwin_ios();
 like( $r, qr/^$b(?:\r?\n)?$/s, '#!perl -C' );
 
 $r = runperl( switches => [ '-CS' ],
 	      progs    => [ '#!perl -CS -w', 'print chr(256), !!$^W'],
               stderr   => 1, );
+utf8::encode $r if is_darwin_ios();
 like( $r, qr/^${b}1(?:\r?\n)?$/s, '#!perl -C followed by another switch' );
 
 $r = runperl( switches => [ '-CS' ],
 	      progs    => [ '#!perl -C7 -w', 'print chr(256), !!$^W'],
               stderr   => 1, );
+utf8::encode $r if is_darwin_ios();
 like(
   $r, qr/^${b}1(?:\r?\n)?$/s,
  '#!perl -C<num> followed by another switch'
