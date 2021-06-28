@@ -18,7 +18,7 @@ elsif ($^O eq 'VMS') {
   map { $files{lc($_)}++ } <[.op]*>;
   map { s/;.*$//; delete $files{lc($_)}; } split /[\n]/, `directory/noheading/notrailing/versions=1 [.op]`,
 }
-else {
+elsif ($Config{archname} != /darwin-ios/) {
   map { $files{$_}++ } <op/*>;
   map { delete $files{$_} } split /\n/, `ls op/* | cat`;
 }
@@ -116,7 +116,7 @@ SKIP: {
 SKIP: {
     use Config;
     skip("glob() works when cross-compiling, but this test doesn't", 1)
-        if $Config{usecrosscompile};
+        if ($Config{usecrosscompile} || is_darwin_ios());
 
     my $switches = [qw(-lw)];
     my $expected = "ok1\nok2\n";
