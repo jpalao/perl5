@@ -165,7 +165,9 @@ ok($foo[4]->()->(4));
 
 # Additional tests by Tom Phoenix <rootbeer@teleport.com>.
 
-{
+SKIP: {
+    skip("iOS: no fork, no pipe") if is_darwin_ios();
+    skip_if_miniperl("no XS on miniperl (for source filters)");
     use strict;
 
     our $test;
