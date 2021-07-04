@@ -165,7 +165,8 @@ ok($foo[4]->()->(4));
 
 # Additional tests by Tom Phoenix <rootbeer@teleport.com>.
 
-{
+SKIP: {
+    skip("iOS: no fork, no pipe") if is_darwin_ios();
     use strict;
 
     our $test;

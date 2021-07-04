@@ -15,8 +15,10 @@ my @tfiles_bak = map "bak.$_", @tfiles;
 END { unlink_all(@tfiles_bak); }
 
 for my $file (@tfiles) {
-    runperl( prog => 'print qq(foo\n);', 
-             args => ['>', $file] );
+    my $result = runperl( prog => 'print qq(foo\n);');
+    open my $fh, '>', $file or die "Cannot open >$file: $!";
+    print $fh $result;
+    close $fh;
 }
 
 @ARGV = @tfiles;

@@ -2236,7 +2236,9 @@ x{0c!}\;\;îçÿ  /0f/! F  /;îçÿù\Q   xÿÿÿÿ   ù   `x{0c!};   ù\Q
                         eval $z;:, "", {}, 'foo');
     }
 
+SKIP:
     {   # [perl #134325]
+        skip ("iOS this test breaks the suite", 8) if is_darwin_ios;    
         my $quote="\\Q";
         my $back="\\\\";
         my $ff="\xff";

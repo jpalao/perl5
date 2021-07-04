@@ -4016,8 +4016,12 @@ CODE:
     perl_free(interp_dup);
 
     /* call the real 'exit' not PerlProc_exit */
+#if !TARGET_OS_IPHONE
 #undef exit
     exit(0);
+#else
+    PerlProc_exit(0);
+#endif
 }
 
 #endif /* USE_ITHREDS */

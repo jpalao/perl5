@@ -2,6 +2,9 @@ package TAP::Parser::Iterator::Array;
 
 use strict;
 use warnings;
+use Data::Dumper;
+use Cwd qw/getcwd/;
+use cbrunperl;
 
 use base 'TAP::Parser::Iterator';
 
@@ -62,11 +65,21 @@ be zero.
 
 # new() implementation supplied by TAP::Object
 
+sub array_ref_from {
+    my $string = shift;
+    my @lines = split /\n/ => $string;
+    return \@lines;
+}
+
 sub _initialize {
     my ( $self, $thing ) = @_;
     chomp @$thing;
+
+    my $command = join " ", @$thing;
+    my $tap = exec_test(getcwd(), $command);
+
     $self->{idx}   = 0;
-    $self->{array} = $thing;
+    $self->{array} = array_ref_from($tap);
     $self->{exit}  = undef;
     return $self;
 }

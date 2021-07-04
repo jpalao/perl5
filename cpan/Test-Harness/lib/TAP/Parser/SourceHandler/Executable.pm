@@ -2,9 +2,18 @@ package TAP::Parser::SourceHandler::Executable;
 
 use strict;
 use warnings;
+use Config;
 
-use TAP::Parser::IteratorFactory   ();
-use TAP::Parser::Iterator::Process ();
+use constant IS_IOS => ( $Config{'archname'} =~ /darwin-ios/ );
+
+use TAP::Parser::IteratorFactory       ();
+
+if (IS_IOS) {
+    use cbrunperl;
+    use TAP::Parser::Iterator::Array   ();
+} else {
+    use TAP::Parser::Iterator::Process ();
+}
 
 use base 'TAP::Parser::SourceHandler';
 
@@ -120,11 +129,17 @@ sub make_iterator {
 
     push @command, @{ $source->test_args || [] };
 
-    return $class->iterator_class->new(
-        {   command => \@command,
-            merge   => $source->merge
-        }
-    );
+    if (IS_IOS) {
+        return $class->iterator_class->new(
+             \@command
+        );
+    } else {
+        return $class->iterator_class->new(
+            {   command => \@command,
+                merge   => $source->merge
+            }
+        );
+    }
 }
 
 =head3 C<iterator_class>
@@ -134,7 +149,8 @@ to L<TAP::Parser::Iterator::Process>.
 
 =cut
 
-use constant iterator_class => 'TAP::Parser::Iterator::Process';
+use constant iterator_class => IS_IOS ? 'TAP::Parser::Iterator::Array' :
+                                        'TAP::Parser::Iterator::Process';
 
 # Turns on autoflush for the handle passed
 sub _autoflush {
