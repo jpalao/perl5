@@ -4020,7 +4020,7 @@ CODE:
 #undef exit
     exit(0);
 #else
-    PerlProc_exit(0);
+    my_exit(0);
 #endif
 }
 
