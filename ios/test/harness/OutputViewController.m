@@ -83,10 +83,9 @@ static char * test_result_filename = "perl-tests.tap";
     return ^(NSNotification * notification)
     {
         dispatch_async(stderrQueue, ^{
-            NSString * notificationText;
             @try
             {
-               notificationText = [[NSString alloc] initWithData: [self.stderrReadHandle availableData] encoding: NSUTF8StringEncoding];
+                NSString * notificationText = [[NSString alloc] initWithData: [self.stderrReadHandle availableData] encoding: NSUTF8StringEncoding];
                 if (!notificationText) return;
                 [self textToLogFile: notificationText];
                 [self processStderrNotification: notificationText];
@@ -268,7 +267,7 @@ static char * test_result_filename = "perl-tests.tap";
             NSURL * filePathUrl = [NSURL URLWithString: self.scriptPath];
             NSURL * dirPath = [filePathUrl URLByDeletingLastPathComponent];
 
-            [[CBPerl alloc] initWithFileName:self.scriptPath withAbsolutePwd:dirPath.absoluteURL.path withDebugger:0 withOptions:options withArguments:nil error: &error queue:stdoutQueue completion: (PerlCompletionBlock) ^ (int perlResult) {
+            [[CBPerl alloc] initWithFileName:self.scriptPath withAbsolutePwd:dirPath.absoluteURL.path withDebugger:0 withOptions:options withArguments:nil error: &error completion: (PerlCompletionBlock) ^ (int perlResult) {
                 [self handlePerlError:error];
                 [self cleanupStdioRedirection];
                 NSTimeInterval timeInterval = -[self.startTime timeIntervalSinceNow];
