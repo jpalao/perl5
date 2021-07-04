@@ -243,7 +243,7 @@ static char * test_result_filename = "perl-tests.txt";
             NSURL * filePathUrl = [NSURL URLWithString: self.scriptPath];
             NSURL * dirPath = [filePathUrl URLByDeletingLastPathComponent];
 
-            [[CBPerl alloc] initWithFileName:self.scriptPath withAbsolutePwd:dirPath.absoluteURL.path withDebugger:0 withOptions:options withArguments:nil error: &error queue:stdoutQueue completion: (PerlCompletionBlock) ^ (int perlResult) {
+            [[CBPerl alloc] initWithFileName:self.scriptPath withAbsolutePwd:dirPath.absoluteURL.path withDebugger:0 withOptions:options withArguments:nil error: &error completion: (PerlCompletionBlock) ^ (int perlResult) {
                 [self handlePerlError:error];
                 [self cleanupStdioRedirection];
                 NSTimeInterval timeInterval = -[self.startTime timeIntervalSinceNow];
