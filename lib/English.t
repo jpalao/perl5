@@ -91,7 +91,10 @@ is( $OLD_PERL_VERSION, $], '$OLD_PERL_VERSION' );
 is( $DEBUGGING, $^D, '$DEBUGGING' );
 
 is( $WARNING, 0, '$WARNING' );
-like( $EXECUTABLE_NAME, qr/perl/i, '$EXECUTABLE_NAME' );
+SKIP: {
+    skip('iOS: executable name not like perl', 1);
+    like( $EXECUTABLE_NAME, qr/perl/i, '$EXECUTABLE_NAME' );
+}
 is( $OSNAME, $Config{osname}, '$OSNAME' );
 
 # may be non-portable
