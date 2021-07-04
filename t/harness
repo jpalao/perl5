@@ -26,7 +26,6 @@ use TAP::Harness 3.13;
 use strict;
 use Config;
 use Data::Dumper;
-use FileCache;
 
 $::do_nothing = $::do_nothing = 1;
 require './TEST';
@@ -394,12 +393,12 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		're/pat_psycho_thr.t',
 
 		# breaking on systems with 1GB RAM, sometimes on systems w/ 2GB
-		're/uniprops05.t',
-		're/uniprops06.t',
-		're/uniprops07.t',
-		're/uniprops08.t',
-		're/uniprops09.t',
-		're/uniprops10.t',
+# 		're/uniprops05.t',
+# 		're/uniprops06.t',
+# 		're/uniprops07.t',
+# 		're/uniprops08.t',
+# 		're/uniprops09.t',
+# 		're/uniprops10.t',
 
 		'uni/fold.t',
 
@@ -460,11 +459,6 @@ $Config{archname} =~ /darwin-ios/ && eval {
 			}
 		}
 	}
-
-	#@tests = grep(/^\.\.\/lib\/blib.t/, @tests);
-	#@tests = grep(/^op/, @tests);
-	#@tests = grep(/^(io|op|opbasic|lib|perf|mro|uni)/, @tests);
-	#@tests = ('re/pat.t');
 
 	$test_dumper = Data::Dumper->new([@tests])->Dump();
 	print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
