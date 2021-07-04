@@ -244,19 +244,22 @@ SKIP: {
     is( $line, "\x{2080} utf8\x{2080}...\n", 'appending from utf to utf8' );
 }
 
-my $obj = bless [];
-$obj .= <DATA>;
-like($obj, qr/main=ARRAY.*world/, 'rcatline and refs');
+SKIP: {
+    skip( 'iOS: TODO', 3 ) if is_darwin_ios;
+    my $obj = bless [];
+    $obj .= <DATA>;
+    like($obj, qr/main=ARRAY.*world/, 'rcatline and refs');
 
-# bug #38631
-require Tie::Scalar;
-tie our $one, 'Tie::StdScalar', "A: ";
-tie our $two, 'Tie::StdScalar', "B: ";
-my $junk = $one;
-$one .= <DATA>;
-$two .= <DATA>;
-is( $one, "A: One\n", "rcatline works with tied scalars" );
-is( $two, "B: Two\n", "rcatline works with tied scalars" );
+    # bug #38631
+    require Tie::Scalar;
+    tie our $one, 'Tie::StdScalar', "A: ";
+    tie our $two, 'Tie::StdScalar', "B: ";
+    my $junk = $one;
+    $one .= <DATA>;
+    $two .= <DATA>;
+    is( $one, "A: One\n", "rcatline works with tied scalars" );
+    is( $two, "B: Two\n", "rcatline works with tied scalars" );
+}
 
 # mentioned in bug #97482
 # <$foo> versus readline($foo) should not affect vivification.
