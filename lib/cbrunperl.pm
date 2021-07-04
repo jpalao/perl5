@@ -87,9 +87,13 @@ sub exec_perl_capture {
   };
   my $exec = $json->utf8->canonical->pretty->encode($runPerl);
   print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
-  my $t = CamelBones::CBRunPerlCaptureStdout($exec);
-  print "\$t: $t\n" if $DEBUG;
-  return $t;
+  my $result;
+  local $@;
+  eval {
+    $result = CamelBones::CBRunPerlCaptureStdout($exec);
+  };
+  print "exec_perl_capture \$result: $result:\n" if $DEBUG;
+  return $result ? $result : $@;
 }
 
 sub parse_test {
@@ -138,14 +142,12 @@ sub exec_test {
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
   my $json = parse_test($pwd, $test);
   print  Dumper("json", $json) if $DEBUG;
-  my $exec = exec_perl($json);
-  print  Dumper("exec_test", $exec) if $DEBUG;
-  CamelBones::CBYield(.1);
-  my $result = check_error($exec);
-  print  Dumper("result", $result) if $DEBUG;
-  return $exec;
+  my $result;
+  local $@;
+  eval {
+    $result = exec_perl_capture($json);
+  };
+  return $result ? $result : $@;
 }
-
-
 
 
