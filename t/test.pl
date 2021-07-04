@@ -815,7 +815,12 @@ sub runperl {
 
     if (is_darwin_ios()) {
         my %args = @_;
-        return exec_perl_capture(\%args);
+        my $result;
+        local $@;
+        eval {
+            $result = exec_perl_capture(\%args);
+        };
+        return $result ? $result : $@;
     }
 
     my $runperl = &_create_runperl;
@@ -1000,7 +1005,7 @@ sub register_tempfile {
 }
 
 # This is the temporary file for fresh_perl
-my $tmpfile = is_darwin_ios ? tempfile(DIR => getcwd()) : tempfile();
+my $tmpfile = tempfile();
 
 sub fresh_perl {
     my($prog, $runperl_args) = @_;
