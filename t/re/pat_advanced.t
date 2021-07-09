@@ -10,7 +10,6 @@ BEGIN {
     set_up_inc(qw '../lib .');
     require './charset_tools.pl';
     skip_all_if_miniperl("miniperl can't load Tie::Hash::NamedCapture, need for %+ and %-");
-    skip_all("iOS: These tests break the harness") if is_darwin_ios();
 }
 
 use strict;
@@ -369,9 +368,7 @@ sub run_tests {
         like("\x{100}a", qr/[\x{101}]/i, $message);
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 12) if is_darwin_ios;
         use charnames ':full';
         my $message = "Folding 'LATIN LETTER A WITH GRAVE'";
 
@@ -404,9 +401,7 @@ sub run_tests {
         like($UPPER, qr/[$lower]/i, $message);
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 1) if is_darwin_ios;
         use charnames ':full';
         my $message = "GREEK CAPITAL LETTER SIGMA vs " .
                          "COMBINING GREEK PERISPOMENI";
@@ -418,9 +413,7 @@ sub run_tests {
 		   'Did not warn [change a5961de5f4215b5c]');
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 6) if is_darwin_ios;
         my $message = '\X';
         use charnames ':full';
 
@@ -480,9 +473,7 @@ sub run_tests {
         ok(":$S3:" =~ /:(([$sigma])+):/i && $1 eq $S3 && $2 eq $sigma, $message);
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 10) if is_darwin_ios;
         use charnames ':full';
         my $message = "Parlez-Vous " .
                          "Fran\N{LATIN SMALL LETTER C WITH CEDILLA}ais?";
@@ -535,9 +526,8 @@ sub run_tests {
         chop $str;
         like($str, qr/$pat/i, $message);
     }
-    SKIP:
+
     {
-        skip ("iOS this test breaks the suite", 26) if is_darwin_ios;
         use charnames ':full';
         my $message = "LATIN SMALL LETTER SHARP S " .
                          "(\N{LATIN SMALL LETTER SHARP S})";
@@ -839,9 +829,7 @@ sub run_tests {
         like("  \x{1E01}x", qr/\x{1E00}X/i, $message);
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 54) if is_darwin_ios;
         for (120 .. 130, 240 .. 260) {
             my $head = 'x' x $_;
             my $message = q [Don't misparse \x{...} in regexp ] .
@@ -892,9 +880,7 @@ sub run_tests {
         ok $ok, "Trie min count matches";
     }
 
-    SKIP:
     {
-
         # TRIE related
         # LATIN SMALL/CAPITAL LETTER A WITH MACRON
         ok "foba  \x{101}foo" =~ qr/(foo|\x{100}foo|bar)/i &&
@@ -916,7 +902,6 @@ sub run_tests {
            $1 eq "\x{1E01}xfoo",
            "TRIEF + LATIN SMALL/CAPITAL LETTER A WITH RING BELOW + 'X'";
 
-        skip ("iOS this test breaks the suite", 6) if is_darwin_ios;
         use charnames ':full';
 
         my $s = "\N{LATIN SMALL LETTER SHARP S}";
@@ -1095,9 +1080,7 @@ sub run_tests {
         like "\x{100}\x{100}", $r, "which matches";
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 6) if is_darwin_ios;
         use charnames ':full';
 
         unlike 'aabc', qr/a\N{PLUS SIGN}b/, '/a\N{PLUS SIGN}b/ against aabc';
@@ -1453,9 +1436,7 @@ sub run_tests {
         ok 'boob'=~/( b (??{ $qr }) b )/x && 1, "PL_curpm, nested eval";
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 26) if is_darwin_ios;
         use charnames ":full";
         like "\N{ROMAN NUMERAL ONE}", qr/\p{Alphabetic}/, "I =~ Alphabetic";
         like "\N{ROMAN NUMERAL ONE}", qr/\p{Uppercase}/,  "I =~ Uppercase";
@@ -1578,9 +1559,7 @@ sub run_tests {
         is($_, "hhHHhHhhHH", $message);
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 12) if is_darwin_ios;
         # Various whitespace special patterns
         my @h = map {chr utf8::unicode_to_native($_) }
                              0x09,   0x20,   0xa0,   0x1680, 0x2000,
@@ -2167,104 +2146,100 @@ EOP
     like "x", qr/\A(?>(?:(?:)A|B|C?x))\z/,
         "Check TRIE does not overwrite EXACT following NOTHING at start - RT #111842";
 
-#     {
-#         my $single = "z";
-#         my $upper = "\x{390}";  # Fold is 3 chars.
-#         my $multi = CORE::fc($upper);
-# 
-#         my $failed = 0;
-# 
-#         # Try forcing a node to be split, with a multi-char fold at the
-#         # boundary
-#         for my $repeat (1 .. 300) {
-#             my $string = $single x $repeat;
-#             my $lhs = $string . $upper;
-#             if ($lhs !~ m/$string$multi/i) {
-#                 $failed = $repeat;
-#                 last;
-#             }
-#         }
-#         ok(! $failed, "Matched multi-char fold across EXACTFish node boundaries; if failed, was at count $failed");
-# 
-#         $failed = 0;
-#         for my $repeat (1 .. 300) {
-#             my $string = $single x $repeat;
-#             my $lhs = $string . "\N{LATIN SMALL LIGATURE FFI}";
-#             if ($lhs !~ m/${string}ff\N{LATIN SMALL LETTER I}/i) {
-#                 $failed = $repeat;
-#                 last;
-#             }
-#         }
-#         ok(! $failed, "Matched multi-char fold across EXACTFish node boundaries; if failed, was at count $failed");
-# 
-#         $failed = 0;
-#         for my $repeat (1 .. 300) {
-#             my $string = $single x $repeat;
-#             my $lhs = $string . "\N{LATIN SMALL LIGATURE FFL}";
-#             if ($lhs !~ m/${string}ff\N{U+6c}/i) {
-#                 $failed = $repeat;
-#                 last;
-#             }
-#         }
-#         ok(! $failed, "Matched multi-char fold across EXACTFish node boundaries; if failed, was at count $failed");
-# 
-#         # This tests that under /d matching that an 'ss' split across two
-#         # parts of a node doesn't end up turning into something that matches
-#         # \xDF unless it is in utf8.
-#         $failed = 0;
-#         $single = 'a';  # Is non-terminal multi-char fold char
-#         for my $repeat (1 .. 300) {
-#             my $string = $single x $repeat;
-#             my $lhs = "$string\N{LATIN SMALL LETTER SHARP S}";
-#             utf8::downgrade($lhs);
-#             $string .= "s";
-#             if ($lhs =~ m/${string}s/di) {
-#                 $failed = $repeat;
-#                 last;
-#             }
-#         }
-#         ok(! $failed, "Matched multi-char fold 'ss' across EXACTF node boundaries; if failed, was at count $failed");
-# 
-#         for my $non_finals ("t", "ft", "ift", "sift") {
-#             my $base_pat = $non_finals . "enKalt";   # (The tail is taken from
-#                                                      # the trouble ticket, is
-#                                                      # arbitrary)
-#             for my $utf8 ("non-UTF-8", "UTF-8") {
-# 
-#                 # Try at different lengths to be sure to get a node boundary
-#                 for my $repeat (120 .. 270) {   # [perl #133756]
-#                     my $head = ("b" x $repeat) . "\xDC";
-#                     my $pat = $base_pat;
-#                     utf8::upgrade($pat) if $utf8 eq "UTF-8";
-#                     $pat     = $head . $pat;
-#                     my $text = $head . $base_pat;
-# 
-#                     if ($text !~ /$pat/i) {
-#                         $failed = $repeat;
-#                         last;
-#                     }
-#                 }
-# 
-#                 ok(! $failed, "A non-final fold character "
-#                             . (length($non_finals) - 1)
-#                             . " characters from the end of an EXACTFish"
-#                             . " $utf8 pattern works; if failed, was at count $failed");
-#             }
-#         }
-#     }
-
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 1) if is_darwin_ios;
+        my $single = "z";
+        my $upper = "\x{390}";  # Fold is 3 chars.
+        my $multi = CORE::fc($upper);
+
+        my $failed = 0;
+
+        # Try forcing a node to be split, with a multi-char fold at the
+        # boundary
+        for my $repeat (1 .. 300) {
+            my $string = $single x $repeat;
+            my $lhs = $string . $upper;
+            if ($lhs !~ m/$string$multi/i) {
+                $failed = $repeat;
+                last;
+            }
+        }
+        ok(! $failed, "Matched multi-char fold across EXACTFish node boundaries; if failed, was at count $failed");
+
+        $failed = 0;
+        for my $repeat (1 .. 300) {
+            my $string = $single x $repeat;
+            my $lhs = $string . "\N{LATIN SMALL LIGATURE FFI}";
+            if ($lhs !~ m/${string}ff\N{LATIN SMALL LETTER I}/i) {
+                $failed = $repeat;
+                last;
+            }
+        }
+        ok(! $failed, "Matched multi-char fold across EXACTFish node boundaries; if failed, was at count $failed");
+
+        $failed = 0;
+        for my $repeat (1 .. 300) {
+            my $string = $single x $repeat;
+            my $lhs = $string . "\N{LATIN SMALL LIGATURE FFL}";
+            if ($lhs !~ m/${string}ff\N{U+6c}/i) {
+                $failed = $repeat;
+                last;
+            }
+        }
+        ok(! $failed, "Matched multi-char fold across EXACTFish node boundaries; if failed, was at count $failed");
+
+        # This tests that under /d matching that an 'ss' split across two
+        # parts of a node doesn't end up turning into something that matches
+        # \xDF unless it is in utf8.
+        $failed = 0;
+        $single = 'a';  # Is non-terminal multi-char fold char
+        for my $repeat (1 .. 300) {
+            my $string = $single x $repeat;
+            my $lhs = "$string\N{LATIN SMALL LETTER SHARP S}";
+            utf8::downgrade($lhs);
+            $string .= "s";
+            if ($lhs =~ m/${string}s/di) {
+                $failed = $repeat;
+                last;
+            }
+        }
+        ok(! $failed, "Matched multi-char fold 'ss' across EXACTF node boundaries; if failed, was at count $failed");
+
+        for my $non_finals ("t", "ft", "ift", "sift") {
+            my $base_pat = $non_finals . "enKalt";   # (The tail is taken from
+                                                     # the trouble ticket, is
+                                                     # arbitrary)
+            for my $utf8 ("non-UTF-8", "UTF-8") {
+
+                # Try at different lengths to be sure to get a node boundary
+                for my $repeat (120 .. 270) {   # [perl #133756]
+                    my $head = ("b" x $repeat) . "\xDC";
+                    my $pat = $base_pat;
+                    utf8::upgrade($pat) if $utf8 eq "UTF-8";
+                    $pat     = $head . $pat;
+                    my $text = $head . $base_pat;
+
+                    if ($text !~ /$pat/i) {
+                        $failed = $repeat;
+                        last;
+                    }
+                }
+
+                ok(! $failed, "A non-final fold character "
+                            . (length($non_finals) - 1)
+                            . " characters from the end of an EXACTFish"
+                            . " $utf8 pattern works; if failed, was at count $failed");
+            }
+        }
+    }
+
+    {
         fresh_perl_is('print eval "\"\x{101}\" =~ /[[:lower:]]/", "\n"; print eval "\"\x{100}\" =~ /[[:lower:]]/i", "\n";',
                       "1\n1",   # Both re's should match
                       {},
                       "get [:lower:] swash in first eval; test under /i in second");
     }
 
-    SKIP:
     {
-        skip ("iOS this test breaks the suite", 1) if is_darwin_ios;
         fresh_perl_is(<<'EOF',
                 my $s = "\x{41c}";
                 $s =~ /(.*)/ or die;
@@ -2464,10 +2439,7 @@ EOF
                             "Overlapping ranges in user-defined properties");
     }
 
-    SKIP:
-    {
-        skip ("iOS this test breaks the suite", 4) if is_darwin_ios;
-        # [perl #125990], the final 2 tests below each caused a panic.
+    { # [perl #125990], the final 2 tests below each caused a panic.
         # The \0's are not necessary; it could be a printable character
         # instead, but were in the ticket, so using them.
         my $sharp_s = chr utf8::unicode_to_native(0xdf);
