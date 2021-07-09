@@ -26,6 +26,14 @@ use Test::More;
 use File::Spec;
 use File::Find;
 use ExtUtils::Manifest;
+use Config;
+
+my $Is_ios = $Config{archname} =~ /darwin-ios/;
+if ($Is_ios) {
+    use cbrunperl;
+    use Cwd qw(getcwd);
+}
+
 # Don't want its diagnostics getting in the way of ours.
 $ExtUtils::Manifest::Quiet=1;
 my $up = File::Spec->updir();
@@ -131,7 +139,7 @@ Writing $name/Changes
 Writing $name/MANIFEST
 EOXSFILES
 
-"\"-X\" -f -n $name -b $thisversion", $], <<"EONOXSFILES",
+"-X -f -n $name -b $thisversion", $], <<"EONOXSFILES",
 Writing $name/lib/$name.pm
 Writing $name/Makefile.PL
 Writing $name/README
@@ -180,17 +188,30 @@ while (my ($args, $version, $expectation) = splice @tests, 0, 3) {
   # h2xs warns about what it is writing hence the (possibly unportable)
   # 2>&1 dupe:
   # does it run?
-  my $prog = "$^X $lib $extracted_program $args $dupe";
-  @result = `$prog`;
-  cmp_ok ($?, "==", 0, "running $prog ");
-  $result = join("",@result);
+  my $prog = $Is_ios ? "perl $lib $extracted_program $args" :
+      "$^X $lib $extracted_program $args $dupe";
+  if ($Is_ios) {
+      my @args = split ' ', $args;
+      my $runperl_conf = {
+        switches => ["-I../lib", "-I../../lib"],
+        pwd => getcwd(),
+        progfile => $extracted_program,
+        args => \@args
+      };
+      $result = exec_perl_capture($runperl_conf);
+  } else {
+      @result = `$prog`;
+  }
 
+  cmp_ok ($?, "==", 0, "running $prog ");
+  $result = join("", @result) if !$Is_ios;
   #print "# expectation is >$expectation<\n";
   #print "# result is >$result<\n";
   # Was the output the list of files that were expected?
   is ($result, $expectation, "running $prog");
 
   my (%got);
+  chdir ($up) if $Is_ios;
   find (sub {$got{$File::Find::name}++ unless -d $_}, $name);
 
   foreach ($expectation =~ /Writing\s+(\S+)/gm) {
