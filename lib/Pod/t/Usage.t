@@ -2,7 +2,7 @@
 use strict;
 BEGIN {
 	chdir 't' if -d 't';
-	@INC = '../lib';
+	use lib '../lib';
 }
 
 use File::Basename;
@@ -46,7 +46,8 @@ SKIP: {
     is( $$fake_out, $vbl_0, '-pathlist parameter' );
 }
 
-{ # Test exit status from pod2usage()
+SKIP: { # Test exit status from pod2usage()
+    skip('iOS: exec() not supported', 1) if $Config{archname} =~ /darwin-ios/;
     my $exit = ($^O eq 'VMS' ? 2 : 42);
     my $dev_null = File::Spec->devnull;
     my $args = join ", ", (
