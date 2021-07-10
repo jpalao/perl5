@@ -185,13 +185,15 @@ print scalar @DB::args;
 # It shouldn't leak.
 EOP
     close $fh;
-
+SKIP: {
+    skip('iOS: #TODO', 2) if is_darwin_ios();
     foreach (0, 1) {
         my $got = runperl(progfile => $tmpfile, args => [$_]);
         $got =~ s/\s+/ /gs;
         like($got, qr/\s*0 1 DESTROY 0 0\s*/,
              "\@DB::args doesn't leak with \$^P = $_");
     }
+}
 }
 
 # This also used to leak [perl #97010]:
