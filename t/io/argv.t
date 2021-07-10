@@ -30,7 +30,8 @@ $x = runperl(
 );
 is($x, "1a line\n2a line\n", '<> from two files');
 
-{
+SKIP: {
+    skip('iOS: no stdin access', 6) if is_darwin_ios();
     $x = runperl(
 	prog	=> 'while (<>) { print $_; }',
 	stdin	=> "foo\n",
@@ -61,6 +62,7 @@ is($x, "1a line\n2a line\n", '<> from two files');
 
 TODO: {
         local $::TODO = "unrelated bug in redirection implementation" if $^O eq 'VMS';
+        $::TODO = "iOS: no stdin access" if is_darwin_ios();
         $x = runperl(
             prog	=> 'print $ARGV while <>',
             stdin	=> "foo\nbar\n",
@@ -180,15 +182,17 @@ $x = runperl(
     args	=> [ 'tmpIo_argv1.tmp' ],
 );
 is($x, "bone\n", '<<>> and rcatline');
-
-$x = runperl(
-    prog	=> 'while (<<>>) { print }',
-    stdin	=> "foo\n",
-);
-is($x, "foo\n", '<<>> from just STDIN (no argument)');
-
+SKIP: {
+    skip('iOS: no stdin access', 1) if is_darwin_ios();
+    $x = runperl(
+        prog	=> 'while (<<>>) { print }',
+        stdin	=> "foo\n",
+    );
+    is($x, "foo\n", '<<>> from just STDIN (no argument)');
+}
 TODO: {
     local $::TODO = "unrelated bug in redirection implementation" if $^O eq 'VMS';
+    $::TODO = "iOS: no stdin access" if is_darwin_ios();
     $x = runperl(
         prog	=> 'print $ARGV.q/,/ for <<>>',
         stdin	=> "foo\nbar\n",
