@@ -40,6 +40,7 @@ plan(tests => 8);
 
 SKIP: {
     skip "no fcntl", 1 unless $Config{d_fcntl};
+    skip 'iOS: #TODO', 1 if is_darwin_ios();
     my($a, $b);
     socketpair($a, $b, PF_UNIX, SOCK_STREAM, 0) or die "socketpair: $!";
     my $fda = fileno($a);
