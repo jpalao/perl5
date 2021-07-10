@@ -85,10 +85,14 @@ $out = ($^O eq 'MSWin32') ? `type $filename`
 
 use Config;
 if ($Config{archname} =~ /darwin-ios/) {
-  is(1, 1, "skipped on ios: no `` processing");
-} else {
-  like($out, qr/.*\n.*\n.*\n$/);
-  is($out, $y);
+  $out = '';
+  open(FH, '<', $filename) or die $!;
+  while(<FH>){
+    $out .= $_;
+  }
 }
+
+like($out, qr/.*\n.*\n.*\n$/);
+is($out, $y);
 close(TRY) || (die "Can't close $filename: $!");
 
