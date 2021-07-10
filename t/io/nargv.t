@@ -6,7 +6,12 @@ BEGIN {
     set_up_inc('../lib');
 }
 
-print "1..7\n";
+my $num_tests = 7;
+if (is_darwin_ios()) {
+    $num_tests--;
+}
+
+print "1..$num_tests\n";
 
 my $j = 1;
 for $i ( 1,2,5,4,3 ) {
@@ -121,7 +126,9 @@ sub other {
       or die "Cannot open temp: $!";
     open my $f3, "<", $tfile
       or die "Cannot open temp: $!";
-    print +(fileno($f3) < 20 ? "ok" : "not ok"), " 7 check fd leak\n";
+    if (!is_darwin_ios()) {
+        print +(fileno($f3) < 20 ? "ok" : "not ok"), " 7 # check fd leak\n";
+    }
     close $f;
     close $f2;
     close $f3;
@@ -137,4 +144,4 @@ sub mkfiles {
     return wantarray ? @results : @results[-1];
 }
 
-END { unlink_all map { ($_, "$_.bak") } @files }
+END { unlink_all map { ($_, "$_.bak") } @files}
