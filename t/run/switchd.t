@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = qw(../lib lib);
+    use lib qw(../lib lib);
     require "./test.pl";
 }
 
@@ -10,10 +10,13 @@ BEGIN {
 
 plan(tests => 21);
 
+use Cwd qw(getcwd);
+
 my $r;
 
 my $filename = tempfile();
 SKIP: {
+    skip('iOS: no stdin access', 3) if is_darwin_ios();
 	open my $f, ">$filename"
 	    or skip( "Can't write temp file $filename: $!" );
 	print $f <<'__SWDTEST__';
@@ -55,31 +58,33 @@ qr/^sub<Devel::switchd::unimport>;unimport<Devel::switchd a 42>;DB<main,$::tempf
     'Got debugging output: 3');
 }
 
-# [perl #71806]
-cmp_ok(
-  runperl(       # less is useful for something :-)
-   switches => [ '"-Mless ++INC->{q-Devel/_.pm-}"' ],
-   progs    => [
-    '#!perl -d:_',
-    'sub DB::DB{} print scalar @{q/_</.__FILE__}',
-   ],
-  ),
- '>',
-  0,
- 'The debugger can see the lines of the main program under #!perl -d',
-);
+SKIP: {
+    skip('iOS: no stdin access', 2) if is_darwin_ios();
+    # [perl #71806]
+    cmp_ok(
+      runperl(       # less is useful for something :-)
+       switches => [ '"-Mless ++INC->{q-Devel/_.pm-}"' ],
+       progs    => [
+        '#!perl -d:_',
+        'sub DB::DB{} print scalar @{q/_</.__FILE__}',
+       ],
+      ),
+     '>',
+      0,
+     'The debugger can see the lines of the main program under #!perl -d',
+    );
 
-like
-  runperl(
-   switches => [ '"-Mless ++INC->{q-Devel/_.pm-}"' ],
-   progs    => [
-    '#!perl -d:_',
-    'sub DB::DB{} print line=>__LINE__',
-   ],
-  ),
-  qr/line2/,
- '#!perl -d:whatever does not throw line numbers off';
-
+    like
+      runperl(
+       switches => [ '"-Mless ++INC->{q-Devel/_.pm-}"' ],
+       progs    => [
+        '#!perl -d:_',
+        'sub DB::DB{} print line=>__LINE__',
+       ],
+      ),
+      qr/line2/,
+     '#!perl -d:whatever does not throw line numbers off';
+}
 # [perl #48332]
 like(
   runperl(
@@ -110,33 +115,35 @@ like(
   qr "1\r?\n2\r?\n",
  'Subroutines no longer found under their names can be called',
 );
+SKIP: {
+    skip('iOS: no stdin access', 2) if is_darwin_ios();
+    # [rt.cpan.org #69862]
+    like(
+      runperl(
+       switches => [ '-Ilib', '-d:switchd_empty' ],
+       progs    => [
+        'sub DB::sub { goto &$DB::sub }',
+        'sub foo { goto &bar::baz; }',
+        'sub bar::baz { print qq _ok\n_ }',
+        'delete $::{bar::::};',
+        'foo();',
+       ],
+      ),
+      qr "ok\r?\n",
+     'No crash when calling orphaned subroutine via goto &',
+    );
 
-# [rt.cpan.org #69862]
-like(
-  runperl(
-   switches => [ '-Ilib', '-d:switchd_empty' ],
-   progs    => [
-    'sub DB::sub { goto &$DB::sub }',
-    'sub foo { goto &bar::baz; }',
-    'sub bar::baz { print qq _ok\n_ }',
-    'delete $::{bar::::};',
-    'foo();',
-   ],
-  ),
-  qr "ok\r?\n",
- 'No crash when calling orphaned subroutine via goto &',
-);
-
-# test when DB::DB is seen but not defined [perl #114990]
-like(
-  runperl(
-    switches => [ '-Ilib', '-d:nodb' ],
-    prog     => [ '1' ],
-    stderr   => 1,
-  ),
-  qr/^No DB::DB routine defined/,
-  "No crash when *DB::DB exists but not &DB::DB",
-);
+    # test when DB::DB is seen but not defined [perl #114990]
+    like(
+      runperl(
+        switches => [ '-Ilib', '-d:nodb' ],
+        prog     => [ '1' ],
+        stderr   => 1,
+      ),
+      qr/^No DB::DB routine defined/,
+      "No crash when *DB::DB exists but not &DB::DB",
+    );
+}
 like(
   runperl(
     switches => [ '-Ilib' ],
@@ -149,7 +156,7 @@ like(
 # or seen and defined later
 SKIP:
 {
-    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
     is(
       runperl(
         # nodb.pm contains *DB::DB...if 0
@@ -191,22 +198,23 @@ like(
   "Recursive DB::DB does not clobber its own pad",
 );
 }
-
-# [perl #118627]
-like(
-  runperl(
-   switches => [ '-Ilib', '-d:switchd_empty' ],
-   prog     => 'print @{q|_<-e|}',
-  ),
-  qr "use Devel::switchd_empty;(?:BEGIN|\r?\nprint)",
-                         # miniperl tacks a BEGIN block on to the same line
- 'Copy on write does not mangle ${"_<-e"}[0] [perl #118627]',
-);
-
+SKIP: {
+    skip('iOS: no stdin access', 1) if is_darwin_ios();
+    # [perl #118627]
+    like(
+      runperl(
+       switches => [ '-Ilib', '-d:switchd_empty' ],
+       prog     => 'print @{q|_<-e|}',
+      ),
+      qr "use Devel::switchd_empty;(?:BEGIN|\r?\nprint)",
+                             # miniperl tacks a BEGIN block on to the same line
+     'Copy on write does not mangle ${"_<-e"}[0] [perl #118627]',
+    );
+}
 # PERL5DB with embedded newlines
 SKIP:
 {
-    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
     local $ENV{PERL5DB} = "sub DB::DB{}\nwarn";
     is(
       runperl(
@@ -223,7 +231,7 @@ SKIP:
 # test that DB::goto works
 SKIP:
 {
-    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
 is(
   runperl(
    switches => [ '-Ilib', '-d:switchd_goto' ],
@@ -234,22 +242,23 @@ is(
   "DB::goto"
 );
 }
-
-# Test that %DB::lsub is not vivified
-is(
-  runperl(
-   switches => [ '-Ilib', '-d:switchd_empty' ],
-   progs => ['sub DB::sub {} sub foo : lvalue {} foo();',
-             'print qq-ok\n- unless defined *DB::lsub{HASH}'],
-  ),
-  "ok\n",
-  "%DB::lsub is not vivified"
-);
-
+SKIP: {
+    skip('iOS: no stdin access', 1) if is_darwin_ios();
+    # Test that %DB::lsub is not vivified
+    is(
+      runperl(
+       switches => [ '-Ilib', '-d:switchd_empty' ],
+       progs => ['sub DB::sub {} sub foo : lvalue {} foo();',
+                 'print qq-ok\n- unless defined *DB::lsub{HASH}'],
+      ),
+      "ok\n",
+      "%DB::lsub is not vivified"
+    );
+}
 # Test setting of breakpoints without *DB::dbline aliased
 SKIP:
 {
-    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
     is(
       runperl(
        switches => [ '-Ilib', '-d:nodb' ],
@@ -275,7 +284,7 @@ SKIP:
 # Check that utf8 caches are flushed when $DB::sub is set
 SKIP:
 {
-    skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
     is(
       runperl(
        switches => [ '-Ilib', '-d:switchd_empty' ],
@@ -296,20 +305,21 @@ SKIP:
       'UTF8 length caches on $DB::sub are flushed'
     );
 }
-
-# [perl #122771] -d conflicting with sort optimisations
-is(
-  runperl(
-   switches => [ '-Ilib', '-d:switchd_empty' ],
-   prog => 'BEGIN { $^P &= ~0x4 } sort { $$b <=> $$a } (); print qq-42\n-',
-  ),
-  "42\n",
-  '-d does not conflict with sort optimisations'
-);
-
+SKIP: {
+  skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
+    # [perl #122771] -d conflicting with sort optimisations
+    is(
+      runperl(
+       switches => [ '-Ilib', '-d:switchd_empty' ],
+       prog => 'BEGIN { $^P &= ~0x4 } sort { $$b <=> $$a } (); print qq-42\n-',
+      ),
+      "42\n",
+      '-d does not conflict with sort optimisations'
+    );
+}
 SKIP: {
   skip_if_miniperl("under miniperl", 1);
-  skip( "iOS: no stdin available", 1 ) if is_darwin_ios();
+  skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
   is(
     runperl(
      switches => [ '-Ilib', '-d:switchd_empty' ],
