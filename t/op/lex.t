@@ -129,6 +129,7 @@ fresh_perl_is(
 );
 SKIP: {
     skip "Different output on EBCDIC (presumably)", 3 if $::IS_EBCDIC;
+    skip 'iOS: #TODO', 3 if is_darwin_ios();
     fresh_perl_is(
       qq'"ab}"ax;&\0z\x8Ao}\x82x;', <<gibberish,
 Bareword found where operator expected at - line 1, near ""ab}"ax"
