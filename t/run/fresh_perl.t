@@ -10,7 +10,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require './test.pl';	# for which_perl() etc
 }
 
@@ -329,8 +329,8 @@ inner peace
 $| = 1;
 sub foo {
     print "In foo1\n";
-    eval 'sub foo { print "In foo2\n" }';
-    print "Exiting foo1\n";
+    eval 'sub foo { sleep 1; print "In foo2\n"; }';
+    sleep 1; print "Exiting foo1\n";
 }
 foo;
 foo;
@@ -431,7 +431,7 @@ destroyed
 BEGIN {
   $| = 1;
   $SIG{__WARN__} = sub {
-    eval { print $_[0] };
+    eval { print $_[0] }; sleep 1;
     die "bar\n";
   };
   warn "foo\n";
