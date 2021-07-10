@@ -56,12 +56,12 @@ $Is_VMS      = $^O eq 'VMS';
 $Is_Dos      = $^O eq 'dos';
 $Is_os2      = $^O eq 'os2';
 $Is_Cygwin   = $^O eq 'cygwin';
-$Is_Ios      = $Config{archname} =~ /darwin-ios/;
+$Is_Ios      = is_darwin_ios();
 
 my $orig_path;
 if ($Is_Ios) {
     use Cwd qw/getcwd/;
-    $orig_path = getcwd;
+    $orig_path = getcwd();
 }
 
 $PERL =
@@ -235,7 +235,7 @@ is $+, 'a';
 
 SKIP: {
 # [perl #24237]
-skip('iOS: this test breaks the harness', 5) if $Is_Ios;
+skip('iOS: #TODO', 5) if $Is_Ios;
 for (qw < ` & ' >) {
  fresh_perl_is
   qq < \@$_; q "fff" =~ /(?!^)./; print "[\$$_]\\n" >,
@@ -276,7 +276,7 @@ SKIP: {
 
 SKIP:
 {
-    skip('iOS: TODO', 2) if $Is_Ios;
+    skip('iOS: #TODO', 2) if $Is_Ios;
     eval { warn "foo\n" };
     is $@, "foo\n";
     ok !*@{HASH}, 'no %@';
@@ -287,7 +287,7 @@ my $pid = $$;
 eval { $$ = 42 };
 is $$, 42, '$$ can be modified';
 SKIP: {
-    skip "no fork", 1 unless ($Config{d_fork} || is_darwin_ios());
+    skip "no fork", 1 unless ($Config{d_fork} || $Is_Ios);
     (my $kidpid = open my $fh, "-|") // skip "cannot fork: $!", 1;
     if($kidpid) { # parent
 	my $kiddollars = <$fh>;
@@ -423,7 +423,7 @@ $^O = $orig_osname;
 
 SKIP:
 {
-    skip('iOS: this test breaks the harness', 2) if is_darwin_ios();
+    skip('iOS: #TODO', 2) if $Is_Ios;
     #RT #72422
     foreach my $p (0, 1) {
 	fresh_perl_is(<<"EOP", '2 4 8', undef, "test \$^P = $p");
@@ -519,7 +519,7 @@ foreach (['powie::!', 'Errno']) {
     my ($symbol, $package) = @$_;
     SKIP: {
 	(my $extension = $package) =~ s|::|/|g;
-	skip('iOS: this test breaks the harness', 2) if $Is_Ios;
+	skip('iOS: #TODO', 2) if $Is_Ios;
 	skip "$package is statically linked", 2
 	    if $Config{static_ext} =~ m|\b\Q$extension\E\b|;
 	foreach my $scalar_first ('', '$$symbol;') {
@@ -646,7 +646,7 @@ SKIP: {
 
 SKIP: {
     skip_if_miniperl("No XS in miniperl", 1);
-    skip('iOS: this test breaks the harness', 1) if $Is_Ios;
+    skip('iOS: #TODO', 1) if $Is_Ios;
 
     for ( [qw( %! Errno )] ) {
 	my ($var, $mod) = @$_;
@@ -834,7 +834,8 @@ SKIP: {
 	env_is(foo => $bytes, 'ENV store encodes high utf8 in SV');
 
 	# test local $ENV{foo} on existing foo
-	{
+	SKIP: {
+	  skip("iOS: #TODO", 2) if $Is_Ios;
 	  local $ENV{__NoNeSuCh};
 	  { local $TODO = 'exists on %ENV should reflect real env';
 	    ok(!exists $ENV{__NoNeSuCh}, 'not exists $ENV{existing} during local $ENV{existing}'); }
