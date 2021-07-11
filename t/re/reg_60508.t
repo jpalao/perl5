@@ -41,6 +41,7 @@ CODE
 
     my $result = fresh_perl($code,  {});
     if (is_darwin_ios()) {
+        $result .= "\n";
         utf8::encode($result);
     }
 
