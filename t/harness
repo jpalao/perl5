@@ -8,7 +8,7 @@ BEGIN {
 }
 
 $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
-$ENV{PERL_SKIP_PSYCHO_TEST} = 1;
+# $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
 # $ENV{PERL_BENCHMARK} = 1;
 # $ENV{PERL_TEST_MEMORY} = 1;
 # $ENV{PERL_VALGRIND} = 1;
@@ -372,41 +372,37 @@ $h->callback(
 	     );
 
 $Config{archname} =~ /darwin-ios/ && eval {
-	my $test_dumper = Data::Dumper->new([@tests])->Dump();
-	print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
+	#my $test_dumper = Data::Dumper->new([@tests])->Dump();
+	#print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
 
 	my @ios_blacklist = (
 		# on iOS these tests may either:
 		# hang, crash or exit unexpectedly,
 		# or may pass, causing havoc afterwards,
 		# or they may pass or hang/crash indistinctly
-
+		'io/openpid.t',
 		'io/perlio_leaks.t',
 
 		'lib/deprecate.t',
+
+		'io/eintr_print.t',
+		'io/print.t',
 
 		'op/groups.t',
 		'op/die_keeperr.t',
 
 		# this breaks sometimes even if skipped
-		're/pat_psycho_thr.t',
+		're/pat_advanced.t',
+		're/pat_advanced_thr.t',
 
-		# breaking on systems with 1GB RAM, sometimes on systems w/ 2GB
-# 		're/uniprops05.t',
-# 		're/uniprops06.t',
-# 		're/uniprops07.t',
-# 		're/uniprops08.t',
-# 		're/uniprops09.t',
-# 		're/uniprops10.t',
-
-		'uni/fold.t',
-
+		# 'uni/fold.t',
 		'../cpan/autodie/t/recv.t',
 		# DB_File not built in
 		'../cpan/DB_File/t/db-threads.t',
 		'../cpan/DB_File/t/db-recno.t',
 		'../cpan/DB_File/t/db-hash.t',
 		'../cpan/DB_File/t/db-btree.t',
+		'../cpan/ExtUtils-Constant/t/Constant.t',
 		'../cpan/File-Temp/t/lock.t',
 		'../cpan/IO-Compress/t/cz-14gzopen.t',
 		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
