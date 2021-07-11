@@ -2,12 +2,12 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     require './test.pl';
+    skip_all('iOS: stdin not supported') if is_darwin_ios();
 }
-plan(tests => 3);
 
-skip_all('iOS: stdin not supported') if is_darwin_ios();
+plan(tests => 3);
 
 { # perl #116190
   fresh_perl_is('print qq!@F!', '1 2',
