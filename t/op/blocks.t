@@ -221,7 +221,6 @@ SKIP: {
         "UNITCHECK{die} should exit"
     );
 
-
     fresh_perl_is(
         "$testblocks CHECK { exit 1; }",
         "begin\nunitcheck\ncheck\nend",
@@ -229,15 +228,12 @@ SKIP: {
         "CHECK{exit 1} should exit"
     );
 
-    SKIP: {
-        skip("iOS: this test breaks the harness", 1) if is_darwin_ios();
-        fresh_perl_like(
-        "$testblocks CHECK { die; }",
-        qr/\Abegin\nunitcheck\nDied[^\n]*\.\nCHECK failed[^\n]*\.\ncheck\nend\z/,
-        {},
-        "CHECK{die} should exit"
-        );
-    }
+    fresh_perl_like(
+    "$testblocks CHECK { die; }",
+    qr/\Abegin\nunitcheck\nDied[^\n]*\.\nCHECK failed[^\n]*\.\ncheck\nend\z/,
+    {},
+    "CHECK{die} should exit"
+    );
 }
 
 fresh_perl_is(
@@ -254,12 +250,15 @@ fresh_perl_is(
     "INIT{exit 1} should exit"
 );
 
-fresh_perl_like(
-    "$testblocks INIT { die; }",
-    qr/\Abegin\nunitcheck\ncheck\ninit\nDied[^\n]*\.\nINIT failed[^\n]*\.\nend\z/,
-    {},
-    "INIT{die} should exit"
-);
+SKIP: {
+    skip('iOS: #TODO', 1) if is_darwin_ios();
+    fresh_perl_like(
+        "$testblocks INIT { die; }",
+        qr/\Abegin\nunitcheck\ncheck\ninit\nDied[^\n]*\.\nINIT failed[^\n]*\.\nend\z/,
+        {},
+        "INIT{die} should exit"
+    );
+}
 
 TODO: {
     local $TODO = 'RT #2917: INIT{} in eval is wrongly considered too late';
