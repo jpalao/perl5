@@ -19,11 +19,8 @@ k1 = ....
 k2.1 = >\x{2022}
 k2.2 = \x{2022}
 EXPECT
-    utf8::encode($expect);
 
-    #local $TODO = "[perl #60508]";
-
-    fresh_perl_is(<<'CODE', $expect, {});
+    my $code = <<'CODE';
 binmode STDOUT, ":utf8";
 sub f { $_[0] =~ s/([>X])//g; }
 
@@ -37,4 +34,15 @@ print "k2.1 = $k2\n";
 f($k2);
 print "k2.2 = $k2\n";
 CODE
+
+    utf8::encode($expect);
+
+    #local $TODO = "[perl #60508]";
+
+    my $result = fresh_perl($code,  {});
+    if (is_darwin_ios()) {
+        utf8::encode($result);
+    }
+
+    is($result, $expect, "[perl #60508]");
 }
