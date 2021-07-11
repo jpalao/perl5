@@ -37,7 +37,9 @@ $result = "ok $count - complete test of alternate delimiters in -F\n";
 if ($Config{archname} !~ /darwin-ios/) {
     print system ($^X, $file) ? "not $result" : $result;
 } else {
-   print "ok iOS: skipping: system call not supported\n";
+    for my $i (1..5) {
+       print "ok $i # iOS: system call not supported\n";
+    }
 }
 
 unlink $file or die "Unlink $file: $!";
