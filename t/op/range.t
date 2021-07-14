@@ -9,14 +9,6 @@ BEGIN {
 
 use Config;
 
-# double/triple magic tests
-sub TIESCALAR { bless { value => $_[1], orig => $_[1] } }
-sub STORE { $_[0]{store}++; $_[0]{value} = $_[1] }
-sub FETCH { $_[0]{fetch}++; $_[0]{value} }
-sub stores { tied($_[0])->{value} = tied($_[0])->{orig};
-             delete(tied($_[0])->{store}) || 0 }
-sub fetches { delete(tied($_[0])->{fetch}) || 0 }
-
 plan (162);
 
 is(join(':',1..5), '1:2:3:4:5');
@@ -398,7 +390,13 @@ foreach my $ii (~0, ~0+1, ~0+(~0>>4)) {
     ok($@, 'Lower bound rejected: ' . -$ii);
 }
 
-
+# double/triple magic tests
+sub TIESCALAR { bless { value => $_[1], orig => $_[1] } }
+sub STORE { $_[0]{store}++; $_[0]{value} = $_[1] }
+sub FETCH { $_[0]{fetch}++; $_[0]{value} }
+sub stores { tied($_[0])->{value} = tied($_[0])->{orig};
+             delete(tied($_[0])->{store}) || 0 }
+sub fetches { delete(tied($_[0])->{fetch}) || 0 }
     
 tie $x, "main", 6;
 
