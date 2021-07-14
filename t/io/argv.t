@@ -192,12 +192,15 @@ SKIP: {
 }
 TODO: {
     local $::TODO = "unrelated bug in redirection implementation" if $^O eq 'VMS';
-    $::TODO = "iOS: no stdin access" if is_darwin_ios();
     $x = runperl(
         prog	=> 'print $ARGV.q/,/ for <<>>',
         stdin	=> "foo\nbar\n",
     );
-    is($x, "-,-,", '$ARGV is - for STDIN with <<>>');
+    if (is_darwin_ios()) {
+        ok(1, "skip iOS: no stdin access");
+    } else {
+        is($x, "-,-,", '$ARGV is - for STDIN with <<>>');
+    }
 }
 
 $x = runperl(
