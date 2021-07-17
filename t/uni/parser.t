@@ -266,9 +266,8 @@ use utf8;
 eval "sort \x{100}%";
 die $@;
 EOS
-syntax error at (eval \d+) line 1, at EOF
+syntax error at (eval 1) line 1, at EOF
 EXPECT
-OPTION regex
 
 # New tests go here ^^^^^
 
