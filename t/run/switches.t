@@ -24,48 +24,50 @@ my @tmpfiles = ();
 END { unlink_all @tmpfiles }
 
 # Tests for -0
+SKIP: {
+    skip ('iOS: no stdin access', 12) if is_darwin_ios();
+    $r = runperl(
+        switches	=> [ '-0', ],
+        stdin	=> 'foo\0bar\0baz\0',
+        prog	=> 'print qq(<$_>) while <>',
+    );
+    is( $r, "<foo\0><bar\0><baz\0>", "-0" );
 
-$r = runperl(
-    switches	=> [ '-0', ],
-    stdin	=> 'foo\0bar\0baz\0',
-    prog	=> 'print qq(<$_>) while <>',
-);
-is( $r, "<foo\0><bar\0><baz\0>", "-0" );
+    $r = runperl(
+        switches	=> [ '-l', '-0', '-p' ],
+        stdin	=> 'foo\0bar\0baz\0',
+        prog	=> '1',
+    );
+    is( $r, "foo\nbar\nbaz\n", "-0 after a -l" );
 
-$r = runperl(
-    switches	=> [ '-l', '-0', '-p' ],
-    stdin	=> 'foo\0bar\0baz\0',
-    prog	=> '1',
-);
-is( $r, "foo\nbar\nbaz\n", "-0 after a -l" );
+    $r = runperl(
+        switches	=> [ '-0', '-l', '-p' ],
+        stdin	=> 'foo\0bar\0baz\0',
+        prog	=> '1',
+    );
+    is( $r, "foo\0bar\0baz\0", "-0 before a -l" );
 
-$r = runperl(
-    switches	=> [ '-0', '-l', '-p' ],
-    stdin	=> 'foo\0bar\0baz\0',
-    prog	=> '1',
-);
-is( $r, "foo\0bar\0baz\0", "-0 before a -l" );
+    $r = runperl(
+        switches	=> [ sprintf("-0%o", ord 'x') ],
+        stdin	=> 'fooxbarxbazx',
+        prog	=> 'print qq(<$_>) while <>',
+    );
+    is( $r, "<foox><barx><bazx>", "-0 with octal number" );
 
-$r = runperl(
-    switches	=> [ sprintf("-0%o", ord 'x') ],
-    stdin	=> 'fooxbarxbazx',
-    prog	=> 'print qq(<$_>) while <>',
-);
-is( $r, "<foox><barx><bazx>", "-0 with octal number" );
+    $r = runperl(
+        switches	=> [ '-00', '-p' ],
+        stdin	=> 'abc\ndef\n\nghi\njkl\nmno\n\npq\n',
+        prog	=> 's/\n/-/g;$_.=q(/)',
+    );
+    is( $r, 'abc-def--/ghi-jkl-mno--/pq-/', '-00 (paragraph mode)' );
 
-$r = runperl(
-    switches	=> [ '-00', '-p' ],
-    stdin	=> 'abc\ndef\n\nghi\njkl\nmno\n\npq\n',
-    prog	=> 's/\n/-/g;$_.=q(/)',
-);
-is( $r, 'abc-def--/ghi-jkl-mno--/pq-/', '-00 (paragraph mode)' );
-
-$r = runperl(
-    switches	=> [ '-0777', '-p' ],
-    stdin	=> 'abc\ndef\n\nghi\njkl\nmno\n\npq\n',
-    prog	=> 's/\n/-/g;$_.=q(/)',
-);
-is( $r, 'abc-def--ghi-jkl-mno--pq-/', '-0777 (slurp mode)' );
+    $r = runperl(
+        switches	=> [ '-0777', '-p' ],
+        stdin	=> 'abc\ndef\n\nghi\njkl\nmno\n\npq\n',
+        prog	=> 's/\n/-/g;$_.=q(/)',
+    );
+    is( $r, 'abc-def--ghi-jkl-mno--pq-/', '-0777 (slurp mode)' );
+}
 
 $r = runperl(
     switches	=> [ '-066' ],
@@ -213,7 +215,7 @@ SWTESTPM
 	switches    => [ "-m$package" ],
 	prog	    => '1',
     );
-
+    skip('iOS: #TODO', 1) if is_darwin_ios();
     {
         local $TODO = '';  # this one works on VMS
         is( $r, '', '-m' );
@@ -227,8 +229,6 @@ SWTESTPM
 
   {
     local $TODO = '';  # these work on VMS
-
-    skip('iOS: this test breakes the harness', 6) if $Config{archname} =~ /darwin-ios/;
 
     is( runperl( switches => [ '-MTie::Hash' ], stderr => 1, prog => 1 ),
 	  '', "-MFoo::Bar allowed" );
@@ -290,8 +290,7 @@ is runperl(stderr => 1, prog => '#!perl -M'),
     # regexp lookup
     # platforms that don't like this quoting can either skip this test
     # or fix test.pl _quote_args
-    my $switches_str = is_darwin_ios() ? '-V:i\D+size' : '"-V:i\D+size"';
-    $r = runperl( switches => [$switches_str] );
+    $r = runperl( switches => ['"-V:i\D+size"'] );
     # should be unlike( $r, qr/^$|not found|UNKNOWN/ );
     like( $r, qr/^(?!.*(not found|UNKNOWN))./, 'perl -V:re got a result' );
 
@@ -321,9 +320,10 @@ is runperl(stderr => 1, prog => '#!perl -M'),
 
 # Tests for -h and -?
 
-{
+SKIP: {
     local $TODO = '';   # these ones should work on VMS
 
+    skip 'iOS: #TODO junk in usage', 2 if is_darwin_ios();
     like( runperl( switches => ['-h'] ),
 	  qr/Usage: .+(?i:perl(?:$Config{_exe})?).+switches.+programfile.+arguments/,
           '-h looks okay' );
@@ -501,7 +501,7 @@ __EOF__
         my ($osvers) = ($Config{osvers} =~ /^(\d+(?:\.\d+)?)/);
         skip "NetBSD 6 libc defines at functions, but they're incomplete", 3
           if $^O eq "netbsd" && $osvers < 7;
-        skip "iOS: this test breaks the harness", 3 if $Config{archname} =~ /darwin-ios/;
+        skip "iOS: #TODO", 3 if $Config{archname} =~ /darwin-ios/;
         my $code = <<'CODE';
 @ARGV = ("tmpinplace/foo");
 $^I = "";
@@ -667,7 +667,6 @@ CODE
               && ($Config{d_dirfd} || $Config{d_dir_dd_fd})
               && $Config{d_linkat}
               && $Config{ccflags} !~ /-DNO_USE_ATFUNCTIONS\b/;
-        skip "iOS: this test breaks the harness", 1 if $Config{archname} =~ /darwin-ios/;
         my $code = <<'CODE';
 @ARGV = ("tmpinplace/foo");
 $^I = "";
@@ -703,6 +702,19 @@ $r = runperl(
     switches	=> [ '-E', '"say q(Hello, world!)"']
 );
 is( $r, "Hello, world!\n", "-E say" );
+
+
+$r = runperl(
+    switches	=> [ '-E', '"no warnings q{experimental::smartmatch}; undef ~~ undef and say q(Hello, world!)"']
+);
+is( $r, "Hello, world!\n", "-E ~~" );
+
+my $tt = is_darwin_ios() ? 'no warnings q{experimental::smartmatch}; given(undef) {when(undef) { say q(Hello, world!)}}' :
+    '"no warnings q{experimental::smartmatch}; given(undef) {when(undef) { say q(Hello, world!)"}}';
+$r = runperl(
+    switches	=> [ '-E', $tt]
+);
+is( $r, "Hello, world!\n", "-E given" );
 
 $r = runperl(
     switches    => [ '-nE', q("} END { say q/affe/") ],
