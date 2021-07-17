@@ -241,13 +241,6 @@ tie %tied, Tie::StdHash;
 EXPECT
 ########
 
-# An attempt at lvalueable barewords broke this
-tie FH, 'main';
-EXPECT
-Can't modify constant item in tie at - line 3, near "'main';"
-Execution of - aborted due to compilation errors.
-########
-
 # localizing tied hash slices
 $ENV{FooA} = 1;
 $ENV{FooB} = 2;
