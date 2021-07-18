@@ -184,14 +184,14 @@ build_perl() {
   # patch Makefile.SH #
 
   # use host generate_uudmap
-  perl -i.bak.0 -pe 's|bitcount.h: generate_uudmap\\\$\(HOST_EXE_EXT\)|bitcount.h: generate_uudmap\\\$(HOST_EXE_EXT)\n\tcp "\$PERLBREW_SOURCE/generate_uudmap" .|' Makefile.SH
+  perl -0777 -i.bak.0 -pe 's|bitcount.h: generate_uudmap\\\$\(HOST_EXE_EXT\)|bitcount.h: generate_uudmap\\\$(HOST_EXE_EXT)\n\tcp "\$PERLBREW_SOURCE/generate_uudmap" .|' Makefile.SH
 
   # use host miniperl
   SUB_S="cp $PERLBREW_SOURCE/miniperl ." perl -i.bak.1 -pe 's|(    \$\(miniperl_objs\) \$\(libs\))|$1\n\t$ENV{SUB_S}|' Makefile.SH
 
   # use miniperl instead of full perl
-  perl -i.bak.2 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) \$perl\\\$\(EXE_EXT\)|RUN_PERL = \\\$(LDLIBPTH) \\\$(RUN) ./miniperl\\\$(EXE_EXT)|' Makefile.SH
-  perl -i.bak.3 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./perl\\\$\(EXE_EXT\) \-Ilib \-I\.|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./miniperl\\\$\(EXE_EXT\) -Ilib -I.|' Makefile.SH
+  perl -0777 -i.bak.2 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) \$perl\\\$\(EXE_EXT\)|RUN_PERL = \\\$(LDLIBPTH) \\\$(RUN) ./miniperl\\\$(EXE_EXT)|' Makefile.SH
+  perl -0777 -i.bak.3 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./perl\\\$\(EXE_EXT\) \-Ilib \-I\.|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./miniperl\\\$\(EXE_EXT\) -Ilib -I.|' Makefile.SH
 
   # Patch Configure #
 
@@ -226,7 +226,7 @@ build_perl() {
   cp "ios/config/$PLATFORM_TAG/$PERL_ARCH/config.h" .
 
   # patch prefix
-  perl -i.bak.0 -pe "s|/opt/local|$PREFIX|g" config.h
+  perl -0777 -i.bak.0 -pe "s|/opt/local|$PREFIX|g" config.h
 
   perl -0777 -i.bak.4 -pe "s|$min_ver_replace|$MIN_VERSION_TAG|g" config.h
 
