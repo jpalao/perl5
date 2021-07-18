@@ -1265,6 +1265,8 @@ sub run_multiple_progs {
 	    $switch = $1;
 	}
 	my ($prog, $expected) = split(/\nEXPECT(?:\n|$)/, $_, 2);
+	utf8::decode($prog) if is_darwin_ios();
+	utf8::decode($expected) if is_darwin_ios();
 
 	my %reason;
 	foreach my $what (qw(skip todo)) {
