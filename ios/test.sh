@@ -160,7 +160,7 @@ test_perl_device() {
         xargs perl -0644 -p -i -e \
         's|(\s*[^#]\s*)\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
-    git checkout op/inccode.t
+    git checkout t/op/inccode.t
 
     popd
 
