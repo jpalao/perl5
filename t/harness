@@ -439,7 +439,7 @@ $Config{archname} =~ /darwin-ios/ && eval {
 
 		#'../lib/croak.t',
 		#'../lib/feature.t',
-		#'../lib/warnings.t',
+		'../lib/warnings.t',
 		'../lib/feature/unicode_strings.t',
 	);
 
@@ -449,15 +449,16 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		{
 			if ($tests[$index] =~ m!$black_list!)
 			{
-				print STDOUT "iOS: Blacklisted test: $tests[$index]\n";
+				#print STDOUT "iOS: Blacklisted test: $tests[$index]\n";
 				splice(@tests, $index, 1);
 			}
 		}
 	}
 
-	$test_dumper = Data::Dumper->new([@tests])->Dump();
-	print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
+	#$test_dumper = Data::Dumper->new([@tests])->Dump();
+	#print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
 };
+
 
 my $agg = $h->runtests(@tests);
 _cleanup_valgrind(\$htoolnm, \$hgrind_ct);
