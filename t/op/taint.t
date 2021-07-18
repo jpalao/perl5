@@ -50,14 +50,17 @@ BEGIN {
   }
 }
 
+
 my $Is_VMS      = $^O eq 'VMS';
 my $Is_MSWin32  = $^O eq 'MSWin32';
 my $Is_Cygwin   = $^O eq 'cygwin';
 my $Is_OpenBSD  = $^O eq 'openbsd';
 my $Is_MirBSD   = $^O eq 'mirbsd';
+my $Is_Ios      = is_darwin_ios();
 my $Invoke_Perl = $Is_VMS      ? 'MCR Sys$Disk:[]Perl.exe' :
                   $Is_MSWin32  ? '.\perl'               :
                                  './perl'               ;
+
 my @MoreEnv = qw/IFS CDPATH ENV BASH_ENV/;
 
 if ($Is_VMS) {
@@ -152,6 +155,8 @@ my $TEST = 'TEST';
     delete @ENV{@MoreEnv};
     $ENV{TERM} = 'dumb';
 
+SKIP: {
+    skip('iOS: no backticks', 1) if $Is_Ios;
     is(eval { `$echo 1` }, "1\n");
 
     SKIP: {
@@ -1198,6 +1203,7 @@ my $TEST = 'TEST';
 # How about command-line arguments? The problem is that we don't
 # always get some, so we'll run another process with some.
 SKIP: {
+    skip "iOS: no backticks", 1 if $Is_Ios;
     my $arg = tempfile();
     open $fh, '>', $arg or die "Can't create $arg: $!";
     print $fh q{
@@ -1225,7 +1231,8 @@ SKIP: {
 }
 
 # Output of commands should be tainted
-{
+SKIP: {
+    skip "iOS: no backticks", 1 if $Is_Ios;
     my $foo = `$echo abc`;
     is_tainted($foo);
 }
@@ -1335,22 +1342,22 @@ violates_taint(sub { link $TAINT, '' }, 'link');
     my $foo = $TAINT;
 
     SKIP: {
+        skip("iOS: open('|'), exec(), system() not available", 18) if $Is_Ios;
         skip "open('|') is not available", 8 if $^O eq 'amigaos';
 
         violates_taint(sub { open FOO, "| x$foo" }, 'piped open', 'popen to');
         violates_taint(sub { open FOO, "x$foo |" }, 'piped open', 'popen from');
         violates_taint(sub { open my $fh, '|-', "x$foo" }, 'piped open', 'popen to');
         violates_taint(sub { open my $fh, '-|', "x$foo" }, 'piped open', 'popen from');
+
+        violates_taint(sub { exec $TAINT }, 'exec');
+        violates_taint(sub { system $TAINT }, 'system');
+
+        $foo = "*";
+        taint_these $foo;
+
+        violates_taint(sub { `$echo 1$foo` }, '``', 'backticks');
     }
-
-    violates_taint(sub { exec $TAINT }, 'exec');
-    violates_taint(sub { system $TAINT }, 'system');
-
-    $foo = "*";
-    taint_these $foo;
-
-    violates_taint(sub { `$echo 1$foo` }, '``', 'backticks');
-
     SKIP: {
         # wildcard expansion doesn't invoke shell on VMS, so is safe
         skip "This is not VMS", 2 unless $Is_VMS;
@@ -1557,7 +1564,7 @@ SKIP: {
     # test shmread
     SKIP: {
         skip "shm*() not available", 1 unless $Config{d_shm};
-        skip "iOS: shm*() not available", 1 if is_darwin_ios();
+        skip "iOS: shm*() not available", 1 if $Is_Ios;
 
         no strict 'subs';
         my $sent = "foobar";
@@ -1595,7 +1602,7 @@ SKIP: {
     # test msgrcv
     SKIP: {
         skip "msg*() not available", 1 unless $Config{d_msg};
-        skip "iOS: msg*() not available", 1 if is_darwin_ios();
+        skip "iOS: msg*() not available", 1 if $Is_Ios;
 
 	no strict 'subs';
         my $id;
@@ -1804,7 +1811,7 @@ like($@, qr/^Modification of a read-only value attempted/,
 }
 
 SKIP: {
-    skip "system {} has different semantics on Win32", 1 if $Is_MSWin32;
+    skip "system {} has different semantics on Win32", 1 if $Is_MSWin32 || $Is_Ios;
 
     # bug 20010221.005 (#5882)
     local $ENV{PATH} .= $TAINT;
@@ -1813,6 +1820,7 @@ SKIP: {
 }
 
 TODO: {
+    todo_skip 'iOS: no exec, no system', 22 if $Is_Ios;
     todo_skip 'tainted %ENV warning occludes tainted arguments warning', 22
       if $Is_VMS;
 
@@ -1851,7 +1859,8 @@ TODO: {
     is_tainted(my $foo = $1);
 }
 
-{
+SKIP: {
+    skip "iOS: no system()", 2 if $Is_Ios;
     # [perl #24291] this used to dump core
     our %nonmagicalenv = ( PATH => "util" );
     local *ENV = \%nonmagicalenv;
@@ -2037,7 +2046,7 @@ SKIP:
 	skip "fork() is not available", 3 unless $Config{'d_fork'};
 	skip "opening |- is not stable on threaded Open/MirBSD with taint", 3
             if $Config{useithreads} and $Is_OpenBSD || $Is_MirBSD;
-	skip "iOS: opening |- not supported", 3 if is_darwin_ios();
+	skip "iOS: opening |- not supported", 3 if $Is_Ios;
 
 	$ENV{'PATH'} = $TAINT;
 	local $SIG{'PIPE'} = 'IGNORE';
@@ -2397,7 +2406,7 @@ end
 }
 
 SKIP: {
-    skip "iOS: this test breaks the harness", 2 if is_darwin_ios();
+    skip "iOS: #TODO", 2 if $Is_Ios;
     # [perl #82616] security Issues with user-defined \p{} properties
     # A using a tainted user-defined property should croak
 
