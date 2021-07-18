@@ -11,7 +11,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    use lib '../lib';
     # FIXME (or rather FIXh2xs)
     require Config;
     if (($Config::Config{'extensions'} !~ m!\bDevel/PPPort\b!) ){
@@ -185,12 +185,12 @@ while (my ($args, $version, $expectation) = splice @tests, 0, 3) {
         progfile => $extracted_program,
         args => \@args
       };
-      $result = exec_perl_capture($runperl_conf);
+      ($exit_code, $result) = exec_perl_capture($runperl_conf);
   } else {
       @result = `$prog`;
   }
 
-  cmp_ok ($?, "==", 0, "running $prog ");
+  cmp_ok ($Is_ios ? $exit_code: $?, "==", 0, "running $prog ");
   $result = join("", @result) if !$Is_ios;
   #print "# expectation is >$expectation<\n";
   #print "# result is >$result<\n";
