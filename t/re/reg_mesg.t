@@ -12,9 +12,7 @@ BEGIN {
 skip_all_without_unicode_tables();
 
 use strict;
-if (!is_darwin_ios()) {
-    use open qw(:utf8 :std);
-}
+use open qw(:utf8 :std);
 
 # Show that it works when all warnings are enabled upon invocation.  This file
 # includes tests that the default warnings are enabled by default, and the
