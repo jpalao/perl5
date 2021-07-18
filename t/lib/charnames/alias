@@ -418,4 +418,4 @@ use charnames ":alias" => { "NBSP SEPARATED SPACE" => "BLACK SMILING FACE" };
 print "ok\n" if "\N{NBSP SEPARATED SPACE}" eq "\x{263B}";
 EXPECT
 OPTIONS regex fatal
-Invalid character in charnames alias definition; marked by <-- HERE in 'NBSP <-- HERE SEPARATED SPACE' at - line 3
+(Malformed UTF-8 character.+|Invalid character in charnames alias definition; marked by <-- HERE in 'NBSP <-- HERE SEPARATED SPACE' at - line 3)
