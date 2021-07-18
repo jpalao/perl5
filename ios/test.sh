@@ -157,7 +157,7 @@ test_perl_device() {
         xargs perl -0777 -p -i -e 's|(\s*[^#]\s*)\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
 
     find . | grep -E "\.(pl|pm|t)$" | xargs grep -El "^\s*[^#]\s*@INC\s*=.*if.*" | \
-        xargs perl -0644 -p -i -e \
+        xargs perl -0777 -p -i -e \
         's|(\s*[^#]\s*)\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
     git checkout t/op/inccode.t
