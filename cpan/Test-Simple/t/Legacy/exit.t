@@ -7,7 +7,7 @@ package My::Test;
 BEGIN {
     if( $ENV{PERL_CORE} ) {
         chdir 't';
-        @INC = '../lib';
+        use lib '../lib';
     }
 }
 
@@ -76,12 +76,12 @@ for my $exit (0..255) {
 
     my $out = qx[$Perl exit_map_test $exit];
     # iOS: qx not supported, still $? == 0
-    $out = exec_perl_capture({ progfile => 'exit_map_test', args => ["$exit"]})
+    (my $exit_code, $out) = exec_perl_capture({ progfile => 'exit_map_test', args => ["$exit"]})
         if($Is_Ios);
 
     $TB->like( $out, qr/^exit $exit\n/, "exit map test for $exit" );
 
-    $Exit_Map{$exit} = exitstatus($?);
+    $Exit_Map{$exit} = exitstatus($Is_Ios ? $exit_code : $?);
 }
 print "# Done.\n";
 
