@@ -3,7 +3,6 @@ package cbrunperl;
 # auto-flush on socket
 $| = 1;
 use strict;
-#use warnings;
 use open ":std", ":encoding(UTF-8)";
 use CamelBones qw(:All);
 use JSON::PP;
@@ -12,14 +11,17 @@ use Cwd qw/abs_path chdir getcwd/;
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
-our @EXPORT = (
-    'exec_test', 'exec_perl', 'exec_perl_capture', 'capture_test', 'yield'
+
+our @methods = (
+    'capture_test',
+    'exec_perl_capture',
+    'exec_perl',
+    'exec_test',
+    'yield',
 );
 
-our @EXPORT_OK = (
-    'ios_runperl', 'exec_test', 'exec_file_tests', 'exec_perl',
-    'exec_perl_capture', 'capture_test', 'yield'
-);
+our @EXPORT = @methods;
+our @EXPORT_OK = @methods;
 
 our $DEBUG = 0;
 
@@ -67,7 +69,7 @@ sub exec_perl {
   print "\$exec: $exec\n" if $DEBUG;
   my $t = CamelBones::CBRunPerl($exec);
   print "\$t: $t\n" if $DEBUG;
-  return $t;
+  return int($t);
 }
 
 sub exec_perl_capture {
@@ -87,13 +89,13 @@ sub exec_perl_capture {
   };
   my $exec = $json->utf8->canonical->pretty->encode($runPerl);
   print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
-  my $result;
+  my ($exit_code, $result);
   local $@;
   eval {
-    $result = CamelBones::CBRunPerlCaptureStdout($exec);
+    ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
   };
   print "exec_perl_capture \$result: $result:\n" if $DEBUG;
-  return $result ? $result : $@;
+  return ($exit_code, $result ? $result : $@);
 }
 
 sub parse_test {
@@ -142,12 +144,12 @@ sub exec_test {
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
   my $json = parse_test($pwd, $test);
   print  Dumper("json", $json) if $DEBUG;
-  my $result;
+  my ($exit_status, $result);
   local $@;
   eval {
-    $result = exec_perl_capture($json);
+    ($exit_status, $result) = exec_perl_capture($json);
   };
-  return $result ? $result : $@;
+  return ($result ? $result : $@, $exit_status);
 }
 
 
