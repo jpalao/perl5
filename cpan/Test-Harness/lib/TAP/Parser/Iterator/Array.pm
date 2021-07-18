@@ -76,11 +76,11 @@ sub _initialize {
     chomp @$thing;
 
     my $command = join " ", @$thing;
-    my $tap = exec_test(getcwd(), $command);
+    my ($exit_code, $tap) = exec_test(getcwd(), $command);
 
     $self->{idx}   = 0;
     $self->{array} = array_ref_from($tap);
-    $self->{exit}  = undef;
+    $self->{exit}  = $exit_code;
     return $self;
 }
 
