@@ -149,7 +149,7 @@ sub exec_test {
   eval {
     ($exit_status, $result) = exec_perl_capture($json);
   };
-  return ($result ? $result : $@, $exit_status);
+  return ($exit_status, $result ? $result : $@);
 }
 
 
