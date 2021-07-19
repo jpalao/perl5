@@ -819,13 +819,13 @@ sub runperl {
 
     if (is_darwin_ios()) {
         my %args = @_;
-        my ($exit_code, $result);
+        my ($exit_status, $result);
         local $@;
         eval {
-            ($exit_code, $result) = exec_perl_capture(\%args);
+            ($result) = exec_perl_capture(\%args);
         };
-        $? = $exit_code;
-        return $result ? $result : $@;
+        $? = $result->[0];
+        return $result->[1] ? $result->[1] : $@;
     }
 
     my $runperl = &_create_runperl;
