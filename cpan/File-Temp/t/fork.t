@@ -10,7 +10,8 @@ BEGIN {
   my $can_fork = $Config::Config{d_fork} ||
     (($^O eq 'MSWin32' || $^O eq 'NetWare') and
      $Config::Config{useithreads} and
-     $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/
+     $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/ and
+     $Config::Config{archname} !~ /darwin-ios/
     );
   if ( $can_fork && !(($^O eq 'MSWin32') && $Devel::Cover::VERSION) && $Config::Config{'archname'} !~ /darwin-ios/) {
     print "1..8\n";
