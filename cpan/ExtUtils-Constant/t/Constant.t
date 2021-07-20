@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use Config;
-unless ($Config{usedl}) {
+unless ($Config{usedl} && $Config{archname} !~ /darwin-ios/) {
     print "1..0 # no usedl, skipping\n";
     exit 0;
 }
