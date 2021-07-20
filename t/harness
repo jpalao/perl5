@@ -381,66 +381,76 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		# hang, crash or exit unexpectedly,
 		# or may pass, causing havoc afterwards,
 		# or they may pass or hang/crash indistinctly
+
 		'io/openpid.t',
 		'io/perlio_leaks.t',
-
-		'lib/deprecate.t',
-
-		'io/eintr_print.t',
-		'io/print.t',
 
 		'op/groups.t',
 		'op/die_keeperr.t',
 
-		# this breaks sometimes even if skipped
+		# pass, fail randomly
 		're/pat_advanced.t',
 		're/pat_advanced_thr.t',
 
-		# 'uni/fold.t',
-		'../cpan/autodie/t/recv.t',
 		# DB_File not built in
 		'../cpan/DB_File/t/db-threads.t',
 		'../cpan/DB_File/t/db-recno.t',
 		'../cpan/DB_File/t/db-hash.t',
 		'../cpan/DB_File/t/db-btree.t',
-		'../cpan/ExtUtils-Constant/t/Constant.t',
+
+		# hangs
 		'../cpan/File-Temp/t/lock.t',
-		'../cpan/IO-Compress/t/cz-14gzopen.t',
-		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
+
+		# TODO
 		'../cpan/IPC-SysV/t/ipcsysv.t',
 		'../cpan/IPC-SysV/t/msg.t',
 		'../cpan/IPC-SysV/t/pod.t',
 		'../cpan/IPC-SysV/t/podcov.t',
 		'../cpan/IPC-SysV/t/sem.t',
 		'../cpan/IPC-SysV/t/shm.t',
+
+		# no exec
 		'../cpan/autodie/t/exec.t',
+
+		# no command running on iOS
 		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
 		'../cpan/IPC-Cmd/t/02_Interactive.t',
 		'../cpan/IPC-Cmd/t/03_run-forked.t',
+
+		# TODO test after proper subclassing of Iterator::Array
 		'../cpan/Test-Harness/t/compat/inc-propagation.t',
 		'../cpan/Test-Harness/t/compat/inc_taint.t',
 		'../cpan/Test-Harness/t/compat/test-harness-compat.t',
 		'../cpan/Test-Harness/t/compat/regression.t',
 		'../cpan/Test-Harness/t/regression.t',
 
+		# no backticks
+		'../cpan/Pod-Usage/t/pod/selectsections.t',
+		'../cpan/Pod-Usage/t/pod/headwithmarkup.t',
+		'../cpan/Pod-Usage/t/pod/selectheaders.t',
+
+		# no backticks
 		'../dist/IO/t/io_dup.t',
-		'../dist/IO/t/io_utf8.t',
+
+		# TODO
 		'../dist/threads/t/exit.t',
+
 		'../dist/Time-HiRes/t/itimer.t',
 		'../dist/Time-HiRes/t/ualarm.t',
 
 		'../ext/Devel-Peek/t/Peek.t',
+
 		'../ext/DynaLoader/t/DynaLoader.t',
+
 		'../ext/POSIX/t/posix.t',
 		'../ext/POSIX/t/sigaction.t',
+
 		'../ext/IPC-Open3/t/fd.t',
 		'../ext/IPC-Open3/t/IPC-Open2.t',
 		'../ext/IPC-Open3/t/IPC-Open3.t',
+
 		'../ext/XS-APItest/t/clone-with-stack.t',
 
-		#'../lib/croak.t',
-		#'../lib/feature.t',
-		'../lib/warnings.t',
 		'../lib/feature/unicode_strings.t',
 	);
 
