@@ -3,12 +3,13 @@ package TAP::Parser::SourceHandler::Perl;
 use strict;
 use warnings;
 use Config;
+use Data::Dumper;
 
 use constant IS_WIN32 => ( $^O =~ /^(MS)?Win32$/ );
 use constant IS_VMS => ( $^O eq 'VMS' );
 
 use TAP::Parser::IteratorFactory           ();
-use TAP::Parser::Iterator::Process         ();
+use TAP::Parser::Iterator::Array           ();
 use Text::ParseWords qw(shellwords);
 
 use base 'TAP::Parser::SourceHandler::Executable';
@@ -245,15 +246,22 @@ sub _run {
     return $class->_create_iterator( $source, \@command, $setup, $teardown );
 }
 
+sub array_ref_from {
+    my $string = shift;
+    my @lines = split /\n/ => $string;
+    return \@lines;
+}
+
 sub _create_iterator {
     my ( $class, $source, $command, $setup, $teardown ) = @_;
-
-    return TAP::Parser::Iterator::Process->new(
-        {   command  => $command,
-            merge    => $source->merge,
-            setup    => $setup,
-            teardown => $teardown,
-        }
+    use cbrunperl;
+    use Cwd('getcwd');
+    my $test_dumper = Data::Dumper->new([$command])->Dump();
+	die "command:\n$test_dumper";
+	my $t = exec_test(getcwd());
+    my $result = array_ref_from($t);
+    return TAP::Parser::Iterator::Array->new(
+        $result
     );
 }
 
