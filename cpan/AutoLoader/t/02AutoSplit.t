@@ -92,11 +92,12 @@ sub split_a_file {
   }
 
   if ($Is_ios) {
-      return exec_perl_capture ({
+      my ($result) = exec_perl_capture ({
         prog => "use AutoSplit; autosplit (qw(@_))",
         pwd => getcwd(),
         stderr => 1,
       });
+      return $result->[1] ? $result->[1] : $@;
   }
 
   # Assumption: no characters in arguments need escaping from the shell or perl
