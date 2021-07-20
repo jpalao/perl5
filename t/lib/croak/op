@@ -3,7 +3,8 @@ __END__
 exit 1;
 join,
 EXPECT
-Not enough arguments for join or string at - line 1, near "join,"
+OPTION regex
+Not enough arguments for join or string at - line \d, near "join,"
 Execution of - aborted due to compilation errors.
 ########
 # NAME my $<special>
@@ -31,7 +32,8 @@ sub new {
 my Foo $f = Foo->new;
 $f->{c} = 1;
 EXPECT
-No such class field "c" in variable $f of type Foo at - line 8.
+OPTION regex
+No such class field "c" in variable \$f of type Foo at \- line 8\..*
 ########
 # NAME "No such field" with block: ${$ref}{key}
 %FIELDS; # empty hash so all keys are invalid
@@ -50,7 +52,8 @@ sub new {
 my Foo $f = Foo->new;
 @$f{"a", "c"} = ( 1, 2 );
 EXPECT
-No such class field "c" in variable $f of type Foo at - line 8.
+OPTION regex
+No such class field "c" in variable \$f of type Foo at \- line 8\..*
 ########
 # NAME Single OP_HSLICE field
 %FIELDS; # vivify it, but leave it empty, so all fields are invalid
@@ -186,20 +189,23 @@ Execution of - aborted due to compilation errors.
 # NAME pop BAREWORD
 pop FRED;
 EXPECT
-Type of arg 1 to pop must be array (not constant item) at - line 1, near "FRED;"
-Execution of - aborted due to compilation errors.
+OPTION regex
+Type of arg 1 to pop must be array \(not constant item\) at - line 1, near "FRED;"
+Execution of - aborted due to compilation errors\..*
 ########
 # NAME shift BAREWORD
 shift FRED;
 EXPECT
-Type of arg 1 to shift must be array (not constant item) at - line 1, near "FRED;"
-Execution of - aborted due to compilation errors.
+OPTION regex
+Type of arg 1 to shift must be array \(not constant item\) at - line 1, near "FRED;"
+Execution of - aborted due to compilation errors..*
 ########
 # NAME unshift BAREWORD
 unshift FRED;
 EXPECT
-Type of arg 1 to unshift must be array (not constant item) at - line 1, near "FRED;"
-Execution of - aborted due to compilation errors.
+OPTION regex
+Type of arg 1 to unshift must be array \(not constant item\) at - line 1, near "FRED;"
+Execution of - aborted due to compilation errors..*
 ########
 # NAME better messages for array-ops on non-arrays
 push %a, 1;
@@ -211,15 +217,16 @@ pop *a;
 shift *a;
 unshift *a, 1;
 EXPECT
-Type of arg 1 to push must be array (not hash dereference) at - line 1, near "1;"
-Type of arg 1 to pop must be array (not hash dereference) at - line 2, near "%a;"
-Type of arg 1 to shift must be array (not hash dereference) at - line 3, near "%a;"
-Type of arg 1 to unshift must be array (not hash dereference) at - line 4, near "1;"
-Type of arg 1 to push must be array (not ref-to-glob cast) at - line 5, near "1;"
-Type of arg 1 to pop must be array (not ref-to-glob cast) at - line 6, near "*a;"
-Type of arg 1 to shift must be array (not ref-to-glob cast) at - line 7, near "*a;"
-Type of arg 1 to unshift must be array (not ref-to-glob cast) at - line 8, near "1;"
-Execution of - aborted due to compilation errors.
+OPTION regex
+Type of arg 1 to push must be array \(not hash dereference\) at - line 1, near "1;"
+Type of arg 1 to pop must be array \(not hash dereference\) at - line 2, near "%a;"
+Type of arg 1 to shift must be array \(not hash dereference\) at - line 3, near "%a;"
+Type of arg 1 to unshift must be array \(not hash dereference\) at - line 4, near "1;"
+Type of arg 1 to push must be array \(not ref\-to\-glob cast\) at - line 5, near "1;"
+Type of arg 1 to pop must be array \(not ref\-to\-glob cast\) at - line 6, near "\*a;"
+Type of arg 1 to shift must be array \(not ref\-to\-glob cast\) at - line 7, near "\*a;"
+Type of arg 1 to unshift must be array \(not ref\-to\-glob cast\) at - line 8, near "1;"
+Execution of - aborted due to compilation errors..*
 ########
 # NAME better messages for array-ops on non-arrays (part 2)
 # to check PADHV without hitting the reported error limit
@@ -229,8 +236,9 @@ pop %a;
 shift %a;
 unshift %a, 1;
 EXPECT
-Type of arg 1 to push must be array (not private hash) at - line 3, near "1;"
-Type of arg 1 to pop must be array (not private hash) at - line 4, near "%a;"
-Type of arg 1 to shift must be array (not private hash) at - line 5, near "%a;"
-Type of arg 1 to unshift must be array (not private hash) at - line 6, near "1;"
-Execution of - aborted due to compilation errors.
+OPTION regex
+Type of arg 1 to push must be array \(not private hash\) at - line 3, near "1;"
+Type of arg 1 to pop must be array \(not private hash\) at - line 4, near "%a;"
+Type of arg 1 to shift must be array \(not private hash\) at - line 5, near "%a;"
+Type of arg 1 to unshift must be array \(not private hash\) at - line 6, near "1;"
+Execution of - aborted due to compilation errors..*

@@ -13,11 +13,12 @@ use strict;
 $foo;
 myfunc 1,2,3
 EXPECT
-Global symbol "$foo" requires explicit package name (did you forget to declare "my $foo"?) at - line 3.
+OPTION regex
+Global symbol "\$foo" requires explicit package name \(did you forget to declare "my \$foo"\?\) at - line 3\.
 Number found where operator expected at - line 4, near "myfunc 1"
-	(Do you need to predeclare myfunc?)
+	\(Do you need to predeclare myfunc\?\)
 syntax error at - line 4, near "myfunc 1"
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors\..*
 ########
 # NAME (Missing operator before ${?) [perl #123737]
 0${
@@ -102,7 +103,8 @@ BEGIN { binmode STDERR, ":utf8" }
 use utf8;
 q«
 EXPECT
-Can't find string terminator "«" anywhere before EOF at - line 3.
+OPTION regex
+Malformed UTF-8 character|Can\'t find string terminator "«" anywhere before EOF at - line 3\.
 ########
 # NAME Unterminated q// with non-Latin-1 delimiter
 BEGIN { binmode STDERR, ":utf8" }
@@ -353,8 +355,9 @@ use utf8;
 q«
 « time
 EXPECT
-syntax error at - line 4, near "« time"
-  (Might be a runaway multi-line «« string starting on line 3)
+OPTION regex
+Malformed UTF-8 character|syntax error at - line 4, near "« time"
+  \(Might be a runaway multi-line «« string starting on line 3\)
 Execution of - aborted due to compilation errors.
 ########
 # NAME (Might be a runaway multi-line...) with non-Latin-1 delimiters
@@ -439,7 +442,8 @@ BEGIN { $^C = 1; }
 dump;
 CORE::dump;
 EXPECT
-dump() must be written as CORE::dump() as of Perl 5.30 at - line 2.
+OPTION regex
+dump\(\) must be written as CORE::dump\(\) as of Perl 5\.30 at - line 2\..*
 ########
 # NAME check Prototype not terminated includes line number (133524)
 sub t1 {}
