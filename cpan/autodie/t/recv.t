@@ -57,7 +57,7 @@ $buffer = "# Not an empty string\n";
 # Terminate writing for $sock1
 shutdown($sock1, 1);
 
-SKIP: {
+TODO: {
     if ($Config{'archname'} !~ /darwin-ios/) {
         eval {
             use autodie qw(send);
@@ -65,7 +65,7 @@ SKIP: {
             send($sock1,$buffer,0);
         };
     } else {
-        skip 'iOS: #TODO send autodie', 2;
+        todo_skip 'iOS: #TODO send autodie', 2;
     }
 
     ok($@,'send dies on returning undef');
