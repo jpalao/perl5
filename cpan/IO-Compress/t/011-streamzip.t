@@ -1,7 +1,7 @@
 BEGIN {
     if ($ENV{PERL_CORE}) {
 	chdir 't' if -d 't';
-	@INC = ("../lib", "lib/compress");
+	use lib ("../lib", "lib/compress");
     }
 }
 
@@ -10,15 +10,19 @@ use lib qw(t t/compress);
 use strict;
 use warnings;
 use bytes;
+use Config;
 
-use Test::More ;
+use Test::More;
 use CompTestUtils;
-use IO::Uncompress::Unzip 'unzip' ;
+use IO::Uncompress::Unzip 'unzip';
 
 BEGIN
 {
     plan(skip_all => "Needs Perl 5.005 or better - you have Perl $]" )
         if $] < 5.005 ;
+
+    plan(skip_all => "iOS: no backticks" )
+        if $Config{'archname'} =~ /darwin-ios/;
 
     # use Test::NoWarnings, if available
     my $extra = 0 ;
