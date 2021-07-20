@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
+use Config;
 use Test::More tests => 8;
 use Socket;
 use autodie qw(socketpair);
@@ -56,11 +57,18 @@ $buffer = "# Not an empty string\n";
 # Terminate writing for $sock1
 shutdown($sock1, 1);
 
-eval {
-    use autodie qw(send);
-    # Writing to a socket terminated for writing should fail.
-    send($sock1,$buffer,0);
-};
+SKIP: {
+    if ($Config{'archname'} !~ /darwin-ios/) {
+        eval {
+            use autodie qw(send);
+            # Writing to a socket terminated for writing should fail.
+            send($sock1,$buffer,0);
+        };
+    } else {
+        skip 'iOS: #TODO send autodie', 2;
+    }
 
-ok($@,'send dies on returning undef');
-isa_ok($@,'autodie::exception');
+    ok($@,'send dies on returning undef');
+    isa_ok($@,'autodie::exception');
+}
+
