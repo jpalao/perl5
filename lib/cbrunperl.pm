@@ -144,12 +144,12 @@ sub exec_test {
   print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
   my $json = parse_test($pwd, $test);
   print  Dumper("json", $json) if $DEBUG;
-  my ($exit_status, $result);
+  my $result;
   local $@;
   eval {
-    ($exit_status, $result) = exec_perl_capture($json);
+    ($result) = exec_perl_capture($json);
   };
-  return ($exit_status, $result ? $result : $@);
+  return ($result->[0], $result->[1] ? $result->[1] : $@);
 }
 
 
