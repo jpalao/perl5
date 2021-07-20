@@ -21,6 +21,11 @@ require 'filter-util.pl';
 
 use vars qw($Inc $Perl);
 
+if ($Config{'archname'} =~ /darwin-ios/) {
+    print "1..0 # skip iOS no backticks\n";
+    exit 0;
+};
+
 print "1..34\n";
 
 $Perl = "$Perl -w";
