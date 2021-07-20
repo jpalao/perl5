@@ -29,6 +29,9 @@ SKIP: {
     skip "fork not available", 5
 	unless $Config{d_fork} || $Config{d_pseudofork};
 
+    skip "iOS: fork not available", 5
+        if $Config{archname} =~ /darwin-ios/;
+
     my $cpid = fork();
     if (0 == $cpid) {
 	# the child:

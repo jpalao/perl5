@@ -10,6 +10,7 @@ BEGIN {
 		     $Config{useithreads} and
 		     $Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/
 		    );
+	$can_fork = 0 if $Config{archname} =~ /darwin-ios/;
 
     if ($ENV{PERL_CORE} and $Config{'extensions'} !~ /\bSocket\b/) {
 	$reason = 'Socket extension unavailable';
