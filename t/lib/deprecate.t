@@ -93,8 +93,7 @@ for my $lib (sort keys %tests) {
     unlink_all $pm;
 }
 
-if (is_darwin_ios()) {
-    chdir $return_dir;
+END {
+    File::Path::remove_tree('lib');
+    chdir $return_dir if is_darwin_ios();
 }
-
-END { File::Path::remove_tree('lib') }
