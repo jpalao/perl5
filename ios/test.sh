@@ -153,14 +153,17 @@ test_perl_device() {
     pushd "$WORKDIR/perl-$PERL_VERSION/"
 
     # substitute @INC = list with use lib list in t
-    find . | grep -E "\.t$" | xargs grep -El "^\s*[^#]{0,}\s*@INC\s*=" | \
-        xargs perl -0777 -p -i -e 's|(\s*[^#]{0,}\s*)\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
+    find . | grep -E "\.t$" | xargs grep -El "^\s*[^#]*\s*@INC\s*=" | \
+        xargs perl -0777 -p -i -e 's|(\s*[^#]*\s*)\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
 
-    find . | grep -E "\.(pl|pm|t)$" | xargs grep -El "^\s*[^#]{0,}\s*@INC\s*=.*if.*" | \
+    find . | grep -E "\.(pl|pm|t)$" | xargs grep -El "^\s*[^#]*\s*@INC\s*=.*if.*" | \
         xargs perl -0777 -p -i -e \
-        's|(\s*[^#]{0,}\s*)\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
+        's|(\s*[^#]*\s*)\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
+    # These are patched incorrectly, restore them
     git checkout t/op/inccode.t
+    git checkout NetWare/t/NWModify.pl
+    git checkout cpan/Module-Load-Conditional/lib/Module/Load/Conditional.pm
 
     popd
 
