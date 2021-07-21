@@ -153,10 +153,10 @@ test_perl_device() {
     pushd "$WORKDIR/perl-$PERL_VERSION/"
 
     # substitute @INC = list with use lib list in t
-    find . | grep -E "\.t$" | xargs grep -El "^\s*[^#]\s*@INC\s*=" | \
+    find . | grep -E "\.t$" | xargs grep -El "^\s*[^#]{0,}\s*@INC\s*=" | \
         xargs perl -0777 -p -i -e 's|(\s*[^#]{0,}\s*)\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
 
-    find . | grep -E "\.(pl|pm|t)$" | xargs grep -El "^\s*[^#]\s*@INC\s*=.*if.*" | \
+    find . | grep -E "\.(pl|pm|t)$" | xargs grep -El "^\s*[^#]{0,}\s*@INC\s*=.*if.*" | \
         xargs perl -0777 -p -i -e \
         's|(\s*[^#]{0,}\s*)\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
