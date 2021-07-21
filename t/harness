@@ -435,7 +435,6 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		# TODO
 		'../dist/threads/t/exit.t',
 
-		'../dist/Time-HiRes/t/itimer.t',
 		'../dist/Time-HiRes/t/ualarm.t',
 
 		'../ext/Devel-Peek/t/Peek.t',
@@ -465,6 +464,9 @@ $Config{archname} =~ /darwin-ios/ && eval {
 			}
 		}
 	}
+
+    # these are passing consistently, speed up
+    @tests = grep(/^(?:(?!re\/uniprops))/, @tests);
 
 	#$test_dumper = Data::Dumper->new([@tests])->Dump();
 	#print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
