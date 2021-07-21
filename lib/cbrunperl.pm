@@ -95,7 +95,7 @@ sub exec_perl_capture {
     ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
   };
   print "exec_perl_capture \$result: $result:\n" if $DEBUG;
-  return ($exit_code, $result ? $result : $@);
+  return (int($exit_code), $result ? $result : $@);
 }
 
 sub parse_test {
