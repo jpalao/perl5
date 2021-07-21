@@ -18,7 +18,7 @@ if (is_darwin_ios())
         progfile => "Porting/bench.pl",
         args => ["--action=selftest"]
     });
-    chdir 't' if -d 't' && is_darwin_ios;
+    chdir 't' if -d 't' && is_darwin_ios();
 }
 else
 {
