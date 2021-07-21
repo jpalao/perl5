@@ -48,22 +48,29 @@ ok(defined $virt && abs($virt / 0.5) - 1 < $limit,
    "ITIMER_VIRTUAL defined with sufficient granularity")
    or diag "virt=" . (defined $virt ? $virt : 'undef');
 
-printf("# getitimer: %s\n", join(" ",
-       Time::HiRes::getitimer(&Time::HiRes::ITIMER_VIRTUAL)));
+TODO: {
+if ($Config{'archname'} =~ /darwin-ios/) {
+    todo_skip("iOS: #TODO watchdog disabled", 1);
+} else {
+    printf("# getitimer: %s\n", join(" ",
+           Time::HiRes::getitimer(&Time::HiRes::ITIMER_VIRTUAL)));
 
-# burn CPU until the VTALRM signal handler sets the repeat interval to
-# zero, indicating that the timer has fired 4 times.
-while ((Time::HiRes::getitimer(&Time::HiRes::ITIMER_VIRTUAL))[1]) {
-    my $j;
-    for (1..1000) { $j++ } # Can't be unbreakable, must test getitimer().
+    # burn CPU until the VTALRM signal handler sets the repeat interval to
+    # zero, indicating that the timer has fired 4 times.
+    while ((Time::HiRes::getitimer(&Time::HiRes::ITIMER_VIRTUAL))[1]) {
+        my $j;
+        for (1..1000) { $j++ } # Can't be unbreakable, must test getitimer().
+    }
+
+    printf("# getitimer: %s\n", join(" ",
+           Time::HiRes::getitimer(&Time::HiRes::ITIMER_VIRTUAL)));
+
+    $virt = Time::HiRes::getitimer(&Time::HiRes::ITIMER_VIRTUAL);
+    print("# at end, i=$i\n");
+    is($virt, 0, "time left should be zero");
 }
 
-printf("# getitimer: %s\n", join(" ",
-       Time::HiRes::getitimer(&Time::HiRes::ITIMER_VIRTUAL)));
-
-$virt = Time::HiRes::getitimer(&Time::HiRes::ITIMER_VIRTUAL);
-print("# at end, i=$i\n");
-is($virt, 0, "time left should be zero");
+}
 
 $SIG{VTALRM} = 'DEFAULT';
 
