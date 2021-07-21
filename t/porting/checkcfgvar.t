@@ -44,7 +44,7 @@ if (is_darwin_ios())
         progfile => "Porting/checkcfgvar.pl",
         args => ["--tap"]
     });
-    chdir 't' if -d 't' && is_darwin_ios;
+    chdir 't' if -d 't' && is_darwin_ios();
 }
 else
 {
