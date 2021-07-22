@@ -45,6 +45,13 @@ print @x,"14\nok",@y;
 
 $\ = '';
 
+if (is_darwin_ios()) {
+    for my $i (19..24) {
+        print "ok $i # skip iOS: #TODO\n";
+    }
+    exit 0;
+}
+
 if (!exists &Errno::EBADF) {
     print "ok 19 # skipped: no EBADF\n";
 } else {
