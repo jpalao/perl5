@@ -26,7 +26,7 @@ BEGIN {
     skip_all('-- IPC::SysV was not built');
   }
   skip_all_if_miniperl();
-  skip_all('iOS: this test breaks the harness')
+  skip_all('iOS: #TODO')
         if is_darwin_ios();  
   if ($Config{'d_shm'} ne 'define') {
     skip_all('-- $Config{d_shm} undefined');
