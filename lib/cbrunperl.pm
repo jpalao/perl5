@@ -7,7 +7,7 @@ use open ":std", ":encoding(UTF-8)";
 use CamelBones qw(:All);
 use JSON::PP;
 use Data::Dumper;
-use Cwd qw/abs_path chdir getcwd/;
+use Cwd qw(abs_path chdir getcwd);
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
@@ -24,6 +24,8 @@ our @EXPORT = @methods;
 our @EXPORT_OK = @methods;
 
 our $DEBUG = 0;
+
+our $capture = 1;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -95,7 +97,7 @@ sub exec_perl_capture {
     ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
   };
   print "exec_perl_capture \$result: $result:\n" if $DEBUG;
-  return (int($exit_code), $result ? $result : $@);
+  return ($exit_code, $result ? $result : $@);
 }
 
 sub parse_test {
@@ -146,10 +148,20 @@ sub exec_test {
   print  Dumper("json", $json) if $DEBUG;
   my $result;
   local $@;
-  eval {
-    ($result) = exec_perl_capture($json);
-  };
-  return ($result->[0], $result->[1] ? $result->[1] : $@);
+
+  if ($capture){
+      eval {
+        ($result) = exec_perl_capture($json);
+      };
+
+      return ($result->[0], $result->[1] ? $result->[1] : $@);
+  } else {
+      eval {
+        ($result) = exec_perl($json);
+      };
+
+      return ($result, "");
+  }
 }
 
 
