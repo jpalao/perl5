@@ -40,17 +40,12 @@ my @y = ("15\nok","16");
 print @x,"14\nok",@y;
 {
     local $\ = "ok 17\n# null =>[\000]\nok 18\n";
+    $\ = "ok 17\nok 18 # skip iOS: #TODO printing \\000 breaks STDIO capture\n"
+        if is_darwin_ios();
     print "";
 }
 
 $\ = '';
-
-if (is_darwin_ios()) {
-    for my $i (19..24) {
-        print "ok $i # skip iOS: #TODO\n";
-    }
-    exit 0;
-}
 
 if (!exists &Errno::EBADF) {
     print "ok 19 # skipped: no EBADF\n";
