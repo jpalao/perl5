@@ -3,8 +3,6 @@
 BEGIN {
     chdir 't' if -d 't';
     require "./test.pl";
-    skip_all('iOS: this test breaks the harness')
-        if is_darwin_ios();
     set_up_inc(qw(. ../lib));
 }
 
@@ -21,32 +19,38 @@ open(DUPERR,">&STDERR");
 
 my $tempfile = tempfile();
 
-open(STDOUT,">$tempfile")  || die "Can't open stdout";
-open(STDERR,">&STDOUT") || die "Can't open stderr";
+if (!is_darwin_ios()) {
+    open(STDOUT,">$tempfile")  || die "Can't open stdout";
+    open(STDERR,">&STDOUT") || die "Can't open stderr";
 
-select(STDERR); $| = 1;
-select(STDOUT); $| = 1;
+    select(STDERR); $| = 1;
+    select(STDOUT); $| = 1;
 
-print STDOUT "ok 2\n";
-print STDERR "ok 3\n";
+    print STDOUT "ok 2\n";
+    print STDERR "ok 3\n";
 
-# Since some systems don't have echo, we use Perl.
-$echo = qq{$^X -le "print q(ok %d)"};
+    # Since some systems don't have echo, we use Perl.
+    $echo = qq{$^X -le "print q(ok %d)"};
 
-$cmd = sprintf $echo, 4;
-print `$cmd`;
+    $cmd = sprintf $echo, 4;
+    print `$cmd`;
 
-$cmd = sprintf "$echo 1>&2", 5;
-print `$cmd`;
+    $cmd = sprintf "$echo 1>&2", 5;
+    print `$cmd`;
 
-system sprintf $echo, 6;
-system sprintf "$echo 1>&2", 7;
+    system sprintf $echo, 6;
+    system sprintf "$echo 1>&2", 7;
 
-close(STDOUT) or die "Could not close: $!";
-close(STDERR) or die "Could not close: $!";
+    close(STDOUT) or die "Could not close: $!" if !is_darwin_ios();
+    close(STDERR) or die "Could not close: $!" if !is_darwin_ios();
 
-open(STDOUT,">&DUPOUT") or die "Could not open: $!";
-open(STDERR,">&DUPERR") or die "Could not open: $!";
+    open(STDOUT,">&DUPOUT") or die "Could not open: $!";
+    open(STDERR,">&DUPERR") or die "Could not open: $!";
+} else {
+    foreach my $i(2..7) {
+        print "ok $i # skip: iOS no backquotes\n";
+    }
+}
 
 if (($^O eq 'MSWin32') || ($^O eq 'NetWare')) { print `type $tempfile` }
 elsif ($^O eq 'VMS')   { system "type $tempfile.;" } # TYPE defaults to .LIS when there is no extension
