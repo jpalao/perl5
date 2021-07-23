@@ -382,6 +382,7 @@ BEGIN { binmode STDERR, 'utf8'; }
 EXPECT
 "my" variable $ニコニコ masks earlier declaration in same scope at - line 6.
 ########
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'shadow';
 BEGIN { binmode STDERR, 'utf8'; }
 {
@@ -393,6 +394,7 @@ EXPECT
 "my" variable $thìs masks earlier declaration in same scope at - line 6.
 ########
 # pad.c
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 sub {
@@ -504,6 +506,7 @@ f2();
 EXPECT
 Variable "$に" is not available at (eval 1) line 1.
 ########
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 use utf8;
@@ -516,6 +519,7 @@ EXPECT
 Variable "$に" is not available at (eval 4) line 1.
 ########
 # pad.c
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 sub x {
@@ -529,6 +533,7 @@ EXPECT
 Variable "$è" will not stay shared at - line 9.
 ########
 # pad.c
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 sub x {
@@ -542,6 +547,7 @@ EXPECT
 Variable "$è" will not stay shared at - line 8.
 ########
 # pad.c
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 sub x {
@@ -558,6 +564,7 @@ EXPECT
 Variable "$è" will not stay shared at - line 11.
 ########
 # pad.c
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 sub {
@@ -569,6 +576,7 @@ EXPECT
 Variable "$è" is not available at - line 7.
 ########
 # pad.c
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 sub {
@@ -581,6 +589,7 @@ EXPECT
 Variable "$è" is not available at (eval 1) line 1.
 ########
 # pad.c
+# SKIP ? $Config{archname} =~ /darwin-ios/
 # see bugid 1754
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
@@ -593,6 +602,7 @@ f()->();
 EXPECT
 Variable "$è" is not available at (eval 1) line 1.
 ########
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 {
@@ -605,6 +615,7 @@ f2();
 EXPECT
 Variable "$è" is not available at (eval 1) line 1.
 ########
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'closure' ;
 BEGIN { binmode STDERR, 'utf8'; }
 use utf8;

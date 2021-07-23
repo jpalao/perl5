@@ -374,6 +374,7 @@ EXPECT
 Argument "\x{100}\x{1000}\x{100}\x{1000}\x{100}..." isn't numeric in numeric lt (<) at - line 3.
 ########
 # sv.c
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings 'redefine' ;
 use utf8;
 use open qw( :utf8 :std );
