@@ -88,6 +88,22 @@ EXPECT
 ]]]]]]]]][\ ==> Unmatched [ in regex; marked by <-- HERE in m/]]]]]]]]][\ <-- HERE / at - line 2.
 ]]]]][\ ==> Unmatched [ in regex; marked by <-- HERE in m/]]]]][\ <-- HERE / at - line 2.
 ########
+# NAME [perl #123417]
+# SKIP ? $Config{archname} =~ /darwin-ios/
+# OPTION fatal
+qr/[\N{}]/;
+EXPECT
+Unknown charname '' at - line 2, within pattern
+Execution of - aborted due to compilation errors.
+########
+# NAME [perl #123417]
+# SKIP ? $Config{archname} =~ /darwin-ios/
+# OPTION fatal
+qr/\N{}/;
+EXPECT
+Unknown charname '' at - line 2, within pattern
+Execution of - aborted due to compilation errors.
+########
 # NAME [perl #131868]
 use warnings;
 my $qr = qr {
