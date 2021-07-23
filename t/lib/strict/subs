@@ -343,8 +343,9 @@ use warnings;
 my $abc = XYZ ? 1 : 0;
 print "$abc\n";
 EXPECT
+OPTION regex
 Bareword "XYZ" not allowed while "strict subs" in use at - line 5.
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 
 # [perl #10021]
@@ -352,10 +353,12 @@ use strict;
 use warnings;
 print "" if BAREWORD;
 EXPECT
+OPTION regex
 Bareword "BAREWORD" not allowed while "strict subs" in use at - line 5.
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # Ticket: 18927
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use strict 'subs';
 print 1..1, bad;
 EXPECT
@@ -378,10 +381,12 @@ Execution of - aborted due to compilation errors.
 use strict 'subs';
 qr/(?{my $x=foo})/;
 EXPECT
+OPTION regex
 Bareword "foo" not allowed while "strict subs" in use at - line 3.
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # Regexp compilation errors weren't UTF-8 clean
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use strict 'subs';
 use utf8;
 use open qw( :utf8 :std );
@@ -400,10 +405,12 @@ Execution of - aborted due to compilation errors.
 use strict 'subs';
 my @a;my $x=$a[FOO];
 EXPECT
+OPTION regex
 Bareword "FOO" not allowed while "strict subs" in use at - line 2.
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # [perl #53806] No complain about bareword
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use strict 'subs';
 print FOO . "\n";
 EXPECT
@@ -465,8 +472,9 @@ my $v1 = $h->{+CONST_TYPO};
 use strict 'subs';
 my $v2 = $h->{+CONST_TYPO};
 EXPECT
+OPTION regex
 Bareword "CONST_TYPO" not allowed while "strict subs" in use at - line 5.
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # NAME constant-folded barewords still trigger stricture
 my $x = !BARE1;
@@ -477,6 +485,7 @@ Bareword "BARE2" not allowed while "strict subs" in use at - line 3.
 Execution of - aborted due to compilation errors.
 ########
 # NAME multiconcat and barewords gh #17254
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use strict;
 sub foo { "foo" }
 print foo() . SLASH . "bar";
