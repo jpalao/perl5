@@ -1,6 +1,6 @@
 __END__
 # NAME join,
-exit 1;
+# SKIP ? $Config{archname} =~ /darwin-ios/
 join,
 EXPECT
 OPTION regex
