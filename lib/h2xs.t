@@ -190,6 +190,8 @@ while (my ($args, $version, $expectation) = splice @tests, 0, 3) {
   # does it run?
   my $prog = $Is_ios ? "perl $lib $extracted_program $args" :
       "$^X $lib $extracted_program $args $dupe";
+
+  my $exec;
   if ($Is_ios) {
       my @args = split ' ', $args;
       my $runperl_conf = {
@@ -198,17 +200,17 @@ while (my ($args, $version, $expectation) = splice @tests, 0, 3) {
         progfile => $extracted_program,
         args => \@args
       };
-      ($exit_code, $result) = exec_perl_capture($runperl_conf);
+      ($exec) = exec_perl_capture($runperl_conf);
   } else {
       @result = `$prog`;
   }
 
-  cmp_ok ($Is_ios ? $exit_code: $?, "==", 0, "running $prog ");
+  cmp_ok ($Is_ios ? $exec->[0] : $?, "==", 0, "running $prog ");
   $result = join("", @result) if !$Is_ios;
   #print "# expectation is >$expectation<\n";
   #print "# result is >$result<\n";
   # Was the output the list of files that were expected?
-  is ($result, $expectation, "running $prog");
+  is ($Is_ios ? $exec->[1] : $result, $expectation, "running $prog");
 
   my (%got);
   chdir ($up) if $Is_ios;
