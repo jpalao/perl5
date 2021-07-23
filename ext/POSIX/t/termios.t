@@ -14,6 +14,7 @@ use POSIX ':termios_h';
 plan skip_all => $@
     if !eval "POSIX::Termios->new; 1" && $@ =~ /termios not implemented/;
 
+my $Is_Ios = $Config{archname} =~ /darwin-ios/;
 
 # A termios struct that we've successfully read from a terminal device:
 my $termios;
@@ -170,8 +171,9 @@ if (defined $termios) {
 
 $! = 0;
 is(tcdrain(fileno $not_a_tty), undef, 'tcdrain on a non tty should fail');
-{
+SKIP: {
     # https://bugs.dragonflybsd.org/issues/3252
+    skip('iOS: no tty', 1) if $Is_Ios;
     local $TODO = "dragonfly returns bad errno"
         if $^O eq 'dragonfly';
     cmp_ok($!, '==', POSIX::ENOTTY, 'and set errno to ENOTTY');
@@ -179,8 +181,9 @@ is(tcdrain(fileno $not_a_tty), undef, 'tcdrain on a non tty should fail');
 
 $! = 0;
 is(tcflow(fileno $not_a_tty, TCOON), undef, 'tcflow on a non tty should fail');
-{
+SKIP: {
     # https://bugs.dragonflybsd.org/issues/3252
+    skip('iOS: no tty', 1) if $Is_Ios;
     local $TODO = "dragonfly returns bad errno"
         if $^O eq 'dragonfly';
     cmp_ok($!, '==', POSIX::ENOTTY, 'and set errno to ENOTTY');
@@ -189,8 +192,9 @@ is(tcflow(fileno $not_a_tty, TCOON), undef, 'tcflow on a non tty should fail');
 $! = 0;
 is(tcflush(fileno $not_a_tty, TCOFLUSH), undef,
    'tcflush on a non tty should fail');
-{
+SKIP: {
     # https://bugs.dragonflybsd.org/issues/3252
+    skip('iOS: no tty', 1) if $Is_Ios;
     local $TODO = "dragonfly returns bad errno"
         if $^O eq 'dragonfly';
     cmp_ok($!, '==', POSIX::ENOTTY, 'and set errno to ENOTTY');
@@ -199,10 +203,12 @@ is(tcflush(fileno $not_a_tty, TCOFLUSH), undef,
 $! = 0;
 is(tcsendbreak(fileno $not_a_tty, 0), undef,
        'tcsendbreak on a non tty should fail');
-{
+SKIP: {
     # https://bugs.dragonflybsd.org/issues/3252
+    skip('iOS: no tty', 1) if $Is_Ios;
     local $TODO = "dragonfly returns bad errno"
         if $^O eq 'dragonfly';
+    $TODO = "iOS: TODO" if $Is_Ios;
     cmp_ok($!, '==', POSIX::ENOTTY, 'and set errno to ENOTTY');
 }
 
