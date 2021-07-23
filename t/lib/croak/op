@@ -207,6 +207,27 @@ OPTION regex
 Type of arg 1 to unshift must be array \(not constant item\) at - line 1, near "FRED;"
 Execution of - aborted due to compilation errors..*
 ########
+# NAME keys BAREWORD
+# SKIP ? $Config{archname} =~ /darwin-ios/
+@a = keys FRED ;
+EXPECT
+Type of arg 1 to keys must be hash or array (not constant item) at - line 1, near "FRED ;"
+Execution of - aborted due to compilation errors.
+########
+# NAME values BAREWORD
+# SKIP ? $Config{archname} =~ /darwin-ios/
+@a = values FRED ;
+EXPECT
+Type of arg 1 to values must be hash or array (not constant item) at - line 1, near "FRED ;"
+Execution of - aborted due to compilation errors.
+########
+# NAME each BAREWORD
+# SKIP ? $Config{archname} =~ /darwin-ios/
+@a = each FRED ;
+EXPECT
+Type of arg 1 to each must be hash or array (not constant item) at - line 1, near "FRED ;"
+Execution of - aborted due to compilation errors.
+########
 # NAME better messages for array-ops on non-arrays
 push %a, 1;
 pop %a;
