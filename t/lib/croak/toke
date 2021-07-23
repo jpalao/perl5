@@ -48,6 +48,7 @@ syntax error at - line 1, near "0@foo
 Execution of - aborted due to compilation errors.
 ########
 # NAME (Missing operator before @{) [perl #123737]
+# SKIP ? $Config{archname} =~ /darwin-ios/
 0@{
 EXPECT
 Array found where operator expected at - line 1, near "0@{"
@@ -57,6 +58,7 @@ Missing right curly or square bracket at - line 1, at end of line
 Execution of - aborted due to compilation errors.
 ########
 # NAME Unterminated here-doc in string eval
+# SKIP ? $Config{archname} =~ /darwin-ios/
 eval "<<foo"; die $@
 EXPECT
 Can't find string terminator "foo" anywhere before EOF at (eval 1) line 1.
@@ -140,6 +142,23 @@ state sub;
 EXPECT
 Missing name in "state sub" at - line 2.
 ########
+# NAME our sub pack::foo
+# SKIP ? $Config{archname} =~ /darwin-ios/
+our sub foo::bar;
+EXPECT
+No package name allowed for subroutine &foo::bar in "our" at - line 1, near "our sub foo::bar"
+Execution of - aborted due to compilation errors.
+########
+# NAME my sub pack::foo
+# SKIP ? $Config{archname} =~ /darwin-ios/
+use feature 'lexical_subs', 'state';
+my sub foo::bar;
+state sub foo::bear;
+EXPECT
+"my" subroutine &foo::bar can't be in a package at - line 2, near "my sub foo::bar"
+"state" subroutine &foo::bear can't be in a package at - line 3, near "state sub foo::bear"
+Execution of - aborted due to compilation errors.
+########
 # NAME Integer constant overloading returning undef
 use overload;
 BEGIN { overload::constant integer => sub {}; undef *^H }
@@ -157,6 +176,7 @@ Constant(1.1) unknown at - line 3, at end of line
 Execution of - aborted due to compilation errors.
 ########
 # NAME Binary constant overloading returning undef
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use overload;
 BEGIN { overload::constant binary => sub {}; undef *^H }
 0x1
@@ -165,6 +185,7 @@ Constant(0x1) unknown at - line 3, at end of line
 Execution of - aborted due to compilation errors.
 ########
 # NAME String constant overloading returning undef
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use overload;
 BEGIN { overload::constant q => sub {}; undef *^H }
 '1', "1$_", tr"a"", s""a"
@@ -173,6 +194,24 @@ Constant(q) unknown at - line 3, near "'1'"
 Constant(qq) unknown at - line 3, within string
 Constant(tr) unknown at - line 3, within string
 Constant(s) unknown at - line 3, within string
+Execution of - aborted due to compilation errors.
+########
+# NAME Regexp constant overloading when *^H is undefined
+# SKIP ? $Config{archname} =~ /darwin-ios/
+use overload;
+BEGIN { overload::constant qr => sub {}; undef *^H }
+/a/
+EXPECT
+Constant(qq) unknown at - line 3, within pattern
+Execution of - aborted due to compilation errors.
+########
+# NAME Regexp constant overloading when *^H is undefined
+# SKIP ? $Config{archname} =~ /darwin-ios/
+use overload;
+BEGIN { overload::constant qr => sub {}; undef *^H }
+m'a'
+EXPECT
+Constant(q) unknown at - line 3, within pattern
 Execution of - aborted due to compilation errors.
 ########
 # NAME \N{...} when charnames fails to load but without an error
@@ -184,6 +223,7 @@ Constant(\N{a}) unknown at - line 2, within string
 Execution of - aborted due to compilation errors.
 ########
 # NAME Integer constant overloading returning undef
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use overload;
 BEGIN { overload::constant integer => sub {} }
 1
@@ -192,6 +232,7 @@ Constant(1): Call to &{$^H{integer}} did not return a defined value at - line 3,
 Execution of - aborted due to compilation errors.
 ########
 # NAME Float constant overloading returning undef
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use overload;
 BEGIN { overload::constant float => sub {} }
 1.1
@@ -216,6 +257,24 @@ Constant(q): Call to &{$^H{q}} did not return a defined value at - line 3, near 
 Constant(qq): Call to &{$^H{q}} did not return a defined value at - line 3, within string
 Constant(tr): Call to &{$^H{q}} did not return a defined value at - line 3, within string
 Constant(s): Call to &{$^H{q}} did not return a defined value at - line 3, within string
+Execution of - aborted due to compilation errors.
+########
+# NAME Regexp constant overloading returning undef
+# SKIP ? $Config{archname} =~ /darwin-ios/
+use overload;
+BEGIN { overload::constant qr => sub {} }
+/a/
+EXPECT
+Constant(qq): Call to &{$^H{qr}} did not return a defined value at - line 3, within pattern
+Execution of - aborted due to compilation errors.
+########
+# NAME Regexp constant overloading returning undef
+# SKIP ? $Config{archname} =~ /darwin-ios/
+use overload;
+BEGIN { overload::constant qr => sub {} }
+m'a'
+EXPECT
+Constant(q): Call to &{$^H{qr}} did not return a defined value at - line 3, within pattern
 Execution of - aborted due to compilation errors.
 ########
 # NAME Failed constant overloading should not cause a double free
