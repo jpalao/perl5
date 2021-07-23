@@ -44,8 +44,8 @@ $freddy = 2 ;
 EXPECT
 
 ########
-
 # strict vars - error
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use strict ;
 $fred ;
 EXPECT
@@ -83,6 +83,7 @@ Execution of - aborted due to compilation errors.
 ########
 
 # Check compile time scope of strict vars pragma
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use strict 'vars' ;
 use utf8;
 use open qw( :utf8 :std );
@@ -141,7 +142,7 @@ Variable "$joe" is not imported at ./abc line 2.
 Global symbol "$joe" requires explicit package name (did you forget to declare "my $joe"?) at ./abc line 2.
 Compilation failed in require at - line 2.
 ########
-
+# SKIP ? $Config{archname} =~ /darwin-ios/
 --FILE-- abc
 use strict 'vars' ;
 use utf8;
@@ -172,7 +173,7 @@ Global symbol "$joe" requires explicit package name (did you forget to declare "
 Compilation failed in require at - line 2.
 BEGIN failed--compilation aborted at - line 2.
 ########
-
+# SKIP ? $Config{archname} =~ /darwin-ios/
 --FILE-- abc.pm
 use strict 'vars' ;
 use utf8;
@@ -273,7 +274,7 @@ Variable "$joe" is not imported at - line 9.
 Global symbol "$joe" requires explicit package name (did you forget to declare "my $joe"?) at - line 9.
 Execution of - aborted due to compilation errors.
 ########
-
+# SKIP ? $Config{archname} =~ /darwin-ios/
 # Check scope of pragma with eval
 use strict 'vars' ;
 use utf8;
@@ -402,7 +403,7 @@ Variable "$fred" is not imported at - line 8.
 Global symbol "$fred" requires explicit package name (did you forget to declare "my $fred"?) at - line 8.
 Execution of - aborted due to compilation errors.
 ########
-
+# SKIP ? $Config{archname} =~ /darwin-ios/
 # strict vars with elapsed our - error
 use strict 'vars' ;
 use utf8;
@@ -505,7 +506,7 @@ EXPECT
 Global symbol "@i_like_crackers" requires explicit package name (did you forget to declare "my @i_like_crackers"?) at - line 7.
 Execution of - aborted due to compilation errors.
 ########
-
+# SKIP ? $Config{archname} =~ /darwin-ios/
 # [perl #21914] New bug > 5.8.0. Used to dump core.
 use strict 'vars';
 @k = <$k>;
@@ -522,6 +523,7 @@ Global symbol "$foo" requires explicit package name (did you forget to declare "
 Execution of - aborted due to compilation errors.
 ########
 # Regex compilation errors weren't UTF-8 clean.
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use strict 'vars';
 use utf8;
 use open qw( :utf8 :std );
