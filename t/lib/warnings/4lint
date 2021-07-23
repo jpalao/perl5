@@ -124,9 +124,8 @@ Use of uninitialized value $a in scalar chop at - line 3.
     my $b ; chop $b ;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$b in scalar chop at \(eval \d*\) line 2\.
-Use of uninitialized value \$b in scalar chop at \- line 8\.
+Use of uninitialized value $b in scalar chop at (eval 1) line 2.
+Use of uninitialized value $b in scalar chop at - line 8.
 ########
 -W
 # Check scope of pragma with eval
@@ -140,9 +139,8 @@ use warnings;
     my $b ; chop $b ;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$b in scalar chop at \(eval \d*\) line 3\.
-Use of uninitialized value \$b in scalar chop at \- line 10\.
+Use of uninitialized value $b in scalar chop at (eval 1) line 3.
+Use of uninitialized value $b in scalar chop at - line 10.
 ########
 -W
 # Check scope of pragma with eval
@@ -155,9 +153,8 @@ no warnings;
     my $b ; chop $b ;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$b in scalar chop at \(eval \d*\) line 2\.
-Use of uninitialized value \$b in scalar chop at \- line 9\.
+Use of uninitialized value $b in scalar chop at (eval 1) line 2.
+Use of uninitialized value $b in scalar chop at - line 9.
 ########
 -W
 # Check scope of pragma with eval
@@ -171,9 +168,8 @@ no warnings;
     my $b ; chop $b ;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$b in scalar chop at \(eval \d*\) line 3\.
-Use of uninitialized value \$b in scalar chop at \- line 10\.
+Use of uninitialized value $b in scalar chop at (eval 1) line 3.
+Use of uninitialized value $b in scalar chop at - line 10.
 ########
 -W
 # Check scope of pragma with eval
@@ -188,9 +184,8 @@ use warnings;
     $a =+ 1 ;
 }
 EXPECT
-OPTION regex
-Reversed \+= operator at \- line 11\.
-Reversed \+= operator at \(eval \d*\) line 3\.
+Reversed += operator at - line 11.
+Reversed += operator at (eval 1) line 3.
 ########
 -W
 # Check scope of pragma with eval
@@ -204,9 +199,8 @@ no warnings;
     $a =+ 1 ;
 }
 EXPECT
-OPTION regex
-Reversed \+= operator at \- line 10\.
-Reversed \+= operator at \(eval \d*\) line 2\.
+Reversed += operator at - line 10.
+Reversed += operator at (eval 1) line 2.
 ########
 -W
 # Check scope of pragma with eval

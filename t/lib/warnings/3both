@@ -222,8 +222,7 @@ use warnings;
     my $b ; chop $b ;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$b in scalar chop at \(eval \d*\) line 3\.
+Use of uninitialized value $b in scalar chop at (eval 1) line 3.
 ########
 
 # Check scope of pragma with eval
@@ -236,9 +235,8 @@ BEGIN {  $^W = 0 }
     my $b ; chop $b ;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$b in scalar chop at \(eval \d*\) line 2\.
-Use of uninitialized value \$b in scalar chop at \- line 9\.
+Use of uninitialized value $b in scalar chop at (eval 1) line 2.
+Use of uninitialized value $b in scalar chop at - line 9.
 ########
 
 # Check scope of pragma with eval
