@@ -30,7 +30,7 @@ BEGIN {
     require Thread::Queue;
 
     $| = 1;
-    print("1..78\n");   ### Number of tests that will be run ###
+    print("1..79\n");   ### Number of tests that will be run ###
 }
 
 Test::watchdog(60);   # In case we get stuck
