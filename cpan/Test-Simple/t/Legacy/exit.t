@@ -7,7 +7,7 @@ package My::Test;
 BEGIN {
     if( $ENV{PERL_CORE} ) {
         chdir 't';
-        use lib '../lib';
+        @INC = '../lib';
     }
 }
 
