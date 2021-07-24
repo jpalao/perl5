@@ -90,7 +90,7 @@ else {
 
 SKIP:
 {
-    skip ('iOS: this test breaks the harness', 2) if is_darwin_ios();
+    skip ('iOS: cmd pipe not supported', 2) if is_darwin_ios();
     if (!is_darwin_ios()) {
         open $fh, "$echo_command $pass_arg|" or die $!;
         do $fh or die;
