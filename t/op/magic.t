@@ -22,7 +22,6 @@ BEGIN {
 	^E ^F ^H ^I ^L ^N ^O ^P ^S ^T ^V ^W ^UTF8CACHE ::12345 main::98732
 	^LAST_FH
     )) {
-    next if $_ eq "SIG";
 	my $v = $_;
 	# avoid using any global vars here:
 	if ($v =~ s/^\^(?=.)//) {
@@ -32,6 +31,7 @@ BEGIN {
 	}
 	SKIP:
 	{
+	    skip('iOS: TODO', 1) if $_ eq "SIG" && is_darwin_ios();
 	    skip_if_miniperl("the module for *$_ may not be available in "
 			     . "miniperl", 1) if $non_mini{$_};
 	    ok defined *$v, "*$_ appears to be defined at the outset";
@@ -43,7 +43,7 @@ BEGIN {
 # will invalidate the test for it.
 BEGIN {
     $ENV{PATH} = '/bin' if ${^TAINT};
-    $SIG{__WARN__} = sub { warn "Dying on warning: ", @_ };
+    $SIG{__WARN__} = sub { die "Dying on warning: ", @_ };
 }
 
 use warnings;
@@ -68,7 +68,7 @@ $PERL =
    ($Is_NetWare ? 'perl'   :
     $Is_VMS     ? $^X      :
     $Is_MSWin32 ? '.\perl' :
-    $Is_Ios     ? ''       :
+    $Is_Ios     ? 'perl'   :
                   './perl');
 
 
@@ -92,11 +92,11 @@ sub env_is {
         $eqv = "\n" if length($eqv) == 2 and $eqv eq "\000\n";
         is $eqv, "$val\n", $desc;
     } else {
+        my @env = `env`;
         SKIP: {
-            my @env = `env`;
             skip("iOS: no backticks", 1) if $Is_Ios;
             skip("env doesn't work on this android", 1) if !@env && $^O =~ /android/;
-            chomp (@env = grep { s/^$key=// } @env);
+            chomp (my @env = grep { s/^$key=// } @env);
             is "@env", $val, $desc;
         }
     }
@@ -222,9 +222,13 @@ END
 is join(':',@val1), join(':',@val2);
 cmp_ok @val1, '>', 1;
 
-# deleting $::{ENV}
-# is runperl(prog => 'delete $::{ENV}; chdir; print qq-ok\n-'), "ok\n",
-#   'deleting $::{ENV}';
+SKIP: {
+    # [perl #24237]
+    skip('iOS: chdir $ENV{HOME} not permitted', 1) if $Is_Ios;
+    # deleting $::{ENV}
+    is runperl(prog => 'delete $::{ENV}; chdir; print qq-ok\n-'), "ok\n",
+      'deleting $::{ENV}';
+}
 
 # regex vars
 'foobarbaz' =~ /b(a)r/;
@@ -235,7 +239,7 @@ is $+, 'a';
 
 SKIP: {
 # [perl #24237]
-skip('iOS: #TODO', 5) if $Is_Ios;
+skip('iOS: #TODO', 3) if $Is_Ios;
 for (qw < ` & ' >) {
  fresh_perl_is
   qq < \@$_; q "fff" =~ /(?!^)./; print "[\$$_]\\n" >,
@@ -265,7 +269,7 @@ is((keys %h)[0], "foo\034bar");
 
 SKIP: {
 	skip('iOS: no system', 2)
-	if $Is_MSWin32 || $Is_NetWare || $Is_Dos || $Is_Ios;
+	    if $Is_MSWin32 || $Is_NetWare || $Is_Dos || $Is_Ios;
 	# $?, $@, $$
 	system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(0)"];
 	is $?, 0;
@@ -273,7 +277,10 @@ SKIP: {
 	isnt $?, 0;
 }
 
+eval { die "foo\n" };
+is $@, "foo\n";
 
+ok !*@{HASH}, 'no %@';
 SKIP:
 {
     skip('iOS: #TODO', 2) if $Is_Ios;
@@ -287,11 +294,12 @@ my $pid = $$;
 eval { $$ = 42 };
 is $$, 42, '$$ can be modified';
 SKIP: {
-    skip "no fork", 1 unless ($Config{d_fork} || $Is_Ios);
+    skip "no fork", 1 unless $Config{d_fork};
+    skip "no fork", 1 if $Is_Ios;
     (my $kidpid = open my $fh, "-|") // skip "cannot fork: $!", 1;
     if($kidpid) { # parent
 	my $kiddollars = <$fh>;
-	close $fh or warn "cannot close pipe from kid proc: $!";
+	close $fh or die "cannot close pipe from kid proc: $!";
 	is $kiddollars, $kidpid, '$$ is reset on fork';
     }
     else { # child
@@ -304,7 +312,7 @@ $$ = $pid; # Tests below use $$
 
 # $^X and $0
 SKIP: {
-    skip('iOS: no backticks', 8) if is_darwin_ios();
+    skip('iOS: no backticks', 6) if is_darwin_ios();
     my $is_abs = $Config{d_procselfexe} || $Config{usekernprocpathname}
       || $Config{usensgetexecutablepath};
     if ($^O eq 'qnx') {
