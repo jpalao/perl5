@@ -1,7 +1,7 @@
 BEGIN {
     if ($ENV{PERL_CORE}) {
 	chdir 't' if -d 't';
-	use lib ("../lib", "lib/compress");
+	@INC = ("../lib", "lib/compress");
     }
 }
 
