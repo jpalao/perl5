@@ -385,6 +385,7 @@ $Config{archname} =~ /darwin-ios/ && eval {
 
 		'io/openpid.t',
 		'io/closepid.t',
+		'io/crlf.t',
 		'io/perlio_leaks.t',
 
 		'op/groups.t',
@@ -470,17 +471,12 @@ $Config{archname} =~ /darwin-ios/ && eval {
 	# these are passing consistently, speed up
 	@tests = grep(/^(?:(?!re\/uniprops))/, @tests);
 
+	# postponed
 	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-MakeMaker))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-Install))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/cpan\/Test\-Harness))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-CBuilder))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-ParseXS))/, @tests);
-
-	#@tests = grep(/^(?:\.\.\/dist)/, @tests);
-	#@tests = ('../lib/B/Deparse.t');
-	#@tests = grep(/^(?:io)/, @tests);
-	#$test_dumper = Data::Dumper->new([@tests])->Dump();
-	#print STDOUT "# Tests to run after skips:\n" . $test_dumper;
 };
 
 
