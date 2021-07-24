@@ -3,6 +3,7 @@
 use strict;
 use Devel::SelfStubber;
 use File::Spec::Functions;
+use Config;
 
 my $runperl = $^X;
 
@@ -144,7 +145,7 @@ print ${module}->foo;
   close FH or die $!;
 }
 
-{
+SKIP: {
   my %output;
   foreach my $module (@module) {
     print "# $runperl \"-I$inlib\" $module--$$\n";
@@ -152,7 +153,9 @@ print ${module}->foo;
       =~ s/\'s foo//;
   }
 
-  if (&fail (\%wrong, \%output)) {
+  if ($Config{archname} =~ /darwin-ios/) {
+    print "ok 7 # skip: iOS no backticks\n";
+  } elsif (&fail (\%wrong, \%output)) {
     print "not ok 7\n", &faildump (\%wrong, \%output);
   } else {
     print "ok 7\n";
@@ -193,7 +196,9 @@ print "ok 8\n";
       =~ s/\'s foo//;
   }
 
-  if (&fail (\%right, \%output)) {
+  if ($Config{archname} =~ /darwin-ios/) {
+    print "ok 7 # skip: no backticks\n";
+  } elsif (&fail (\%right, \%output)) {
     print "not ok 9\n", &faildump (\%right, \%output);
   } else {
     print "ok 9\n";
