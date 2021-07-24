@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib '../lib';
+    @INC = '../lib';
     require './test.pl';
     skip_all('iOS: stdin not supported') if is_darwin_ios();
 }
