@@ -762,7 +762,7 @@ not_lexical11();
 }
 
 SKIP: {
-    skip('iOS: this test breaks the harness') if is_darwin_ios;
+    skip('iOS: crashing #TODO') if is_darwin_ios;
 like runperl(
       switches => [ '-Mfeature=lexical_subs,state' ],
       prog     => 'my sub a { foo ref } a()',
