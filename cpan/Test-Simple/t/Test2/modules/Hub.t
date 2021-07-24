@@ -4,7 +4,8 @@ use warnings;
 use Test2::IPC;
 use Test2::Tools::Tiny;
 use Test2::API qw/context test2_ipc_drivers/;
-use Test2::Util qw/CAN_FORK CAN_THREAD CAN_REALLY_FORK/;
+use Test2::Util qw/CAN_THREAD CAN_REALLY_FORK/;
+use Config;
 
 {
     package My::Formatter;
@@ -125,7 +126,7 @@ tests IPC => sub {
         ok($_->{hubs}, "Set the hubs") for @$old;
     };
 
-    if (CAN_REALLY_FORK) {
+    if (CAN_REALLY_FORK && $Config{'archname'} !~ /darwin-ios/) {
         my $pid = fork();
         die "Could not fork!" unless defined $pid;
 
