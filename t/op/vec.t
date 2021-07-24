@@ -177,7 +177,6 @@ like($@, qr/^Modification of a read-only value attempted at /,
     SKIP: {
         skip 'IV is no longer than size_t', 2
                     if $Config{ivsize} <= $Config{sizesize};
-        skip('iOS: this test breaks the harness', 2);
 
         my $size_max = (1 << (8 *$Config{sizesize})) - 1;
         my $sm2 = $size_max * 2;
@@ -190,8 +189,6 @@ like($@, qr/^Modification of a read-only value attempted at /,
 
     # (offset * num-bytes) could overflow
 
-    SKIP:     {
-    skip('iOS: this test breaks the harness', 12);
     for my $power (1..3) {
         my $bytes = (1 << $power);
         my $biglog2 = $Config{sizesize} * 8 - $power;
@@ -203,7 +200,6 @@ like($@, qr/^Modification of a read-only value attempted at /,
             like($@, qr/^Out of memory!/,
                       "large offset: bytes=$bytes biglog2=$biglog2 i=$i: rval");
         }
-                }
     }
 }
 
