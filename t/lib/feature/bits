@@ -28,12 +28,14 @@ say "Hello";
 no feature 'say';
 say "Goodbye";
 EXPECT
+OPTION regex
 String found where operator expected at - line 4, near "say "Goodbye""
-	(Do you need to predeclare say?)
+	\(Do you need to predeclare say\?\)
 syntax error at - line 4, near "say "Goodbye""
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # NAME check deleting entries (bypass feature.pm) clears the bits
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use feature 'say';
 say "Hello";
 BEGIN { delete $^H{feature_say}; }
