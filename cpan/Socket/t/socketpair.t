@@ -11,7 +11,8 @@ my $has_perlio;
 our %Config;
 BEGIN {
     require Config; import Config;
-    $can_fork = $Config{'d_fork'} || $Config{'d_pseudofork'};
+    $can_fork = ($Config{'d_fork'} || $Config{'d_pseudofork'}) &&
+        $Config::Config{'archname'} !~ /darwin-ios/;
 
     if ($^O eq "hpux" or $Config{'extensions'} !~ /\bSocket\b/ &&
         !(($^O eq 'VMS') && $Config{d_socket})) {
