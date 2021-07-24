@@ -96,7 +96,7 @@ sub exec_perl_capture {
   eval {
     ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
   };
-  print "exec_perl_capture \$result: $result:\n" if $DEBUG;
+  print "exec_perl_capture \$result: $result:\n" if ($result && $DEBUG);
   return ($exit_code, $result ? $result : $@);
 }
 
@@ -104,11 +104,8 @@ sub parse_test {
   my ($pwd, $t) = @_;
   print Dumper("parse_test pwd", $pwd) if $DEBUG;
   print Dumper("parse_test t", $t) if $DEBUG;
-
-  my ($exec_path) = $t =~ s/(.*?)perl\s.*$/$1/r;
-  print Dumper("Exec path", $exec_path) if $DEBUG;
   
-  my ($cmd) = $t =~ s/.*?perl\s(.*$)/$1/r;
+  my ($cmd) = $t =~ s/.*?perl\s*(.*$)/$1/r;
   print Dumper("cmd", $cmd) if $DEBUG;
 
   my ($file) = $cmd =~ s/(.*?)([^\s]*)\s*$/$2/r;
@@ -153,15 +150,11 @@ sub exec_test {
       eval {
         ($result) = exec_perl_capture($json);
       };
-
       return ($result->[0], $result->[1] ? $result->[1] : $@);
   } else {
       eval {
         ($result) = exec_perl($json);
       };
-
       return ($result, "");
   }
 }
-
-
