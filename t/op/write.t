@@ -1995,6 +1995,8 @@ dd|
 EXPECT
 	      { stderr => 1 }, '#123245 panic in sv_chop');
 
+SKIP: {
+skip('iOS: TODO: STDOUT STDERR capture race cond.', 1) if is_darwin_ios();
 fresh_perl_is(<<'EOP', <<'EXPECT',
 use warnings 'syntax' ;
 format STDOUT =
@@ -2007,6 +2009,7 @@ Not enough format arguments at - line 4.
 dd|
 EXPECT
 	      { stderr => 1 }, '#123245 different panic in sv_chop');
+      }
 
 fresh_perl_is(<<'EOP', <<'EXPECT',
 format STDOUT =
