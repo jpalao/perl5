@@ -1,13 +1,16 @@
 use Test2::Tools::Tiny;
 use strict;
 use warnings;
+use Config;
 
 use Test2::IPC;
 use Test2::Util qw/CAN_THREAD CAN_REALLY_FORK/;
 
 skip_all 'No IPC' unless CAN_REALLY_FORK || CAN_THREAD;
 
-if (CAN_REALLY_FORK) {
+my $is_ios = $Config{'archname'} =~ /darwin-ios/;
+
+if (CAN_REALLY_FORK && !$is_ios) {
     my $pid = fork;
     die "Failed to fork: $!" unless defined $pid;
     if ($pid) {
