@@ -21,6 +21,7 @@ sub runperl {
 }
 
 my $Is_VMS = $^O eq 'VMS';
+my $Is_Ios = $Config{archname} =~ /darwin-ios/;
 
 use Carp qw(carp cluck croak confess);
 
@@ -310,6 +311,7 @@ sub w { cluck @_ }
 SKIP:
 {
     skip "IPC::Open3::open3 needs porting", 2 if $Is_VMS;
+    skip "iOS: IPC::Open3::open3 not supported", 2 if $Is_Ios;
 
     # Check that croak() and confess() don't clobber $!
     runperl(
@@ -423,6 +425,7 @@ SKIP: {
 SKIP:
 {
     skip "IPC::Open3::open3 needs porting", 1 if $Is_VMS;
+    skip "iOS: IPC::Open3::open3 not supported", 1 if $Is_Ios;
     like(
       runperl(
         prog => q<
@@ -457,6 +460,7 @@ is $@, "heek at ".__FILE__." line ".(__LINE__-2).", <DATA> line 2.\n",
 SKIP:
 {
     skip "IPC::Open3::open3 needs porting", 1 if $Is_VMS;
+    skip "iOS: IPC::Open3::open3 not supported", 1 if $Is_Ios;
     like(
       runperl(
         prog => q<
