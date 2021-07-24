@@ -115,6 +115,9 @@ SKIP: {
   skip "Cannot find $peek_file", 1
     unless $module_path;
 
+  skip "iOS: TODO", 1
+    if $Config{archname} =~ /darwin-ios/;
+
   # [perl #122455]
   # die instead of falling back to DynaLoader
   local *XSLoader::bootstrap_inherit = sub { die "Fallback to DynaLoader\n" };
