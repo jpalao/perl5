@@ -1042,7 +1042,7 @@ sub run_tests {
 
     SKIP:
     {
-        skip ("iOS this test breaks the suite", 7) if is_darwin_ios;
+        skip ("iOS: TODO", 7) if is_darwin_ios;
         use charnames ":full";
         # Delayed interpolation of \N'
         my $r1 = qr/\N{THAI CHARACTER SARA I}/;
@@ -1064,7 +1064,7 @@ sub run_tests {
 
     SKIP:
     {
-        skip ("iOS this test breaks the suite", 4) if is_darwin_ios;
+        skip ("iOS: TODO", 4) if is_darwin_ios;
         use charnames ":full";
         my $message = '[perl #74982] Period coming after \N{}';
         ok("\x{ff08}." =~ m/\N{FULLWIDTH LEFT PARENTHESIS}./ && $& eq "\x{ff08}.", $message);
