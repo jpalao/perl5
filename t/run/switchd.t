@@ -116,7 +116,7 @@ like(
  'Subroutines no longer found under their names can be called',
 );
 SKIP: {
-    skip('iOS: no stdin access', 2) if is_darwin_ios();
+    skip('iOS: TODO', 2) if is_darwin_ios();
     # [rt.cpan.org #69862]
     like(
       runperl(
@@ -171,7 +171,7 @@ SKIP:
 
 SKIP: {
 # [perl #115742] Recursive DB::DB clobbering its own pad
-skip('iOS: this test breaks the harness', 1) if is_darwin_ios();
+#skip('iOS: #TODO', 1) if is_darwin_ios();
 like(
   runperl(
     switches => [ '-Ilib' ],
