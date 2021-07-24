@@ -166,6 +166,7 @@ test_perl_device() {
     git checkout cpan/Module-Load-Conditional/lib/Module/Load/Conditional.pm
     git checkout dist/Dumpvalue/t/extend-coverage.t
     git checkout dist/base/t/base.t
+    git checkout dist/lib/t/01lib.t
 
     popd
 
