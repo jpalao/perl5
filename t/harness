@@ -8,6 +8,7 @@ BEGIN {
 }
 
 $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
+# $ENV{PERL_CORE} = 1;
 # $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
 # $ENV{PERL_BENCHMARK} = 1;
 # $ENV{PERL_TEST_MEMORY} = 1;
@@ -373,7 +374,7 @@ $h->callback(
 	     );
 
 $Config{archname} =~ /darwin-ios/ && eval {
-	#my $test_dumper = Data::Dumper->new([@tests])->Dump();
+	my $test_dumper = Data::Dumper->new([@tests])->Dump();
 	#print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
 
 	my @ios_blacklist = (
@@ -383,6 +384,7 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		# or they may pass or hang/crash indistinctly
 
 		'io/openpid.t',
+		'io/closepid.t',
 		'io/perlio_leaks.t',
 
 		'op/groups.t',
@@ -459,17 +461,26 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		{
 			if ($tests[$index] =~ m!$black_list!)
 			{
-				#print STDOUT "iOS: Blacklisted test: $tests[$index]\n";
+				#print STDOUT "# iOS: Blacklisted test: $tests[$index]\n";
 				splice(@tests, $index, 1);
 			}
 		}
 	}
 
-    # these are passing consistently, speed up
-    @tests = grep(/^(?:(?!re\/uniprops))/, @tests);
+	# these are passing consistently, speed up
+	@tests = grep(/^(?:(?!re\/uniprops))/, @tests);
 
+	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-MakeMaker))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-Install))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/cpan\/Test\-Harness))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-CBuilder))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-ParseXS))/, @tests);
+
+	#@tests = grep(/^(?:\.\.\/dist)/, @tests);
+	#@tests = ('../lib/B/Deparse.t');
+	#@tests = grep(/^(?:io)/, @tests);
 	#$test_dumper = Data::Dumper->new([@tests])->Dump();
-	#print STDOUT "Tests to run after cleanup:\n" . $test_dumper;
+	#print STDOUT "# Tests to run after skips:\n" . $test_dumper;
 };
 
 
