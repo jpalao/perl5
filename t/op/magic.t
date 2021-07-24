@@ -683,43 +683,32 @@ is ${^LAST_FH}, \*STDIN, '${^LAST_FH} after another tell';
 # This also tests that ${^LAST_FH} is a weak reference:
 is ${^LAST_FH}, undef, '${^LAST_FH} is undef when PL_last_in_gv is NULL';
 
-SKIP:
-{
-skip('iOS: this test breaks the harness', 4) if $Is_Ios;
 # all of these would set PL_last_in_gv to a non-GV which would
 # assert when referenced by the magic for ${^LAST_FH}.
-# The approach to fixing this has changed (#128263), but it's still 
-# useful to check each op.
-    for my $code ('tell $0', 'sysseek $0, 0, 0', 'seek $0, 0, 0', 'eof $0') {
-        fresh_perl_is(
-            "$code; print defined \${^LAST_FH} ? qq(not ok\n) : qq(ok\n)", 
-            "ok\n", undef, "check $code doesn't define \${^LAST_FH}"
-        );
-    }
+# The approach to fixing this has changed (#128263), but it's still useful
+# to check each op.
+for my $code ('tell $0', 'sysseek $0, 0, 0', 'seek $0, 0, 0', 'eof $0') {
+    fresh_perl_is("$code; print defined \${^LAST_FH} ? qq(not ok\n) : qq(ok\n)", "ok\n",
+                  undef, "check $code doesn't define \${^LAST_FH}");
 }
 
-SKIP:
-{
-skip('iOS: this test breaks the harness', 2) if $Is_Ios;
 # $|
 fresh_perl_is 'print $| = ~$|', "1\n", {switches => ['-l']},
  '[perl #4760] print $| = ~$|';
 fresh_perl_is
  'select f; undef *f; ${q/|/}; print STDOUT qq|ok\n|', "ok\n", {},
  '[perl #115206] no crash when vivifying $| while *{+select}{IO} is undef';
-}
-
 
 # ${^OPEN} and $^H interaction
 # Setting ${^OPEN} causes $^H to change, but setting $^H would only some-
 # times make ${^OPEN} change, depending on whether it was in the same BEGIN
-# block.  DonÕt test actual values (subject to change); just test for
+# block.  Don't test actual values (subject to change); just test for
 # consistency.
 my @stuff;
 eval '
     BEGIN { ${^OPEN} = "a\0b"; $^H = 0;          push @stuff, ${^OPEN} }
     BEGIN { ${^OPEN} = "a\0b"; $^H = 0 } BEGIN { push @stuff, ${^OPEN} }
-1' or warn $@;
+1' or die $@;
 is $stuff[0], $stuff[1], '$^H modifies ${^OPEN} consistently';
 
 # deleting $::{"\cH"}
@@ -842,13 +831,13 @@ SKIP: {
 	env_is(foo => $bytes, 'ENV store encodes high utf8 in SV');
 
 	# test local $ENV{foo} on existing foo
-	SKIP: {
-	  skip("iOS: #TODO", 2) if $Is_Ios;
-	  local $ENV{__NoNeSuCh};
-	  { local $TODO = 'exists on %ENV should reflect real env';
-	    ok(!exists $ENV{__NoNeSuCh}, 'not exists $ENV{existing} during local $ENV{existing}'); }
-	  env_is(__NoNeLoCaL => '');
-	}
+       {
+         local $ENV{__NoNeSuCh};
+         { local $TODO = 'exists on %ENV should reflect real env';
+           ok(!exists $ENV{__NoNeSuCh}, 'not exists $ENV{existing} during local $ENV{existing}'); }
+         env_is(__NoNeLoCaL => '');
+       }
+
 	ok(exists $ENV{__NoNeSuCh}, 'exists $ENV{existing} after local $ENV{existing}');
 	env_is(__NoNeSuCh => 'foo');
 
