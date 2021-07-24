@@ -831,13 +831,12 @@ SKIP: {
 	env_is(foo => $bytes, 'ENV store encodes high utf8 in SV');
 
 	# test local $ENV{foo} on existing foo
-       {
-         local $ENV{__NoNeSuCh};
-         { local $TODO = 'exists on %ENV should reflect real env';
-           ok(!exists $ENV{__NoNeSuCh}, 'not exists $ENV{existing} during local $ENV{existing}'); }
-         env_is(__NoNeLoCaL => '');
-       }
-
+	{
+	  local $ENV{__NoNeSuCh};
+	  { local $TODO = 'exists on %ENV should reflect real env';
+	    ok(!exists $ENV{__NoNeSuCh}, 'not exists $ENV{existing} during local $ENV{existing}'); }
+	  env_is(__NoNeLoCaL => '');
+	}
 	ok(exists $ENV{__NoNeSuCh}, 'exists $ENV{existing} after local $ENV{existing}');
 	env_is(__NoNeSuCh => 'foo');
 
