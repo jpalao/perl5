@@ -162,6 +162,7 @@ test_perl_device() {
 
     # TODO: These are patched incorrectly, restore them
     git checkout t/base/rs.t
+    git checkout t/op/do.t
     git checkout cpan/Module-Load-Conditional/lib/Module/Load/Conditional.pm
     git checkout dist/base/t/base.t
     git checkout dist/Dumpvalue/t/extend-coverage.t
