@@ -107,7 +107,7 @@ for my $cross_partition_test (0..1) {
   ok -e "copy-$$",                '  target still there';
 
 SKIP: {
-  skip('iOS: this test breaks the harness', 12) if $Config{archname} =~ /darwin-ios/;
+  skip('iOS: TODO', 12) if $Config{archname} =~ /darwin-ios/;
   # Doesn't really matter what time it is as long as its not now.
   my $time = 1000000000.12345;
   utime( $time, $time, "copy-$$" );
