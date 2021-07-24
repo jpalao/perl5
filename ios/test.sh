@@ -165,6 +165,7 @@ test_perl_device() {
     git checkout NetWare/t/NWModify.pl
     git checkout cpan/Module-Load-Conditional/lib/Module/Load/Conditional.pm
     git checkout dist/Dumpvalue/t/extend-coverage.t
+    git checkout dist/base/t/base.t
 
     popd
 
