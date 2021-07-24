@@ -5,7 +5,7 @@ use strict;
 use Cwd;
 
 chdir 't';
-if ($ENV{PERL_CORE}) { use lib '../../../lib' }
+@INC = '../../../lib' if $ENV{PERL_CORE};
 
 use Config;
 use File::Spec;
