@@ -83,6 +83,7 @@ EXPECT
 ########
 
 # Error - not predeclaring a sub
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use utf8;
 use open qw( :utf8 :std );
 Frèd 1,2 ;
