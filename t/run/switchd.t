@@ -171,7 +171,7 @@ SKIP:
 
 SKIP: {
 # [perl #115742] Recursive DB::DB clobbering its own pad
-#skip('iOS: #TODO', 1) if is_darwin_ios();
+skip('iOS: #TODO', 1) if is_darwin_ios();
 like(
   runperl(
     switches => [ '-Ilib' ],
