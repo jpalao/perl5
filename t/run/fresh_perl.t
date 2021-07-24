@@ -325,12 +325,13 @@ eval { my $x = 'peace'; eval q[ print "$x\n" ] }
 EXPECT
 inner peace
 ########
+# SKIP: $Config{archname} =~ /darwin-ios/ # iOS: TODO: STDOUT STDERR capture race cond.
 -w
 $| = 1;
 sub foo {
     print "In foo1\n";
-    eval 'sub foo { sleep 1; print "In foo2\n"; }';
-    sleep 1; print "Exiting foo1\n";
+    eval 'sub foo { print "In foo2\n" }';
+    print "Exiting foo1\n";
 }
 foo;
 foo;
@@ -428,10 +429,11 @@ EXPECT
 destroyed
 destroyed
 ########
+# SKIP: $Config{archname} =~ /darwin-ios/ # iOS: TODO: STDOUT STDERR capture race cond.
 BEGIN {
   $| = 1;
   $SIG{__WARN__} = sub {
-    eval { print $_[0] }; sleep 1;
+    eval { print $_[0] };
     die "bar\n";
   };
   warn "foo\n";
@@ -439,7 +441,7 @@ BEGIN {
 EXPECT
 foo
 bar
-BEGIN failed--compilation aborted at - line 8.
+BEGIN failed--compilation aborted at - line 9.
 ########
 package X;
 @ISA='Y';
