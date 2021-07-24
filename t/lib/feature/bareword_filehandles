@@ -152,12 +152,12 @@ print ARGVOUT;
 print DATA;
 print STDIN;
 EXPECT
-OPTIONS fatal
+OPTIONS regex fatal
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 11.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 12.
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # NAME say HANDLE LIST, say HANDLE
 use File::Spec;
@@ -194,14 +194,14 @@ $x .= <FOO>;
 $x = readline STDIN;
 $x = <STDIN>;
 EXPECT
-OPTIONS fatal
+OPTIONS fatal regex
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 11.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 12.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 13.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 14.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 15.
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # NAME truncate
 use strict;
@@ -310,12 +310,12 @@ sysread FOO, my $x, 10;
 syswrite FOO, "Test";
 my $y = sysseek FOO, 0, SEEK_CUR;
 EXPECT
-OPTIONS fatal
+OPTIONS fatal regex
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 11.
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 12.
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # NAME pipe
 my $fh;

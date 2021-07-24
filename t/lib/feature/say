@@ -44,13 +44,15 @@ say "Hello", "world";
 no feature;
 say "Hello", "world";
 EXPECT
+OPTION regex
 Unquoted string "say" may clash with future reserved word at - line 6.
 String found where operator expected at - line 6, near "say "Hello""
-	(Do you need to predeclare say?)
+	\(Do you need to predeclare say\?\)
 syntax error at - line 6, near "say "Hello""
-Execution of - aborted due to compilation errors.
+Execution of - aborted due to compilation errors.*
 ########
 # 'no feature "say"' should work too
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use warnings;
 use feature 'say';
 say "Hello", "world";

@@ -2,6 +2,7 @@ Test no feature indirect.
 
 __END__
 # NAME feature indirect
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use feature 'say';
 package Foo {
   sub new { bless {}, shift }
@@ -60,11 +61,12 @@ say { $st } "Foo";
 my $z = new { $class };
 
 EXPECT
-OPTIONS fatal
-syntax error at - line 29, near "new { "
-Execution of - aborted due to compilation errors.
+OPTIONS fatal regex
+syntax error at - line 29, near "new \{ "
+Execution of - aborted due to compilation errors.*
 ########
 # NAME METHOD SCALAR
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use feature 'say';
 package Foo {
   sub new { bless {}, shift }
@@ -103,6 +105,7 @@ syntax error at - line 29, near "new $class"
 Execution of - aborted due to compilation errors.
 ########
 # NAME FUNCMETH SCALAR
+# SKIP ? $Config{archname} =~ /darwin-ios/
 use feature 'say';
 package Foo {
   sub new { bless {}, shift }
