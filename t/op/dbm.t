@@ -53,8 +53,12 @@ dbmopen(%LT, $filename, 0666);
 die "Failed to fail!";
 EOC
 
-fresh_perl_like($prog, qr/No dbm on this machine/, {},
-		'implicit require fails');
+SKIP: {
+    skip ('iOS: TODO', 1) if is_darwin_ios();
+    fresh_perl_like($prog, qr/No dbm on this machine/, {},
+            'implicit require fails');
+}
+
 fresh_perl_like('delete $::{"AnyDBM_File::"}; ' . $prog,
 		qr/No dbm on this machine/, {},
 		'implicit require and no stash fails');
