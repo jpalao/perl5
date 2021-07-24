@@ -9,7 +9,7 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
-    skip_all('iOS: this test breaks the harness')
+    skip_all('iOS: #TODO')
         if is_darwin_ios();
     set_up_inc('../lib');
     skip_all_without_dynamic_extension('Fcntl');
