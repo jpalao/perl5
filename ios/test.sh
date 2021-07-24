@@ -161,14 +161,15 @@ test_perl_device() {
         's|(\s*[^#]*\s*)\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
     # TODO: These are patched incorrectly, restore them
-    git checkout t/base/rs.t
-    git checkout t/op/do.t
     git checkout cpan/Module-Load-Conditional/lib/Module/Load/Conditional.pm
     git checkout dist/base/t/base.t
     git checkout dist/Dumpvalue/t/extend-coverage.t
     git checkout dist/lib/t/01lib.t
     git checkout NetWare/t/NWModify.pl
+    git checkout t/base/rs.t
+    git checkout t/op/do.t
     git checkout t/op/inccode.t
+    git checkout t/op/require_errors.t
 
     popd
 
