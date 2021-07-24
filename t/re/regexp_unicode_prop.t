@@ -313,7 +313,7 @@ if (!is_darwin_ios)
     }
 } else {
     for (my $i = 0; $i < @DEFERRED; $i+=2) {
-        ok("iOS: test breaks harness\n");
+        ok("iOS: TODO\n");
     }
 }
 
@@ -402,7 +402,7 @@ if (is_darwin_ios) {
     }
 } else {
     while (my $error_property = shift @USER_ERROR_PROPERTIES) {
-        ok("iOS: test breaks harness\n");
+        ok("iOS: TODO\n");
     }
 }
 }
