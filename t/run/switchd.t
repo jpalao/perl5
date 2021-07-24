@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    use lib qw(../lib lib);
+    @INC = qw(../lib lib);
     require "./test.pl";
 }
 
