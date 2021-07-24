@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Config;
 use Test2::IPC;
 use Test2::Tools::Tiny;
 use Test2::API qw/context intercept test2_stack/;
@@ -8,6 +9,9 @@ use Test2::Util qw/CAN_FORK/;
 BEGIN {
     skip_all "System cannot fork" unless CAN_FORK;
 }
+
+skip_all "iOS: System cannot fork"
+    if $Config{'archname'} =~ /darwin-ios/;
 
 my $events = intercept {
     Test2::API::run_subtest("this subtest forks" => sub {
