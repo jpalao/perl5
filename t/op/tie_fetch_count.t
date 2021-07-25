@@ -133,7 +133,7 @@ $dummy  = atan2 $var, 1 ; check_count 'atan2';
 
 SKIP:
 {
-#skip('iOS: TODO', 245) if is_darwin_ios();
+skip('iOS: TODO', 245) if is_darwin_ios();
 
 # Readline/glob
 tie my $var0, "main", \*DATA;
