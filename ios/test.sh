@@ -153,8 +153,9 @@ test_perl_device() {
     pushd "$WORKDIR/perl-$PERL_VERSION/"
 
     # substitute @INC = (...) with use lib (...)
-    find . | grep -E "\.t$" | xargs grep -El "^\s*[^#]*\s*@INC\s*=" | \
-        xargs perl -0777 -p -i -e 's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
+    find . -name "*.t" | xargs grep -EL 'local\s*@INC\s*=' | xargs grep -EL '\\@INC\s*=' \
+        | xargs grep -El '^\s*[^#]*\s*\s*@INC\s*=' | \
+    xargs perl -0777 -p -i -e 's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
 
     find . | grep -E "\.(pl|pm|t)$" | xargs grep -El "^\s*[^#]*\s*@INC\s*=.*if.*" | \
         xargs perl -0777 -p -i -e \
