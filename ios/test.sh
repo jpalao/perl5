@@ -154,23 +154,11 @@ test_perl_device() {
 
     # substitute @INC = (...) with use lib (...)
     find . | grep -E "\.t$" | xargs grep -El "^\s*[^#]*\s*@INC\s*=" | \
-        xargs perl -0777 -p -i -e 's|(\s*[^#]*\s*)\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
+        xargs perl -0777 -p -i -e 's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*(?!.*if.*)|\1use lib |g'
 
     find . | grep -E "\.(pl|pm|t)$" | xargs grep -El "^\s*[^#]*\s*@INC\s*=.*if.*" | \
         xargs perl -0777 -p -i -e \
-        's|(\s*[^#]*\s*)\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
-
-    # TODO: These are patched incorrectly, restore them
-    git checkout cpan/Module-Load-Conditional/lib/Module/Load/Conditional.pm
-    git checkout cpan/Config-Perl-V/t/10_base.t
-    git checkout dist/base/t/base.t
-    git checkout dist/Dumpvalue/t/extend-coverage.t
-    git checkout dist/lib/t/01lib.t
-    git checkout NetWare/t/NWModify.pl
-    git checkout t/base/rs.t
-    git checkout t/op/do.t
-    git checkout t/op/inccode.t
-    git checkout t/op/require_errors.t
+        's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
     popd
 
