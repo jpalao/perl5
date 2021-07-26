@@ -197,7 +197,7 @@ print "ok 8\n";
   }
 
   if ($Config{archname} =~ /darwin-ios/) {
-    print "ok 7 # skip: no backticks\n";
+    print "ok 9 # skip: no backticks\n";
   } elsif (&fail (\%right, \%output)) {
     print "not ok 9\n", &faildump (\%right, \%output);
   } else {
@@ -205,12 +205,21 @@ print "ok 8\n";
   }
 }
 
-# Check that the DATA handle stays open
-system "$runperl -w \"-I$lib\" \"-MData\" -e \"Data::ok\"";
+if ($Config{archname} !~ /darwin-ios/) {
+    # Check that the DATA handle stays open
+    system "$runperl -w \"-I$lib\" \"-MData\" -e \"Data::ok\"";
+} else {
+    print "ok 10 # skip: no backticks\n";
+}
+
 
 # Possibly a pointless test as this doesn't really verify that it's been
 # stubbed.
-system "$runperl -w \"-I$lib\" \"-MEnd\" -e \"End::lime\"";
+if ($Config{archname} !~ /darwin-ios/) {
+    system "$runperl -w \"-I$lib\" \"-MEnd\" -e \"End::lime\"";
+} else {
+    print "ok 11 # skip: no backticks\n";
+}
 
 # But check that the documentation after the __END__ survived.
 open FH, '<', catfile(curdir(),$lib,"End.pm") or die $!;
