@@ -150,6 +150,8 @@ sub exec_test {
       eval {
         ($result) = exec_perl_capture($json);
       };
+      print  Dumper("code", $result->[0]) if $DEBUG;
+      print  Dumper("output", $result->[1]) if $DEBUG;
       return ($result->[0], $result->[1] ? $result->[1] : $@);
   } else {
       eval {
