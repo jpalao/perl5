@@ -49,14 +49,19 @@ sub safe_rel {
 # `$perl -le "print 'ok'"`. And, for portability, we can't use fork().
 sub sayok{
     my $perl = shift;
+
     open(STDOUTDUP, '>&STDOUT');
     open(STDOUT, ">rel2abs2rel$$.tmp")
         or die "Can't open scratch file rel2abs2rel$$.tmp -- $!\n";
+
+    my $result = undef;
     if ($Is_Ios) {
-        exec_test(getcwd(), "perl rel2abs2rel$$.pl");
+        my $json = cbrunperl::parse_test(getcwd(), "perl rel2abs2rel$$.pl");
+        $result = cbrunperl::exec_perl($json);
     } else {
         system($perl, "rel2abs2rel$$.pl");
     }
+
     open(STDOUT, '>&STDOUTDUP');
     close(STDOUTDUP);
 
