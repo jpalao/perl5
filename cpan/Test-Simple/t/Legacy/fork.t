@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
+use Config;
 
 use Test2::Util qw/CAN_FORK/;
 BEGIN {
-    unless(CAN_FORK) {
+    unless(CAN_FORK && $Config{'archname'} !~ /darwin-ios/) {
         require Test::More;
         Test::More->import(skip_all => "fork is not supported");
     }
@@ -13,7 +14,7 @@ BEGIN {
 BEGIN {
     if( $ENV{PERL_CORE} ) {
         chdir 't';
-        @INC = '../lib';
+        use lib '../lib';
     }
 }
 
