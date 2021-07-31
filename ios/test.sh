@@ -91,7 +91,7 @@ check_dependencies() {
 
 check_exit_code() {
   if [ $? -ne 0 ]; then
-    echo "Failed to build perl for iOS"
+    echo "Failed to build perl for $HARNESS_TARGET"
     exit $?
   fi
 }
