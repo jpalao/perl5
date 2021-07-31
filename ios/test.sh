@@ -41,7 +41,7 @@ WORKDIR=`pwd`
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 
 # CAMELBONES #
-export CAMELBONES_PREFIX=`pwd`
+export CAMELBONES_PREFIX="$CAMELBONES_PREFIX"
 export CAMELBONES_TARGET=$HARNESS_TARGET
 export CAMELBONES_BUILD_CONFIGURATION=$HARNESS_BUILD_CONFIGURATION
 export CAMELBONES_CI=1
@@ -168,7 +168,7 @@ test_perl_device() {
         's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
     echo 'Patched files:'
-    git diff --name-only
+    git diff --no-pager --name-only
 
     popd
 
