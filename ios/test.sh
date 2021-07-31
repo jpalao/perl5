@@ -26,6 +26,7 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${PERL5_GIT:=https://github.com/jpalao/perl5.git}"
 : "${PERL_5_BRANCH:=ios_blead_test}"
 : "${INSTALL_DIR:=local}"
+: "${ARCHS:=arm64}"
 
 WORKDIR=`pwd`
 
@@ -39,6 +40,7 @@ WORKDIR=`pwd`
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 
+# CAMELBONES #
 export CAMELBONES_PREFIX=`pwd`
 export CAMELBONES_TARGET=$HARNESS_TARGET
 export CAMELBONES_BUILD_CONFIGURATION=$HARNESS_BUILD_CONFIGURATION
@@ -48,8 +50,7 @@ export CAMELBONES_CPAN_DIR=`pwd`"/perl-$PERL_VERSION/ext/CamelBones-$CAMELBONES_
 export INSTALL_CAMELBONES_FRAMEWORK=0
 export OVERWRITE_CAMELBONES_FRAMEWORK=0
 
-# CAMELBONES #
-export ARCHS='arm64'
+export ARCHS="$ARCHS"
 export PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5"
 export LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE"
 
@@ -165,7 +166,7 @@ test_perl_device() {
         xargs grep -El "^\s*[^#]*\s*@INC\s*=.*if.*" | \
         xargs perl -0777 -p -i -e \
         's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
-        
+
     echo 'Patched files:'
     git diff --name-only
 
