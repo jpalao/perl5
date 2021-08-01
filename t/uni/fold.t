@@ -18,10 +18,6 @@ BEGIN {
 use feature 'unicode_strings';
 use Unicode::UCD qw(all_casefolds);
 
-if (is_darwin_ios()) {
-    use cbrunperl;
-}
-
 binmode *STDOUT, ":utf8";
 
 our $TODO;
@@ -87,7 +83,6 @@ foreach my $test_ref (@CF) {
             qq[":$f:" =~ /:$c:/i],
     ) {
         ok eval $test, "$code - $name - $mapping - $type - $test";
-        yield (.001) if is_darwin_ios();
     }
 
     {
@@ -376,7 +371,6 @@ foreach my $test_ref (@CF) {
         is( "\L$orig", $lower,   '\L works' );
         is( uc($orig), $upper,   "uc('$orig') returns '$upper'" );
         is( "\U$orig", $upper,   '\U works' );
-        yield(.001) if is_darwin_ios();
     }
 }
 
