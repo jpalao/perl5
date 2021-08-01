@@ -4,7 +4,8 @@ $|=1;
 # sophisticated testing.
 
 BEGIN {
-    use lib '../lib';
+    chdir 't' if -d 't';
+    @INC = '../lib';              # pick up only this build's lib
 }
 
 $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
