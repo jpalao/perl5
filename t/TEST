@@ -151,11 +151,7 @@ our $show_elapsed_time = $ENV{HARNESS_TIMER} || 0;
 
 chdir 't' if -f 't/TEST';
 if (-f 'TEST' && -f 'harness' && -d '../lib') {
-  if (is_darwin_ios()) {
-    use lib '../lib';
-  } else {
     @INC = '../lib';
-  }
 }
 
 die "You need to run \"make test_prep\" first to set things up.\n"
@@ -191,7 +187,7 @@ sub _find_files {
 	    next if $skip{$f};
 
 	    my $fullpath = "$dir/$f";
-
+	    
 	    if (-d $fullpath) {
 		_find_files($patt, $fullpath);
 	    } elsif ($f =~ /$patt/) {
@@ -247,12 +243,7 @@ sub _scan_test {
     if (!defined $testswitch) {
 	if ($test =~ s!^(\.\./(cpan|dist|ext)/[^/]+)/t!t!) {
 	    $run_dir = $1;
-	    if (is_darwin_ios()){
-	        use Cwd qw/getcwd/;
-	        $return_dir = getcwd();
-	    } else {
-	    	$return_dir = '../../t';
-	    }
+	    $return_dir = '../../t';
 	    $lib = '../../lib';
 	    $perl = '../../t/perl';
 	    $testswitch = "-I../.. -MTestInit=U2T";
@@ -268,6 +259,10 @@ sub _scan_test {
 	    $testswitch = '-I.. -MTestInit=U1'; # -T will remove . from @INC
 	} else {
 	    $testswitch = '-I.. -MTestInit';  # -T will remove . from @INC
+	}
+	if (is_darwin_ios()){
+        use Cwd qw/getcwd/;
+        $return_dir = getcwd();
 	}
     }
 
@@ -487,7 +482,7 @@ unless (@ARGV) {
     }
     unless ($::core) {
 	_find_tests('porting');
-	_find_tests("lib");
+	_find_tests("lib"); 
     }
     # Config.pm may be broken for make minitest. And this is only a refinement
     # for skipping tests on non-default builds, so it is allowed to fail.
@@ -652,54 +647,45 @@ EOT
 
     my $results = undef;
     if (is_darwin_ios()) {
-      use Cwd qw/getcwd/;
-      use cbrunperl;
-      my $options = _scan_test($test, $type);
+        use Cwd qw/getcwd/;
+        use cbrunperl;
+        my $options = _scan_test($test, $type);
 
-#     my $runPerl = {
-#       args => $req->{args},
-#       verbose => $req->{verbose},
-#     };
+        my @switches;
+        my @libs = split /\s*/, $options->{lib};
+        for my $lib (@libs) {
+            push @switches, "-I$lib";
+        }
+        my @test_switches = split /\s*/, $options->{testswitch};
+        for my $test_switch (@test_switches) {
+            push @switches, $test_switch;
+        }
 
-# options
-# 	utf8 => $utf8,
-# 	file => $file_opts,
+        if (defined $options->{switch} && length $options->{switch}) {
+            push @switches, $options->{switch};
+        }
 
-      my @switches;
-      my @libs = split /\s*/, $options->{lib};
-      for my $lib (@libs) {
-        push @switches, "-I$lib";
-      }
-      my @test_switches = split /\s*/, $options->{testswitch};
-      for my $test_switch (@test_switches) {
-        push @switches, $test_switch;
-      }
+        if (defined $options->{run_dir} && length $options->{run_dir}) {
+            push @switches, $options->{switch};
+        }
 
-      if (defined $options->{switch} && length $options->{switch}) {
-        push @switches, $options->{switch};
-      }
+        my $run_perl_config = {
+            switches => \@switches,
+            stderr => 1,
+            progfile => $options->{test}
+        };
 
-      if (defined $options->{run_dir} && length $options->{run_dir}) {
-        push @switches, $options->{switch};
-      }
+        if (defined $options->{run_dir} && length $options->{run_dir}) {
+            $run_perl_config->{pwd} = $options->{run_dir};
+        }
 
-      my $run_perl_config = {
-        switches => \@switches,
-        stderr => 1,
-        progfile => $options->{test}
-      };
+        $results = perl_exec_capture($run_perl_config);
 
-      if (defined $options->{run_dir} && length $options->{run_dir}) {
-        $run_perl_config->{pwd} = $options->{run_dir};
-      }
-
-      $results = perl_exec_capture($run_perl_config);
-
-      if (defined $options->{return_dir} && length $options->{return_dir}) {
-        chdir $options->{return_dir};
-      }
+        if (defined $options->{return_dir} && length $options->{return_dir}) {
+            chdir $options->{return_dir};
+        }
     } else {
-      $results = _run_test($test, $type);
+        $results = _run_test($test, $type);
     }
 
 	my $failure;
