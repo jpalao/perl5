@@ -1405,7 +1405,7 @@ sub run_multiple_progs {
 	    }
 
 	    if ($ok && $fatal && !($status >> 8)) {
-	        $ok = 0 unless is_darwin_ios();
+		$ok = 0;
 	    }
 	}
 
