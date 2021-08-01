@@ -154,7 +154,7 @@ test_perl_device() {
     pushd "$WORKDIR/perl-$PERL_VERSION/"
 
     echo 'substitute @INC = (...) with use lib (...). Patching files...'
-    find . -name "*.t" | \
+    find . -name "*.t" -o -name "TEST" | \
         xargs grep -EL 'local\s*@INC\s*=' | \
         xargs grep -EL '\\@INC\s*=' | \
         xargs grep -El '^\s*[^#]*\s*\s*@INC\s*=' | \
@@ -168,7 +168,7 @@ test_perl_device() {
         's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
     echo 'Patched files:'
-    git diff --no-pager --name-only
+    git --no-pager diff --name-only
 
     popd
 
