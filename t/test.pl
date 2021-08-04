@@ -817,7 +817,7 @@ sub runperl {
     die "test.pl:runperl() does not take a hashref"
 	if ref $_[0] and ref $_[0] eq 'HASH';
 
-    if (is_darwin_ios()) {
+    if ($is_ios) {
         my %args = @_;
         my ($exit_status, $result);
         local $@;
@@ -1353,8 +1353,8 @@ sub run_multiple_progs {
 	    $switch = $1;
 	}
 	my ($prog, $expected) = split(/\nEXPECT(?:\n|$)/, $_, 2);
-	utf8::decode($prog) if is_darwin_ios();
-	utf8::decode($expected) if is_darwin_ios();
+	utf8::decode($prog) if $is_ios;
+	utf8::decode($expected) if $is_ios;
 
 	my %reason;
 	foreach my $what (qw(skip todo)) {
@@ -1491,7 +1491,8 @@ sub run_multiple_progs {
 	        $ok = $results eq $expected;
 	    }
 
-	    if ($ok && $fatal && !($status >> 8)) {
+	    my $exit_value_shift = $is_ios ? 1 : !($status >> 8);
+	    if ($ok && $fatal && !$exit_value_shift) {
 		$ok = 0;
 	    }
 	}
@@ -1754,7 +1755,7 @@ sub warning_like {
 #        _AFTER_ the 'threads' module is loaded.
 sub watchdog ($;$)
 {
-    return if is_darwin_ios();
+    return if $is_ios;
     my $timeout = shift;
     my $method  = shift || "";
     my $timeout_msg = 'Test process timed out - terminating';
