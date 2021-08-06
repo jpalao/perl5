@@ -1405,7 +1405,7 @@ sub run_multiple_progs {
 	    }
 
 	    my $exit_value_shift = $is_ios ? 1 : !($status >> 8);
-	    if ($ok && $fatal && !$exit_value_shift) {
+	    if ($ok && $fatal && $exit_value_shift) {
 		$ok = 0;
 	    }
 	}
