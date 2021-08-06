@@ -167,6 +167,10 @@ test_perl_device() {
         xargs perl -0777 -p -i -e \
         's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
+    # exceptions
+    git checkout ext/File-Find/t/find.t
+    git checkout ext/File-Find/t/taint.t
+
     echo 'Patched files:'
     git --no-pager diff --name-only
 
