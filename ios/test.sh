@@ -179,6 +179,9 @@ test_perl_device() {
     echo "Copy perl build directory to iOS device..."
     cp -RL "$WORKDIR/perl-$PERL_VERSION/." $IOS_MOUNTPOINT 2>/dev/null
     #check_exit_code
+
+    echo "Delete Build dir..."
+    rm -Rf "$IOS_MOUNTPOINT/ios/test/Build"
     
     echo "Delete unsigned bundle files from harness mountpoint..."
     find $IOS_MOUNTPOINT -name "*.bundle" -type f -delete
