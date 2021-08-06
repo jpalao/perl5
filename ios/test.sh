@@ -171,6 +171,10 @@ test_perl_device() {
     git checkout ext/File-Find/t/find.t
     git checkout ext/File-Find/t/taint.t
 
+    # exceptions
+    git checkout ext/File-Find/t/find.t
+    git checkout ext/File-Find/t/taint.t
+
     echo 'Patched files:'
     git --no-pager diff --name-only
 
