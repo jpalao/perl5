@@ -165,7 +165,7 @@ test_perl_device() {
         xargs grep -EL '\\@INC\s*=' | \
         xargs grep -El "^\s*[^#]*\s*@INC\s*=.*if.*" | \
         xargs perl -0777 -p -i -e \
-        's|(\s*[^#]*\s*)(?:(?!local))\s*\@INC\s*=\s*([^\s]*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
+        's|(\s*(?:(?!#))\s*)(?:(?!local)\s*)\@INC\s*=\s*(.*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
 
     # exceptions
     git checkout ext/File-Find/t/find.t
