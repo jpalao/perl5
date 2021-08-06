@@ -23,7 +23,8 @@ SKIP: {
     # other Win32's below are guesses.
     skip "No tzset()", 2
        if $^O eq "VMS" || $^O eq "cygwin" || $^O eq "djgpp" ||
-          $^O eq "MSWin32" || $^O eq "dos" || $^O eq "interix";
+          $^O eq "MSWin32" || $^O eq "dos" || $^O eq "interix" ||
+          $Config{'archname'} =~ /darwin-ios/;
     tzset();
     my @tzname = tzname();
     like($tzname[0], qr/(GMT|UTC)/i, "tzset() to GMT/UTC");
