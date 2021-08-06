@@ -2,6 +2,7 @@
 
 use strict;
 use File::Find;
+use Config;
 
 =head1 NAME
 
@@ -309,7 +310,8 @@ sub process {
         or my_die "Can't rename $filename to $filename.old: $!";
 
     write_or_die($filename, $new);
-    chmod $mode & 0777, $filename or my_die "can't chmod $mode $filename: $!";
+    chmod $mode & 0777, $filename or my_die "can't chmod $mode $filename: $!"
+        unless $Config{'archname'} =~ /darwin-ios/;
 }
 
 =head2 C<pods_to_install()>
