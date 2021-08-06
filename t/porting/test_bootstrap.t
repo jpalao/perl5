@@ -9,6 +9,7 @@ use strict;
 BEGIN {
     chdir 't';
     require './test.pl';
+    skip_all( "iOS: #TODO" ) if is_darwin_ios();
 }
 
 plan('no_plan');
