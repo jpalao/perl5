@@ -12,6 +12,8 @@ BEGIN {
 
 if (!is_darwin_ios()) {
     use warnings;
+    use Cwd;
+    use cbrunperl;
 }
 use strict;
 
@@ -135,7 +137,8 @@ my $path = join " ", map { qq["-I$_"] } @INC;
 my @path = map { "-I$_" } @INC;
 
 SKIP: {
-skip('iOS: no backticks', 5) if is_darwin_ios();
+skip ('iOS: no backquotes', 5) if is_darwin_ios();
+
 $a = `$^X $path "-MO=Deparse" -anlwi.bak -e 1 2>&1`;
 
 $a =~ s/-e syntax OK\n//g;
@@ -179,10 +182,7 @@ unlike($a, qr/sub g/,
 #Re: perlbug #35857, patch #24505
 #handle warnings::register-ed packages properly.
 package B::Deparse::Wrapper;
-use strict;
-if (!is_darwin_ios()) {
-    use warnings;
-}
+
 use warnings::register;
 sub getcode {
    my $deparser = B::Deparse->new();
@@ -194,9 +194,7 @@ use overload '0+' => sub { 42 };
 
 package main;
 use strict;
-if (!is_darwin_ios()) {
-    use warnings;
-}
+use warnings;
 use constant GLIPP => 'glipp';
 use constant PI => 4;
 use constant OVERLOADED_NUMIFICATION => bless({}, 'Moo');
@@ -221,6 +219,8 @@ eval <<EOFCODE and test($x);
    1
 EOFCODE
 
+SKIP: {
+skip ('iOS: no backquotes', 1) if is_darwin_ios();
 # Exotic sub declarations
 $a = `$^X $path "-MO=Deparse" -e "sub ::::{}sub ::::::{}" 2>&1`;
 $a =~ s/-e syntax OK\n//g;
@@ -232,8 +232,11 @@ sub :::::: {
     
 }
 EOCODG
+}
 
 # [perl #117311]
+SKIP: {
+skip ('iOS: no backquotes', 1) if is_darwin_ios();
 $a = `$^X $path "-MO=Deparse,-l" -e "map{ eval(0) }()" 2>&1`;
 $a =~ s/-e syntax OK\n//g;
 is($a, <<'EOCODH', "[perl #117311] [PATCH] -l option ('#line ...') does not emit ^Ls in the output");
@@ -242,8 +245,11 @@ map {
 #line 1 "-e"
 eval 0;} ();
 EOCODH
+}
 
 # [perl #33752]
+SKIP: {
+skip ('iOS: # TODO', 1) if is_darwin_ios();
 {
   my $code = <<"EOCODE";
 {
@@ -255,7 +261,10 @@ EOCODE
   s/$ \n//x for $deparsed, $code;
   is $deparsed, $code, 'our $funny_Unicode_chars';
 }
+}
 
+SKIP: {
+skip ('iOS: no backquotes', 1) if is_darwin_ios();
 # [perl #62500]
 $a =
   `$^X $path "-MO=Deparse" -e "BEGIN{*CORE::GLOBAL::require=sub{1}}" 2>&1`;
@@ -268,8 +277,11 @@ sub BEGIN {
     ;
 }
 EOCODF
+}
 
 # [perl #91384]
+SKIP: {
+skip ('iOS: no backquotes', 4) if is_darwin_ios();
 $a =
   `$^X $path "-MO=Deparse" -e "BEGIN{*Acme::Acme:: = *Acme::}" 2>&1`;
 like($a, qr/-e syntax OK/,
@@ -291,6 +303,7 @@ $a =
   `$^X $path "-MO=Deparse" -e "use strict; print;" 2>&1`;
 unlike($a, qr/BEGIN/,
     "Deparse does not emit strict hh hints");
+}
 
 # ambient_pragmas should not mess with strict settings.
 SKIP: {
@@ -309,6 +322,8 @@ SKIP: {
 }
 
 # multiple statements on format lines
+SKIP: {
+skip ('iOS: no backquotes', 1) if is_darwin_ios();
 $a = `$^X $path "-MO=Deparse" -e "format =" -e "\@" -e "x();z()" -e. 2>&1`;
 $a =~ s/-e syntax OK\n//g;
 is($a, <<'EOCODH', 'multiple statements on format lines');
@@ -317,6 +332,7 @@ format STDOUT =
 x(); z()
 .
 EOCODH
+}
 
 is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', is_darwin_ios() ? @path : $path, '-T' ],
            prog => "format =\n\@\n\$;\n.\n"),
@@ -349,24 +365,31 @@ $x
 EOCODN
 
 # CORE::format
-$a = readpipe qq`$^X $path "-MO=Deparse" -e "use feature q|:all|;`
-             .qq` my sub format; CORE::format =" -e. 2>&1`;
-like($a, qr/CORE::format/, 'CORE::format when lex format sub is in scope');
+SKIP: {
+    skip ('iOS: no backquotes', 2) if is_darwin_ios();
+    $a = readpipe qq`$^X $path "-MO=Deparse" -e "use feature q|:all|;`
+                 .qq` my sub format; CORE::format =" -e. 2>&1`;
+    like($a, qr/CORE::format/, 'CORE::format when lex format sub is in scope');
 
-# literal big chars under 'use utf8'
-is($deparse->coderef2text(sub{ use utf8; /€/; }),
-'{
-    /\x{20ac}/;
-}',
-"qr/euro/");
+    # literal big chars under 'use utf8'
+    is($deparse->coderef2text(sub{ use utf8; /€/; }),
+    '{
+        /\x{20ac}/;
+    }',
+    "qr/euro/");
+}
+
 
 # STDERR when deparsing sub calls
 # For a short while the output included 'While deparsing'
+SKIP: {
+skip ('iOS: no backquotes', 1) if is_darwin_ios();
 $a = `$^X $path "-MO=Deparse" -e "foo()" 2>&1`;
 $a =~ s/-e syntax OK\n//g;
 is($a, <<'EOCODI', 'no extra output when deparsing foo()');
 foo();
 EOCODI
+}
 
 # Sub calls compiled before importation
 like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', is_darwin_ios() ? @path : $path ],
@@ -398,6 +421,8 @@ sub _121050empty ( ) {
 EOCODP
 
 # CORE::no
+SKIP: {
+skip ('iOS: no backquotes', 7) if is_darwin_ios();
 $a = readpipe qq`$^X $path "-MO=Deparse" -Xe `
              .qq`"use feature q|:all|; my sub no; CORE::no less" 2>&1`;
 like($a, qr/my sub no;\n.*CORE::no less;/s,
@@ -433,9 +458,11 @@ like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', is_darwin_ios() ? @pa
            prog => 'sub f () { 42 }'),
      qr/sub f\s*\(\)\s*\{\s*42;\s*\}/,
     'constant perl sub declaration';
+}
 
 # BEGIN blocks
 SKIP : {
+    skip "iOS: no backquotes", 1 if is_darwin_ios();
     skip "BEGIN output is wrong on old perls", 1 if $] < 5.021006;
     my $prog = '
       BEGIN { pop }
@@ -504,6 +531,8 @@ like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', is_darwin_ios() ? @pa
      qr/sub BEGIN/, 'anonymised BEGIN';
 
 # [perl #115066]
+SKIP: {
+skip ('iOS: no backquotes', 1) if is_darwin_ios();
 my $prog = 'use constant FOO => do { 1 }; no overloading; die';
 $a = readpipe qq`$^X $path "-MO=-qq,Deparse" -e "$prog" 2>&1`;
 is($a, <<'EOCODK', '[perl #115066] use statements accidentally nested');
@@ -513,6 +542,7 @@ use constant ('FOO', do {
 no overloading;
 die;
 EOCODK
+}
 
 # BEGIN blocks inside predeclared subs
 like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', is_darwin_ios() ? @path : $path ],
