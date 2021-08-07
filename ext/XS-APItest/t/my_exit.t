@@ -26,7 +26,7 @@ fresh_perl_is($prog, $expect, $runperl_args);
 # have access to the vmsish pragmas to modify that behavior.
  
 my $exit_failure = $^O eq 'VMS' ? 4 : 1;
-is(is_darwin_ios() ? $? : $? >> 8, $exit_failure, "exit code plain my_exit");
+is($? >> 8, $exit_failure, "exit code plain my_exit");
 
 ($prog, $expect) = (<<'PROG', <<'EXPECT');
 use XS::APItest;
@@ -37,5 +37,5 @@ PROG
 ok
 EXPECT
 fresh_perl_is($prog, $expect, $runperl_args);
-is(is_darwin_ios() ? $? : $? >> 8, $exit_failure, "exit code my_exit inside a call_sv with G_EVAL");
+is($? >> 8, $exit_failure, "exit code my_exit inside a call_sv with G_EVAL");
 
