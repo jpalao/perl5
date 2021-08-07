@@ -3,6 +3,7 @@
 use strict;
 use Test::More;
 use Encode;
+use Config;
 
 # Bug in Encode, non chars are rejected
 use XS::APItest qw(utf16_to_utf8 utf16_to_utf8_reversed
@@ -31,11 +32,18 @@ for my $ord (0, 10, 13, 78, 255, 256, 0xD7FF, 0xE000, 0xFFFD,
 }
 
 foreach ("\0", 'N', 'Perl rules!') {
+SKIP: {
+    if ($_ eq "\0" && $Config{'archname'} =~ /darwin-ios/) {
+        skip('iOS: \0 not supported by test', 2);
+        next;
+    }
     my $length = length $_;
     my $got = eval {utf16_to_utf8($_)};
     like($@, qr/^panic: utf16_to_utf8: odd bytelen $length at/,
 	 "Odd byte length panics for '$_'");
     is($got, undef, 'hence eval returns undef');
+
+      }
 }
 
 for (["\xD8\0\0\0", 'NULs'],
