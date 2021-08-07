@@ -8,7 +8,9 @@ BEGIN {
 
 use Config;
 
-plan(tests => 78);
+my $test_count = is_darwin_ios() ? 71 : 78;
+
+plan(tests => $test_count);
 
 my $exception_134139 = "Use of strings with code points over 0xFF as arguments to vec is forbidden";
 
@@ -183,8 +185,11 @@ like($@, qr/^Modification of a read-only value attempted at /,
 
         $x = vec($s, $sm2, 8);
         is($x, 0, "RT 130915: size_max*2 rval");
-        eval { vec($s, $sm2, 8) = 1 };
-        like($@, qr/^Out of memory!/, "RT 130915: size_max*2 lval");
+
+        if (!is_darwin_ios) {
+            eval { vec($s, $sm2, 8) = 1 };
+            like($@, qr/^Out of memory!/, "RT 130915: size_max*2 lval");
+        }
     }
 
     # (offset * num-bytes) could overflow
@@ -196,9 +201,11 @@ like($@, qr/^Modification of a read-only value attempted at /,
             my $offset = (1 << $biglog2) - $i;
             $x = vec($s, $offset, $bytes*8);
             is($x, 0, "large offset: bytes=$bytes biglog2=$biglog2 i=$i: rval");
-            eval { vec($s, $offset, $bytes*8) = 1; };
-            like($@, qr/^Out of memory!/,
-                      "large offset: bytes=$bytes biglog2=$biglog2 i=$i: rval");
+            if (!is_darwin_ios) {
+                eval { vec($s, $offset, $bytes*8) = 1; };
+                like($@, qr/^Out of memory!/,
+                          "large offset: bytes=$bytes biglog2=$biglog2 i=$i: rval");
+            }
         }
     }
 }
