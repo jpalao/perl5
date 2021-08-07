@@ -1,8 +1,12 @@
 #!/usr/bin/perl -w
 
 use Config;
-unless ($Config{usedl} && $Config{archname} !~ /darwin-ios/) {
+unless ($Config{usedl}) {
     print "1..0 # no usedl, skipping\n";
+    exit 0;
+}
+if ($Config{archname} !~ /darwin-ios/) {
+    print "1..0 # no make, skipping\n";
     exit 0;
 }
 
