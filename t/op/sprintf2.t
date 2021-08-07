@@ -597,7 +597,10 @@ $o::count = 0;
 is $o::count,    0, 'sprintf %d string overload count is 0';
 is $o::numcount, 1, 'sprintf %d number overload count is 1';
 
+if (scalar @hexfloat) {
+
 SKIP: {  # hexfp
+    skip "no IEEE, no hexfp", scalar @hexfloat if (is_darwin_ios());
     unless ($Config{d_double_style_ieee}) { skip "no IEEE, no hexfp", scalar @hexfloat }
 
 my $ppc_linux = $Config{archname} =~ /^(?:ppc|power(?:pc)?)(?:64)?-linux/;
@@ -695,6 +698,8 @@ for my $t (@hexfloat) {
 }
 
 } # SKIP: # hexfp
+
+} # if (scalar @hexfloat)
 
 # double-double long double %a special testing.
 SKIP: {
@@ -948,7 +953,8 @@ SKIP: {
 # (these now fail earlier with "Integer overflow" rather than
 # "memory wrap" - DAPM)
 
-{
+SKIP: {
+    skip "iOS: TODO", 3 if (is_darwin_ios());
     my $s = 8 * $Config{sizesize};
     my $i = 1;
     my $max;
