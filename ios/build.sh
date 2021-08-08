@@ -259,7 +259,7 @@ build_perl() {
     OSNAME="$OSNAME-watch"
   fi
 
-  perl -0777 -i.bak.5 -pe "s/^(osname=).*/\$1$OSNAME/g" config.sh
+  perl -0777 -i.bak.5 -pe "s/(?:[^a-z])osname=.*/\nosname='$OSNAME'/g" config.sh
   perl -0777 -i.bak.4 -pe "s|#define OSNAME \"darwin\"|#define OSNAME \"$OSNAME\"|g" config.h
 
   # patch perl version
