@@ -23,7 +23,11 @@ skip_all("only tested on devel builds")
 # fork() and waitpid().
 
 skip_all("no point in dumping on $^O")
+<<<<<<< HEAD
   unless $^O =~ /^(linux|.*bsd|solaris|darwin)$/ && !is_darwin_ios();
+=======
+  unless $^O =~ /^(linux|.*bsd|solaris|darwin.*)$/;
+>>>>>>> 53bf0b456b (osname darwin.* multiple files)
 
 skip_all("GH 18847: excessive writes to /var/log/messages on FreeBSD")
     if $^O eq 'freebsd';
