@@ -172,7 +172,7 @@ build_perl() {
 
   perl -0777 -i.bak.1 -pe "s|%PERL_REVISION%|$PERL_REVISION|g" Policy.sh
   perl -0777 -i.bak.2 -pe "s|%PERL_MAJOR_VERSION%|$PERL_MAJOR_VERSION|g" Policy.sh
-  perl -0777 -i.bak.3-pe "s|%PERL_MINOR_VERSION%|$PERL_MINOR_VERSION|g" Policy.sh
+  perl -0777 -i.bak.3 -pe "s|%PERL_MINOR_VERSION%|$PERL_MINOR_VERSION|g" Policy.sh
   
   # patch perl and os version
   os_version=$(uname -r)
