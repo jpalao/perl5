@@ -251,6 +251,15 @@ build_perl() {
   perl -0777 -i.bak.5 -pe "s/myarchname=.*/\nmyarchname='$PERL_ARCH-darwin'/g" config.sh
   perl -0777 -i.bak.6 -pe "s|[^y]archname=.*|\narchname='$PERL_ARCH-darwin-ios-$PLATFORM_TAG-thread-multi'|" config.sh
 
+  #patch $^O
+  OSNAME='darwin-ios'
+  if [ $PERL_APPLETV -ne 0 ]; then
+    OSNAME="$OSNAME-appletv"
+  elif [ $PERL_APPLEWATCH -ne 0 ]; then
+    OSNAME="$OSNAME-watch"
+  fi
+  perl -0777 -i.bak.5 -pe "s/osname=.*/\nosname='$OSNAME'/g" config.sh
+
   # patch perl version
   perl -0777 -i.bak.4 -pe "s|%PERL_REVISION%|$PERL_REVISION|g" config.h
   perl -0777 -i.bak.5 -pe "s|%PERL_MAJOR_VERSION%|$PERL_MAJOR_VERSION|g" config.h
