@@ -38,7 +38,7 @@ $ENV{LANGUAGE} = 'C';		# Ditto in GNU.
 
 my $Is_Amiga   = $^O eq 'amigaos';
 my $Is_Cygwin  = $^O eq 'cygwin';
-my $Is_Darwin  = $^O eq 'darwin';
+my $Is_Darwin  = $^O =~ 'darwin';
 my $Is_Dos     = $^O eq 'dos';
 my $Is_MSWin32 = $^O eq 'MSWin32';
 my $Is_NetWare = $^O eq 'NetWare';

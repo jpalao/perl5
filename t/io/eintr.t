@@ -54,7 +54,7 @@ if (exists $ENV{PERLIO} && $ENV{PERLIO} =~ /stdio/  ) {
 my ($osmajmin) = $Config{osvers} =~ /^(\d+\.\d+)/;
 if ($^O eq 'VMS' || $^O eq 'MSWin32' || $^O eq 'cygwin' || $^O =~ /freebsd/ || $^O eq 'midnightbsd' ||
      ($^O eq 'solaris' && $Config{osvers} eq '2.8') || $^O eq 'nto' ||
-     ($^O eq 'darwin' && $osmajmin < 9) ||
+     ($^O =~ 'darwin' && $osmajmin < 9) ||
     ((int($]*1000) & 1) == 0)
 ) {
 	skip_all('various portability issues');
@@ -102,7 +102,7 @@ ok(close($in), 'read/die: close status');
 
 SKIP: {
     skip "Tests hang on older versions of Darwin", 5
-          if $^O eq 'darwin' && $osmajmin < 16;
+          if $^O =~ 'darwin' && $osmajmin < 16;
 
     # This used to be 1_000_000, but on Linux/ppc64 (POWER7) this kept
     # consistently failing. At exactly 0x100000 it started passing
