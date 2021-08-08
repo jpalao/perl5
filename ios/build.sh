@@ -254,7 +254,7 @@ build_perl() {
   #patch $^O
   OSNAME='darwin-ios'
   if [ $PERL_APPLETV -ne 0 ]; then
-    OSNAME="$OSNAME-appletv"
+    OSNAME="$OSNAME-tv"
   elif [ $PERL_APPLEWATCH -ne 0 ]; then
     OSNAME="$OSNAME-watch"
   fi
