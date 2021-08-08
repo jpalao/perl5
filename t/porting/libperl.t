@@ -104,7 +104,7 @@ unless (defined $nm_style) {
         $nm_style = 'gnu';
     } elsif ($^O eq 'freebsd') {
         $nm_style = 'gnu';
-    } elsif ($^O eq 'darwin') {
+    } elsif ($^O =~ 'darwin') {
         $nm_style = 'darwin';
     }
 }
@@ -472,7 +472,7 @@ if (defined $nm_err_tmp) {
         while (<$nm_err_fh>) {
             # OS X has weird error where nm warns about
             # "no name list" but then outputs fine.
-            if ( $^O eq 'darwin' ) {
+            if ( $^O =~ 'darwin' ) {
                 if (/nm: no name list/ || /^no symbols$/ ) {
                     print "# $^O ignoring $nm output: $_";
                     next;
