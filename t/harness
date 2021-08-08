@@ -470,7 +470,7 @@ $Config{archname} =~ /darwin-ios/ && eval {
 	}
 
 	# these are passing consistently, speed up
-	#@tests = grep(/^(?:(?!re\/uniprops))/, @tests);
+	@tests = grep(/^(?:(?!re\/uniprops))/, @tests);
 
 	# postponed
 	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-MakeMaker))/, @tests);
