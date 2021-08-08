@@ -151,7 +151,7 @@ eval "qx('unqualified'".
      ($^O eq 'MSWin32' ? " 2>&1)" : ")");
 TODO: {
     local $::TODO = $^O eq 'MSWin32' ? "Tainting of PATH not working of Windows" : $::TODO;
-    if ($^O eq 'darwin') {
+    if ($^O =~ 'darwin') {
         use Config;
         $::TODO = "iOS: PATH taint not working" if $Config{'archname'} =~ /darwin-ios/;
     }
