@@ -192,7 +192,9 @@ like($@, qr/^Modification of a read-only value attempted at /,
         $x = vec($s, $sm2, 8);
         is($x, 0, "RT 130915: size_max*2 rval");
 
-        if (!is_darwin_ios) {
+        if ($^O =~ /darwin-ios/) {
+            is(1, 1, 'iOS: # TODO');
+        } else {
             eval { vec($s, $sm2, 8) = 1 };
             like($@, qr/^Out of memory!/, "RT 130915: size_max*2 lval");
         }
@@ -208,7 +210,9 @@ like($@, qr/^Modification of a read-only value attempted at /,
             my $offset = (1 << $biglog2) - $i;
             $x = vec($s, $offset, $bytes*8);
             is($x, 0, "large offset: bytes=$bytes biglog2=$biglog2 i=$i: rval");
-            if (!is_darwin_ios) {
+            if ($^O =~ /darwin-ios/) {
+                is(1, 1, 'iOS: # TODO');
+            } else {
                 eval { vec($s, $offset, $bytes*8) = 1; };
                 like($@, qr/^Out of memory!/,
                           "large offset: bytes=$bytes biglog2=$biglog2 i=$i: rval");
@@ -241,7 +245,8 @@ like($@, qr/^Modification of a read-only value attempted at /,
 
 # RT #131083 maybe-lvalue out of range should only croak if assigned to
 
-{
+SKIP: {
+    skip 'iOS: # TODO', 4 if $^O =~ /darwin-ios/;
     sub  RT131083 { if ($_[0]) { $_[1] = 1; } $_[1]; }
     my $s = "abc";
     my $off = -1;
