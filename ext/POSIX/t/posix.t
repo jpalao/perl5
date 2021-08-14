@@ -30,6 +30,7 @@ $Is_VMS     = $^O eq 'VMS';
 $Is_OS2     = $^O eq 'os2';
 $Is_UWin    = $^O eq 'uwin';
 $Is_OS390   = $^O eq 'os390';
+$Is_iOS     = $^O =~ /darwin-ios/;
 
 my $vms_unix_rpt = 0;
 my $vms_efs = 0;
@@ -69,6 +70,7 @@ my $test = next_test();
 write(1,"ok $test\nnot ok $test\n", 5);
 
 SKIP: {
+    skip("no pipe() support on iOS", 2) if $Is_iOS;
     skip("no pipe() support on DOS", 2) if $Is_Dos;
 
     @fds = POSIX::pipe();
@@ -104,7 +106,7 @@ SKIP: {
     # finish the test.
     # For others (darwin & freebsd), let the test fail without crashing.
     # the test passes at least from freebsd 8.1
-    my $todo = $^O eq 'netbsd' && $Config{osvers}=~/^1\.6/;
+    my $todo = $^O eq 'netbsd' && $Config{osvers}=~/^1\.6/ || $Is_iOS;
     my $why_todo = "# TODO $^O $Config{osvers} seems to lose blocked signals";
     if (!$todo) {
       kill 'HUP', $$;
@@ -114,9 +116,9 @@ SKIP: {
     }
     sleep 1;
 
-    my ($major, $minor) = $Config{osvers} =~ / (\d+) \. (\d+) .* /x;
-    $todo = 1 if ($^O eq 'freebsd' && $major < 8)
-              || ($^O eq 'darwin' && "${major}.${minor}" < '6.6');
+    $todo = 1 if ($^O eq 'freebsd' && $Config{osvers} < 8)
+              || ($^O eq 'darwin' && $Config{osvers} < '6.6'
+              || $Is_iOS);
     printf "%s 11 - masked SIGINT received %s\n",
         $sigint_called ? "ok" : "not ok",
         $todo ? $why_todo : '';
@@ -414,10 +416,16 @@ SKIP: {
 
 my $fd1 = open("Makefile.PL", O_RDONLY, 0);
 like($fd1, qr/\A\d+\z/, 'O_RDONLY with open');
-cmp_ok($fd1, '>', $testfd);
+SKIP: {
+    skip('iOS: #TODO', 1) if $Is_iOS;
+    cmp_ok($fd1, '>', $testfd);
+}
 my $fd2 = dup($fd1);
 like($fd2, qr/\A\d+\z/, 'dup');
-cmp_ok($fd2, '>', $fd1);
+SKIP: {
+    skip('iOS: #TODO', 1) if $Is_iOS;
+    cmp_ok($fd2, '>', $fd1);
+}
 is(POSIX::close($fd1), '0 but true', 'close');
 is(POSIX::close($testfd), '0 but true', 'close');
 $! = 0;
@@ -442,11 +450,15 @@ is($buffer, "# Ex", 'read');
     is($buffer, "# Ex", 'read');
 }
 
-# The FreeBSD man page warns:
-# The access() system call is a potential security hole due to race
-# conditions and should never be used.
-is(access('Makefile.PL', POSIX::F_OK), '0 but true', 'access');
-is(access('Makefile.PL', POSIX::R_OK), '0 but true', 'access');
+SKIP: {
+    skip("$^O is insufficiently POSIX", 2) if $Is_iOS;
+    # The FreeBSD man page warns:
+    # The access() system call is a potential security hole due to race
+    # conditions and should never be used.
+    is(access('Makefile.PL', POSIX::F_OK), '0 but true', 'access');
+    is(access('Makefile.PL', POSIX::R_OK), '0 but true', 'access');
+}
+
 $! = 0;
 is(access('no such file', POSIX::F_OK), undef, 'access on missing file');
 cmp_ok($!, '==', POSIX::ENOENT);
@@ -472,9 +484,9 @@ if ($^O eq 'vos') {
  $| = 0;
  # The following line assumes buffered output, which may be not true:
  print '@#!*$@(!@#$' unless ($Is_OS2 || $Is_UWin || $Is_OS390 ||
-                            $Is_VMS ||
+                            $Is_VMS || $Is_iOS ||
 			    (defined $ENV{PERLIO} &&
 			     $ENV{PERLIO} eq 'unix' &&
 			     $Config::Config{useperlio}));
- _exit(0);
+ $Is_iOS ? exit(0) : _exit(0);
 }
