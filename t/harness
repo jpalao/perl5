@@ -386,8 +386,6 @@ $Config{archname} =~ /darwin-ios/ && eval {
 
 		'io/openpid.t',
 		'io/closepid.t',
-		'io/crlf.t',
-		'io/perlio_leaks.t',
 
 		'op/groups.t',
 		'op/die_keeperr.t',
@@ -437,8 +435,6 @@ $Config{archname} =~ /darwin-ios/ && eval {
 		'../dist/IO/t/io_dup.t',
 
 		# TODO
-		'../dist/threads/t/exit.t',
-
 		'../dist/Time-HiRes/t/ualarm.t',
 
 		'../ext/Devel-Peek/t/Peek.t',
