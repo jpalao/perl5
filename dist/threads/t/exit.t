@@ -108,7 +108,9 @@ run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
     is($?>>8, 86, "'use threads 'exit' => 'thread_only'");
 }
 
-my $out = run_perl(prog => 'use threads 2.21;' .
+my $out;
+if ($^O !~ /darwin-ios/) {
+    $out = run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
                            'threads->create(sub {' .
                            '    exit(99);' .
                            '});' .
@@ -117,39 +119,40 @@ my $out = run_perl(prog => 'use threads 2.21;' .
                    nolib => ($ENV{PERL_CORE}) ? 0 : 1,
                    switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ],
                    stderr => 1);
-{
+}
+
+SKIP: {
+    skip ('iOS: calling exit() breaks the harness', 5) if $^O =~ /darwin-ios/;
     local $TODO = 'VMS exit semantics not like POSIX exit semantics' if $^O eq 'VMS';
     is($?>>8, 99, "exit(status) in thread");
-}
-like($out, qr/1 finished and unjoined/, "exit(status) in thread");
+    like($out, qr/1 finished and unjoined/, "exit(status) in thread");
+    if ($^O !~ /darwin-ios/) {
+        $out = run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
+                                'threads->create(sub {' .
+                                '   threads->set_thread_exit_only(0);' .
+                                '   exit(99);' .
+                                '});' .
+                                'sleep(1);' .
+                                'exit(86);',
+                        nolib => ($ENV{PERL_CORE}) ? 0 : 1,
+                        switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ],
+                        stderr => 1);
+    }
 
-
-$out = run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
-                        'threads->create(sub {' .
-                        '   threads->set_thread_exit_only(0);' .
-                        '   exit(99);' .
-                        '});' .
-                        'sleep(1);' .
-                        'exit(86);',
-                nolib => ($ENV{PERL_CORE}) ? 0 : 1,
-                switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ],
-                stderr => 1);
-{
     local $TODO = 'VMS exit semantics not like POSIX exit semantics' if $^O eq 'VMS';
     is($?>>8, 99, "set_thread_exit_only(0)");
-}
-like($out, qr/1 finished and unjoined/, "set_thread_exit_only(0)");
+    like($out, qr/1 finished and unjoined/, "set_thread_exit_only(0)");
 
-
-run_perl(prog => 'use threads 2.21;' .
-                 'threads->create(sub {' .
-                 '   $SIG{__WARN__} = sub { exit(99); };' .
-                 '   die();' .
-                 '})->join();' .
-                 'exit(86);',
-         nolib => ($ENV{PERL_CORE}) ? 0 : 1,
-         switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ]);
-{
+    if ($^O !~ /darwin-ios/) {
+        run_perl(prog => 'use threads 2.21;' .
+                         'threads->create(sub {' .
+                         '   $SIG{__WARN__} = sub { exit(99); };' .
+                         '   die();' .
+                         '})->join();' .
+                         'exit(86);',
+                 nolib => ($ENV{PERL_CORE}) ? 0 : 1,
+                 switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ]);
+    }
     local $TODO = 'VMS exit semantics not like POSIX exit semantics' if $^O eq 'VMS';
     is($?>>8, 99, "exit(status) in thread warn handler");
 }
