@@ -325,7 +325,7 @@ eval { my $x = 'peace'; eval q[ print "$x\n" ] }
 EXPECT
 inner peace
 ########
-# SKIP: $Config{archname} =~ /darwin-ios/ # iOS: TODO: STDOUT STDERR capture race cond.
+# SKIP: $^O =~ /darwin-ios/ # iOS: TODO: STDOUT STDERR capture race cond.
 -w
 $| = 1;
 sub foo {
@@ -429,7 +429,7 @@ EXPECT
 destroyed
 destroyed
 ########
-# SKIP: $Config{archname} =~ /darwin-ios/ # iOS: TODO: STDOUT STDERR capture race cond.
+# SKIP: $^O =~ /darwin-ios/ # iOS: TODO: STDOUT STDERR capture race cond.
 BEGIN {
   $| = 1;
   $SIG{__WARN__} = sub {

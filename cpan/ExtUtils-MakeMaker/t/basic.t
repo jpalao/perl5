@@ -24,7 +24,7 @@ use Config;
 use ExtUtils::MM;
 use Test::More
     ( ( !MM->can_run(make()) && $ENV{PERL_CORE} && $Config{'usecrosscompile'} ) ||
-    $Config{'archname'} =~ /darwin-ios/ )
+    $^O =~ /darwin-ios/ )
     ? (skip_all => "cross-compiling and make not available")
     : (tests => 188);
 use File::Find;

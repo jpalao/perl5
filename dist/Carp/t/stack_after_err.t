@@ -8,7 +8,7 @@ BEGIN {
         print "1..0 # IPC::Open3 needs porting\n";
         exit;
     }
-    if ($Config{archname} =~ /darwin-ios/) {
+    if ($^O =~ /darwin-ios/) {
         print "1..0 # skip iOS: IPC::Open3 not supported\n";
         exit;
     }

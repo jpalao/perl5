@@ -153,7 +153,7 @@ SKIP: {
       =~ s/\'s foo//;
   }
 
-  if ($Config{archname} =~ /darwin-ios/) {
+  if ($^O =~ /darwin-ios/) {
     print "ok 7 # skip: iOS no backticks\n";
   } elsif (&fail (\%wrong, \%output)) {
     print "not ok 7\n", &faildump (\%wrong, \%output);
@@ -196,7 +196,7 @@ print "ok 8\n";
       =~ s/\'s foo//;
   }
 
-  if ($Config{archname} =~ /darwin-ios/) {
+  if ($^O =~ /darwin-ios/) {
     print "ok 9 # skip: no backticks\n";
   } elsif (&fail (\%right, \%output)) {
     print "not ok 9\n", &faildump (\%right, \%output);
@@ -205,7 +205,7 @@ print "ok 8\n";
   }
 }
 
-if ($Config{archname} !~ /darwin-ios/) {
+if ($^O !~ /darwin-ios/) {
     # Check that the DATA handle stays open
     system "$runperl -w \"-I$lib\" \"-MData\" -e \"Data::ok\"";
 } else {
@@ -215,7 +215,7 @@ if ($Config{archname} !~ /darwin-ios/) {
 
 # Possibly a pointless test as this doesn't really verify that it's been
 # stubbed.
-if ($Config{archname} !~ /darwin-ios/) {
+if ($^O !~ /darwin-ios/) {
     system "$runperl -w \"-I$lib\" \"-MEnd\" -e \"End::lime\"";
 } else {
     print "ok 11 # skip: no backticks\n";

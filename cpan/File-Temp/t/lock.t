@@ -62,7 +62,7 @@ eval {
    alarm 0;
 };
 if ($@) {
-   if ($Config{archname} !~ /darwin-ios/){
+   if ($^O !~ /darwin-ios/){
        die unless $@ eq "alarm\n";   # propagate unexpected errors
    } else {
        warn "timeout" unless $@ eq "alarm\n";

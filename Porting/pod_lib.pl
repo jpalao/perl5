@@ -311,7 +311,7 @@ sub process {
 
     write_or_die($filename, $new);
     chmod $mode & 0777, $filename or my_die "can't chmod $mode $filename: $!"
-        unless $Config{'archname'} =~ /darwin-ios/;
+        unless $^O =~ /darwin-ios/;
 }
 
 =head2 C<pods_to_install()>

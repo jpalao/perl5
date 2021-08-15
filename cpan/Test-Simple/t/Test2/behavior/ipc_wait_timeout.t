@@ -18,7 +18,7 @@ use Test2::API qw/test2_ipc_set_timeout test2_ipc_get_timeout/;
 use Config;
 
 my $plan = 2;
-$plan += 2 if CAN_REALLY_FORK && $Config{'archname'} !~ /darwin-ios/;
+$plan += 2 if CAN_REALLY_FORK && $^O !~ /darwin-ios/;
 $plan += 2 if CAN_THREAD && threads->can('is_joinable');
 plan $plan;
 
@@ -26,7 +26,7 @@ is(test2_ipc_get_timeout(), 30, "got default timeout");
 test2_ipc_set_timeout(10);
 is(test2_ipc_get_timeout(), 10, "hanged the timeout");
 
-if (CAN_REALLY_FORK && $Config{'archname'} !~ /darwin-ios/) {
+if (CAN_REALLY_FORK && $^O !~ /darwin-ios/) {
     note "Testing process waiting";
     my ($ppiper, $ppipew);
     pipe($ppiper, $ppipew) or die "Could not create pipe for fork";

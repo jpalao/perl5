@@ -14,7 +14,7 @@ use File::Spec;
 use IPC::Cmd qw(can_run);
 
 my $cc = $Config{'cc'};
-if ( ($Config{usecrosscompile} && !can_run($cc)) || $Config{'archname'} =~ /darwin-ios/) {
+if ( ($Config{usecrosscompile} && !can_run($cc)) || $^O =~ /darwin-ios/) {
     print "1..0 # SKIP Cross-compiling and the target doesn't have $cc";
     exit;
 }

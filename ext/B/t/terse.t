@@ -91,7 +91,7 @@ sub bar {
 }
 
 SKIP: {
-    skip('iOS: no backticks', 1) if $Config{archname} =~ /darwin-ios/;
+    skip('iOS: no backticks', 1) if $^O =~ /darwin-ios/;
     # Schwern's example of finding an RV
     my $path = join " ", map { qq["-I$_"] } @INC;
     my $items = qx{$^X $path "-MO=Terse" -le "print \\42" 2>&1};

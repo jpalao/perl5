@@ -993,7 +993,7 @@ sub run_tests {
     # been converted to aelemfast
 
 SKIP: {
-    skip('not working on iOS', 5) if $Config{archname} =~ /darwin-ios/;
+    skip('not working on iOS', 5) if $^O =~ /darwin-ios/;
 	my $out;
 	for my $prog (
 	    '/(?{$a[0]})/',

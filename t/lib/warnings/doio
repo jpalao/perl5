@@ -196,7 +196,7 @@ EXPECT
 Use of -l on filehandle ᶠᚻ at - line 5.
 ########
 # doio.c [Perl_do_aexec5]
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use warnings 'io' ;
 exec "lskdjfalksdjfdjfkls","" ;
 no warnings 'io' ;
@@ -208,7 +208,7 @@ Statement unlikely to be reached at - line .+
 Can't exec "lskdjfalksdjfdjfkls": .+
 ########
 # doio.c [Perl_do_exec3]
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use warnings 'io' ;
 exec "lskdjfalksdjfdjfkls", "abc" ;
 no warnings 'io' ;
@@ -220,7 +220,7 @@ Statement unlikely to be reached at - line .+
 Can't exec "lskdjfalksdjfdjfkls(:? abc)?": .+
 ########
 # doio.c [win32_execvp]
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use warnings 'exec' ;
 exec $^X, "-e0" ;
 EXPECT

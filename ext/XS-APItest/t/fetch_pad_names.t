@@ -43,7 +43,7 @@ my $flagged     = my $unflagged = "\$z\x{c3}\x{a8}st";
 Encode::_utf8_on($flagged);
 
 SKIP: {
-    skip('iOS: #TODO', 10) if $Config{'archname'} =~ /darwin-ios/;
+    skip('iOS: #TODO', 10) if $^O =~ /darwin-ios/;
     general_tests( $cv->(), $names_av, {
         results => [
                     { cmp => 'latin-1', msg => 'Fetches through UTF-8.' },
@@ -121,7 +121,7 @@ my $err = $@;
 ok !$err, $@;
 
 SKIP: {
-    skip('iOS: #TODO', 12) if $Config{'archname'} =~ /darwin-ios/;
+    skip('iOS: #TODO', 12) if $^O =~ /darwin-ios/;
 
     $names_av = fetch_pad_names($cv);
 
@@ -149,7 +149,7 @@ SKIP: {
 }
 
 SKIP: {
-    skip('iOS: #TODO', 8) if $Config{'archname'} =~ /darwin-ios/;
+    skip('iOS: #TODO', 8) if $^O =~ /darwin-ios/;
 
     use utf8;
     my $Cèon = 4;

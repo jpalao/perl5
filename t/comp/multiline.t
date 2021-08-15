@@ -84,7 +84,7 @@ $out = ($^O eq 'MSWin32') ? `type $filename`
     : `cat $filename`;
 
 use Config;
-if ($Config{archname} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
   $out = '';
   open(FH, '<', $filename) or die $!;
   while(<FH>){

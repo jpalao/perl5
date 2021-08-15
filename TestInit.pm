@@ -39,7 +39,7 @@ package TestInit;
 
 use Config;
 
-my $is_ios = $Config{archname} =~ /darwin-ios/;
+my $is_ios = $^O =~ /darwin-ios/;
 
 $VERSION = 1.04;
 

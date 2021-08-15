@@ -6,7 +6,7 @@ use Test2::Util qw/CAN_REALLY_FORK/;
 use Test2::IPC;
 use Test2::API qw/context/;
 
-my $is_ios = $Config{'archname'} =~ /darwin-ios/;
+my $is_ios = $^O =~ /darwin-ios/;
 
 sub plan {
     my $ctx = context();

@@ -11,7 +11,7 @@ BEGIN {
         plan skip_all => "Perl was not compiled with B";
         exit 0;
     }
-    if ( ( $Config{'archname'} =~ /darwin-ios/ ) ) {
+    if ( ( $^O =~ /darwin-ios/ ) ) {
         plan skip_all => "iOS: no backticks";
         exit 0;
     }

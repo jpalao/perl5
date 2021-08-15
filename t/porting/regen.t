@@ -25,7 +25,7 @@ use Config;
 if ( $Config{usecrosscompile} ) {
   skip_all( "Not all files are available during cross-compilation" );
 }
-if ( $Config{archname} =~ /darwin-ios/) {
+if ( $^O =~ /darwin-ios/) {
   skip_all( "iOS: #TODO" );
 }
 
