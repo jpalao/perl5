@@ -12,7 +12,7 @@ our %Config;
 BEGIN {
     require Config; import Config;
     $can_fork = ($Config{'d_fork'} || $Config{'d_pseudofork'}) &&
-        $Config::Config{'archname'} !~ /darwin-ios/;
+        $^O !~ /darwin-ios/;
 
     if ($^O eq "hpux" or $Config{'extensions'} !~ /\bSocket\b/ &&
         !(($^O eq 'VMS') && $Config{d_socket})) {
