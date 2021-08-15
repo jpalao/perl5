@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Config;
 # HARNESS-NO-STREAM
 # HARNESS-NO-PRELOAD
 
