@@ -2,7 +2,6 @@
 
 use strict;
 use warnings;
-use Config;
 
 BEGIN {
     use Test::More;
@@ -47,7 +46,7 @@ SKIP: {
 	skip "This perl doesn't provide perl -V in the Config module", 2;
     eval q{no warnings "redefine"; sub Config::compile_date { return undef }};
     is (Config::compile_date (), undef, "Successfully overriden compile_date");
-    skip('iOS: #TODO', 1) if $Config{'archname'} =~ /darwin-ios/;
+    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
     is_deeply (Config::Perl::V::myconfig, $conf,
 	"perl -V parsing code produces same result as the Config module");
     }
