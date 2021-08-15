@@ -20,7 +20,6 @@ package main;
 
 use Cwd;
 use File::Spec;
-use Config;
 
 my $Orig_Dir = cwd;
 my $Is_Ios = 0;
