@@ -226,7 +226,7 @@ SKIP: {
 
 SKIP: {
     foreach (qw(fork pipe)) {
-	skip("no $_", 8) unless $Config{"d_$_"} && $Config{'archname'} !~ /darwin-ios/;
+	skip("no $_", 8) unless $Config{"d_$_"} && $^O !~ /darwin-ios/;
     }
     # die with an uncaught SIGARLM if something goes wrong
     is(CORE::alarm(60), 0, 'no alarm set previously');

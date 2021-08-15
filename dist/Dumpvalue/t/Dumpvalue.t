@@ -244,7 +244,7 @@ delete $d->{usageOnly};
 TODO: {
     # this should report @INC and %INC
     todo_skip('iOS: dumped variables from a package', 1)
-        if $Config{archname} =~ /darwin-ios/;
+        if $^O =~ /darwin-ios/;
     $d->dumpvars( 'main', 'INC' );
     like( $out->read, qr/\use lib /, 'dumped variables from a package' );
 }

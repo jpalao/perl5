@@ -8,7 +8,7 @@ use Test2::Util qw/CAN_THREAD CAN_REALLY_FORK/;
 
 skip_all 'No IPC' unless CAN_REALLY_FORK || CAN_THREAD;
 
-my $is_ios = $Config{'archname'} =~ /darwin-ios/;
+my $is_ios = $^O =~ /darwin-ios/;
 
 if (CAN_REALLY_FORK && !$is_ios) {
     my $pid = fork;

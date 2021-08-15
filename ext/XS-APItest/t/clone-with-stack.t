@@ -16,7 +16,7 @@ use Config;
 if (not $Config{'useithreads'}) {
     skip_all("clone_with_stack requires threads");
 }
-skip_all("iOS: #TODO") if $Config{'archname'} =~ /darwin-ios/;
+skip_all("iOS: #TODO") if $^O =~ /darwin-ios/;
 
 plan(8);
 

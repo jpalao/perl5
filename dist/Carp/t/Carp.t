@@ -21,7 +21,7 @@ sub runperl {
 }
 
 my $Is_VMS = $^O eq 'VMS';
-my $Is_Ios = $Config{archname} =~ /darwin-ios/;
+my $Is_Ios = $^O =~ /darwin-ios/;
 
 use Carp qw(carp cluck croak confess);
 

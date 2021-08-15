@@ -5,7 +5,7 @@
 use Tie::Array;
 use Config;
 
-if ($Config{'archname'} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
     use Cwd;
     use cbrunperl;
 }

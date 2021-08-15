@@ -45,7 +45,7 @@ for my $offset (-1, 0, 1) {
 
         SKIP: {
             skip "Not small ptrs", 3 if $use_ss || $uvsize <= $sizesize ||
-                $Config{'archname'} =~ /darwin-ios/;
+                $^O =~ /darwin-ios/;
 
             # 0xffff... wraps to -1
             eval { test_EXTEND($offset, (1 << 8*$sizesize)-1, $use_ss) };

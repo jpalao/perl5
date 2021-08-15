@@ -107,7 +107,7 @@ for my $cross_partition_test (0..1) {
   ok -e "copy-$$",                '  target still there';
 
 SKIP: {
-  skip('iOS: TODO', 12) if $Config{archname} =~ /darwin-ios/;
+  skip('iOS: TODO', 12) if $^O =~ /darwin-ios/;
   # Doesn't really matter what time it is as long as its not now.
   my $time = 1000000000.12345;
   utime( $time, $time, "copy-$$" );
@@ -475,7 +475,7 @@ SKIP: {
 
 SKIP: {
     skip("fork required to test pipe copying", 2)
-        if (!$Config{'d_fork'} || $Config{archname} =~ /darwin-ios/);
+        if (!$Config{'d_fork'} || $^O =~ /darwin-ios/);
 
     open(my $IN, "-|") || exec $^X, '-e', 'print "Hello, world!\n"';
     open(my $OUT, "|-") || exec $^X, '-ne', 'exit(/Hello/ ? 55 : 0)';

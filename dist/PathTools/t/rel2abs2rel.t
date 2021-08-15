@@ -9,7 +9,7 @@ use Config;
 
 my $Is_Ios = 0;
 
-if ($Config{archname} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
     $Is_Ios = 1;
     use cbrunperl;
     use Cwd qw(getcwd);

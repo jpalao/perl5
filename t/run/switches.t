@@ -491,7 +491,7 @@ __EOF__
         my ($osvers) = ($Config{osvers} =~ /^(\d+(?:\.\d+)?)/);
         skip "NetBSD 6 libc defines at functions, but they're incomplete", 3
           if $^O eq "netbsd" && $osvers < 7;
-        skip "iOS: #TODO", 3 if $Config{archname} =~ /darwin-ios/;
+        skip "iOS: #TODO", 3 if $^O =~ /darwin-ios/;
         my $code = <<'CODE';
 @ARGV = ("tmpinplace/foo");
 $^I = "";

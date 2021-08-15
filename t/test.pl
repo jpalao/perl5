@@ -121,7 +121,7 @@ sub is_darwin_ios {
         return;
     }
     use Config;
-    return $Config{archname} =~ /darwin-ios/;
+    return $^O =~ /darwin-ios/;
 }
 
 sub set_up_inc {
@@ -655,7 +655,7 @@ my $is_mswin    = $^O eq 'MSWin32';
 my $is_netware  = $^O eq 'NetWare';
 my $is_vms      = $^O eq 'VMS';
 my $is_cygwin   = $^O eq 'cygwin';
-my $is_ios      = $Config{archname} =~ /darwin-ios/;
+my $is_ios      = $^O =~ /darwin-ios/;
 
 sub _quote_args {
     my ($runperl, $args) = @_;

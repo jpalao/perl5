@@ -194,7 +194,7 @@ EXPECT
 Scalar value @inf[3] better written as $inf[3] at - line 4.
 ########
 # op.c
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use utf8;
 use open qw( :utf8 :std );
 use warnings 'syntax' ;
@@ -1123,7 +1123,7 @@ Prototype mismatch: sub foo () vs (@) at - line 4.
 Prototype mismatch: sub btu: none vs () at - line 6.
 ########
 # op.c
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use utf8;
 use open qw( :utf8 :std );
 sub frèd();
@@ -1699,7 +1699,7 @@ EXPECT
 Useless use of split in void context at - line 5.
 ########
 # op.c
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use warnings 'redefine' ;
 use utf8;
 use open qw( :utf8 :std );
@@ -1711,7 +1711,7 @@ EXPECT
 Subroutine frèd redefined at - line 6.
 ########
 # op.c
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use warnings 'redefine' ;
 use utf8;
 use open qw( :utf8 :std );
@@ -1723,7 +1723,7 @@ EXPECT
 Constant subroutine frèd redefined at - line 6.
 ########
 # op.c
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use utf8;
 use open qw( :utf8 :std );
 sub frèd () { 1 }
@@ -1732,7 +1732,7 @@ EXPECT
 Constant subroutine frèd redefined at - line 5.
 ########
 # op.c
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use utf8;
 use open qw( :utf8 :std );
 sub frèd () { 1 }

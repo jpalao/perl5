@@ -9,7 +9,7 @@ my $waitfor = 360; # 30-45 seconds is normal (load affects this).
 my $watchdog_pid;
 my $TheEnd;
 
-if ($Config{d_fork} && $Config{archname} !~ /darwin-ios/) {
+if ($Config{d_fork} && $^O !~ /darwin-ios/) {
     print("# I am the main process $$, starting the watchdog process...\n");
     $watchdog_pid = fork();
     if (defined $watchdog_pid) {

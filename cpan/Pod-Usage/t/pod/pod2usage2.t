@@ -9,7 +9,7 @@ use File::Spec;
 
 BEGIN {
   if ($^O eq 'MSWin32' || $^O eq 'VMS' || 
-      $Config{archname} =~ /darwin-ios/) {
+      $^O =~ /darwin-ios/) {
     plan skip_all => "Not portable on Win32 or VMS or iOS\n";
   }
   else {

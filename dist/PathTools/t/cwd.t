@@ -219,7 +219,7 @@ SKIP: {
             like($pas,           qr|$want$|i, "Cwd::_perl_abs_path produced $pas");
         }
         else {
-            skip "iOS: #TODO", 1 if $Config{archname} =~ /darwin-ios/;
+            skip "iOS: #TODO", 1 if $^O =~ /darwin-ios/;
             is($!+0, EACCES, "check we got the expected error on failure");
         }
     }

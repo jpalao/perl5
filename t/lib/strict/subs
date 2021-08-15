@@ -358,7 +358,7 @@ Bareword "BAREWORD" not allowed while "strict subs" in use at - line 5.
 Execution of - aborted due to compilation errors.*
 ########
 # Ticket: 18927
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use strict 'subs';
 print 1..1, bad;
 EXPECT
@@ -386,7 +386,7 @@ Bareword "foo" not allowed while "strict subs" in use at - line 3.
 Execution of - aborted due to compilation errors.*
 ########
 # Regexp compilation errors weren't UTF-8 clean
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use strict 'subs';
 use utf8;
 use open qw( :utf8 :std );
@@ -410,7 +410,7 @@ Bareword "FOO" not allowed while "strict subs" in use at - line 2.
 Execution of - aborted due to compilation errors.*
 ########
 # [perl #53806] No complain about bareword
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use strict 'subs';
 print FOO . "\n";
 EXPECT
@@ -485,7 +485,7 @@ Bareword "BARE2" not allowed while "strict subs" in use at - line 3.
 Execution of - aborted due to compilation errors.
 ########
 # NAME multiconcat and barewords gh #17254
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use strict;
 sub foo { "foo" }
 print foo() . SLASH . "bar";

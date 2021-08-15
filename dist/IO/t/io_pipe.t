@@ -14,7 +14,7 @@ BEGIN {
 		     $Config{useithreads} and 
 		     $Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/
 		    );
-	$can_fork = 0 if $Config{archname} =~ /darwin-ios/;
+	$can_fork = 0 if $^O =~ /darwin-ios/;
     my $reason;
     if ($ENV{PERL_CORE} and $Config{'extensions'} !~ /\bIO\b/) {
 	$reason = 'IO extension unavailable';

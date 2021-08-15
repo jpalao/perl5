@@ -1,6 +1,6 @@
 BEGIN {
     use Config;
-    unless ($Config{d_fork} && $Config{'archname'} !~ /darwin-ios/) {
+    unless ($Config{d_fork} && $^O !~ /darwin-ios/) {
 	print "1..0 # Skip: no fork\n";
 	exit 0;
     }

@@ -67,7 +67,7 @@ BEGIN {
     ok( eval "use Yup; 1;",         '   use()' );
     is( $@, '', 'last "eval()" parsed and executed correctly' );
     SKIP: {
-        skip('iOS: TODO', 1) if $Config{archname} =~ /darwin-ios/;
+        skip('iOS: TODO', 1) if $^O =~ /darwin-ios/;
         is_deeply(\@OrigINC, \@lib::ORIG_INC,    '@lib::ORIG_INC' );
     }
 }
