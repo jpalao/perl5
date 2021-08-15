@@ -15,7 +15,6 @@ BEGIN {
 
 use strict;
 use warnings;
-use Config;
 
 if ($^O =~ /darwin-ios/) {
   print "1..0 # skip: iOS no backticks\n";
