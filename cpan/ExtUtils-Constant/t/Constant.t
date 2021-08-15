@@ -5,7 +5,7 @@ unless ($Config{usedl}) {
     print "1..0 # no usedl, skipping\n";
     exit 0;
 }
-if ($Config{archname} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
     print "1..0 # iOS: no make\n";
     exit 0;
 }
