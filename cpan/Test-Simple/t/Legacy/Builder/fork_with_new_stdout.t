@@ -1,7 +1,6 @@
 #!perl -w
 use strict;
 use warnings;
-use Config;
 
 use Test2::Util qw/CAN_FORK/;
 
