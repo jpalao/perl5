@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
 use strict;
-use Config;
 use Test::More tests => 8;
 use Socket;
 use autodie qw(socketpair);
@@ -58,7 +57,7 @@ $buffer = "# Not an empty string\n";
 shutdown($sock1, 1);
 
 TODO: {
-    if ($Config{'archname'} !~ /darwin-ios/) {
+    if ($^O !~ /darwin-ios/) {
         eval {
             use autodie qw(send);
             # Writing to a socket terminated for writing should fail.
