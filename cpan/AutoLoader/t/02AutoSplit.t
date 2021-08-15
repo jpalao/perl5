@@ -22,12 +22,11 @@ my $runperl = "$^X $lib";
 
 use warnings;
 use strict;
-use Config;
 use Test::More tests => 58;
 use File::Spec;
 use File::Find;
 
-my $Is_ios = $Config{'archname'} =~ /darwin-ios/;
+my $Is_ios = $^O =~ /darwin-ios/;
 if ($Is_ios) {
     use Cwd qw(getcwd);
     use cbrunperl;
