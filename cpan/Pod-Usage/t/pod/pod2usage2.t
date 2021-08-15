@@ -2,7 +2,6 @@
 
 use strict;
 use warnings;
-use Config;
 use Test::More;
 use File::Basename qw(fileparse);
 use File::Spec;
