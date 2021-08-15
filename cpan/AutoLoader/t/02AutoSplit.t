@@ -194,16 +194,16 @@ foreach (@tests) {
     # test n+3
     ok ($@ eq '', $com) or print "# \$\@ = '$@'\n";
     if (defined $body) {
-      eval $body or warn $@;
+      eval $body or die $@;
     }
   }
   # match tests to check for prototypes
   if ($args{Match}) {
     local $/;
     my $file = File::Spec->catfile($dir, $args{Require});
-    open IX, $file or warn "Can't open '$file': $!";
+    open IX, $file or die "Can't open '$file': $!";
     my $ix = <IX>;
-    close IX or warn "Can't close '$file': $!";
+    close IX or die "Can't close '$file': $!";
     foreach my $pat (split /\n/, $args{Match}) {
       next if $pat =~ /^\#/;
       like ($ix, qr/^\s*$pat\s*$/m, "match $pat");
