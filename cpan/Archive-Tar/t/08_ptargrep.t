@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use Config;
 use Test::More tests => 1;
 
 use File::Spec;
@@ -27,8 +26,7 @@ $tar->write($tarfile);
 
 # see if ptargrep matches
 SKIP: {
-  use Config;
-  skip "qx not supported on iOS", 1 if ($Config{archname} =~ /darwin-ios/);
+  skip "qx not supported on iOS", 1 if $^O =~ /darwin-ios/;
   my $out = qx{$cmd};
   cmp_ok($out, 'eq', "$foo\n", "ptargrep shows matched file");
 }
