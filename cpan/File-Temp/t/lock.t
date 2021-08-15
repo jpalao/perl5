@@ -4,7 +4,6 @@
 use Test::More;
 use strict;
 use Fcntl;
-use Config;
 
 BEGIN {
 # see if we have O_EXLOCK
