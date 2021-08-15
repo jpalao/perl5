@@ -22,7 +22,7 @@ BEGIN
         if $] < 5.005 ;
 
     plan(skip_all => "iOS: no backticks" )
-        if $Config{'archname'} =~ /darwin-ios/;
+        if $^O =~ /darwin-ios/;
 
     # use Test::NoWarnings, if available
     my $extra = 0 ;

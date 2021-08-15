@@ -58,7 +58,7 @@ for (["", qr!\ABareword in require maps to empty filename!],
 {
 SKIP:   {
     my ($module, $error) = @$_;
-    if ($module eq "WOOSH\0sock" && $Config{'archname'} =~ /darwin-ios/) {
+    if ($module eq "WOOSH\0sock" && $^O =~ /darwin-ios/) {
         skip('iOS: # TODO', 2);
     } else {
         my $module2 = $module; # load_module mangles its first argument

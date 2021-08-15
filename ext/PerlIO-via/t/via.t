@@ -53,7 +53,7 @@ SKIP: {
 
     # Now open normally again to see if we get right fileno
     my $fd2 = open($fh,'<',$tmp) && fileno($fh);
-    if ($Config{'archname'} =~ /darwin-ios/) {
+    if ($^O =~ /darwin-ios/) {
         ok(1, "# skip: iOS #TODO");
     } else {
         is($fd2,$fd,"Wrong fd number after failed open");

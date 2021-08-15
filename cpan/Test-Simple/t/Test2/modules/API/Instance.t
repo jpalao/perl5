@@ -177,7 +177,7 @@ like(
     "Pre-subtest callbacks must be coderefs"
 );
 
-if (CAN_REALLY_FORK && $Config{'archname'} !~ /darwin-ios/) {
+if (CAN_REALLY_FORK && $^O !~ /darwin-ios/) {
     my $one = $CLASS->new;
     my $pid = fork;
     die "Failed to fork!" unless defined $pid;
@@ -367,7 +367,7 @@ foo
     like($events[0]->message, qr/Test ended with extra hubs on the stack!/, "got diag");
 }
 
-if (CAN_REALLY_FORK && $Config{'archname'} !~ /darwin-ios/) {
+if (CAN_REALLY_FORK && $^O !~ /darwin-ios/) {
     local $SIG{__WARN__} = sub { };
     my $one = $CLASS->new;
     my $pid = fork;

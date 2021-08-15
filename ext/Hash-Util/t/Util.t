@@ -349,7 +349,7 @@ unlock_keys(%ENV); # Test::Builder cannot print test failures otherwise
 }
 
 my $hash_seed;
-if ($Config{'archname'} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
     $hash_seed = hash_value( 'TODO: Hash::Util::hash_seed() crashes on iOS' );
 } else {
     $hash_seed = hash_seed();

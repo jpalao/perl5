@@ -49,7 +49,7 @@ ok(defined $virt && abs($virt / 0.5) - 1 < $limit,
    or diag "virt=" . (defined $virt ? $virt : 'undef');
 
 TODO: {
-if ($Config{'archname'} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
     todo_skip("iOS: #TODO watchdog disabled", 1);
 } else {
     printf("# getitimer: %s\n", join(" ",

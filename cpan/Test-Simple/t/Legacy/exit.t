@@ -25,7 +25,7 @@ use Config;
 my $Orig_Dir = cwd;
 my $Is_Ios = 0;
 
-if ($Config{archname} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
     use Cwd qw(getcwd);
     use cbrunperl;
     $Is_Ios = 1;

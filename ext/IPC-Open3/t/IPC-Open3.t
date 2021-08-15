@@ -5,7 +5,7 @@ BEGIN {
     if ((!$Config{'d_fork'}
        # open2/3 supported on win32
        && $^O ne 'MSWin32' && $^O ne 'NetWare') ||
-       $Config{archname} =~ /darwin-ios/)
+       $^O =~ /darwin-ios/)
     {
 	print "1..0\n";
 	exit 0;

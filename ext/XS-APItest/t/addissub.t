@@ -5,7 +5,7 @@ use Test::More tests => 9;
 use XS::APItest ();
 use Config;
 
-alarm 10 unless $Config{'archname'} =~ /darwin-ios/;   # likely failure mode is an infinite loop
+alarm 10 unless $^O =~ /darwin-ios/;   # likely failure mode is an infinite loop
 
 ok 1;
 is eval q{ 3 + 1 }, 4;

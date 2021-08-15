@@ -65,7 +65,7 @@ _mkdirs( @blib_dirs );
 
 SKIP: {
     skip("iOS: \@INC now has 3 elements", 1)
-        if $Config{archname} =~ /darwin-ios/;
+        if $^O =~ /darwin-ios/;
     is( @INC, 3, '@INC now has 3 elements' );
 }
 is( $INC[2],    '../lib',       'blib added to the front of @INC' );

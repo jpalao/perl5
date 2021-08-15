@@ -190,7 +190,7 @@ SKIP: {
 
 SKIP: {
     skip "no subsecond alarm", 6 unless $can_subsecond_alarm;
-    skip 'iOS: #TODO', 6 if $Config{archname} =~ /darwin-ios/;
+    skip 'iOS: #TODO', 6 if $^O =~ /darwin-ios/;
     {
         my $alrm;
         $SIG{ALRM} = sub { $alrm++ };

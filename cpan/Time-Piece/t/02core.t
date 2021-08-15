@@ -4,7 +4,7 @@ use Config;
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
 my $is_vos = ($^O eq 'vos');
-my $is_ios = $Config{archname} =~ /darwin-ios/;
+my $is_ios = $^O =~ /darwin-ios/;
 
 use Time::Piece;
 use Time::Seconds;

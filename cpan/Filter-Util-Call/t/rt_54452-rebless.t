@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use Config;
 
-if ($Config{'archname'} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
   print "1..0 # skip: iOS no backticks\n";
   exit 0;
 }

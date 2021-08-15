@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Config;
 
-use constant IS_IOS => ( $Config{'archname'} =~ /darwin-ios/ );
+use constant IS_IOS => ( $^O =~ /darwin-ios/ );
 
 use TAP::Parser::IteratorFactory       ();
 

@@ -34,7 +34,7 @@ close F or die "Close $file: $!";
 
 $count = 5;
 $result = "ok $count - complete test of alternate delimiters in -F\n";
-if ($Config{archname} !~ /darwin-ios/) {
+if ($^O !~ /darwin-ios/) {
     print system ($^X, $file) ? "not $result" : $result;
 } else {
     for my $i (1..5) {

@@ -14,7 +14,7 @@ use POSIX ':termios_h';
 plan skip_all => $@
     if !eval "POSIX::Termios->new; 1" && $@ =~ /termios not implemented/;
 
-my $Is_Ios = $Config{archname} =~ /darwin-ios/;
+my $Is_Ios = $^O =~ /darwin-ios/;
 
 # A termios struct that we've successfully read from a terminal device:
 my $termios;

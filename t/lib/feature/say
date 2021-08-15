@@ -52,7 +52,7 @@ syntax error at - line 6, near "say "Hello""
 Execution of - aborted due to compilation errors.*
 ########
 # 'no feature "say"' should work too
-# SKIP ? $Config{archname} =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/
 use warnings;
 use feature 'say';
 say "Hello", "world";

@@ -374,7 +374,7 @@ $h->callback(
 	     }
 	     );
 
-$Config{archname} =~ /darwin-ios/ && eval {
+$^O =~ /darwin-ios/ && eval {
 	my $test_dumper = Data::Dumper->new([@tests])->Dump();
 	#print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
 

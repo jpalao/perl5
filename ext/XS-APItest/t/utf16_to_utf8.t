@@ -35,7 +35,7 @@ for my $ord (0, 10, 13, 78, 255, 256, 0xD7FF, 0xE000, 0xFFFD,
 
 foreach ("\0", 'N', 'Perl rules!') {
 SKIP: {
-    if ($_ eq "\0" && $Config{'archname'} =~ /darwin-ios/) {
+    if ($_ eq "\0" && $^O =~ /darwin-ios/) {
         skip('iOS: \0 not supported by test', 2);
         next;
     }

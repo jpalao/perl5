@@ -23,7 +23,7 @@ my $verbose = @ARGV; # set if ANY ARGS
 my $path = join " ", map { qq["-I$_"] } @INC;
 
 my $o = `$^X $path "-MO=Showlex" -e "my \@one" 2>&1`;
-if ($Config{archname} =~ /darwin-ios/) {
+if ($^O =~ /darwin-ios/) {
     ok(1,1, "# skip: iOS no backticks");
 } else {
     like ($o, qr/undef.*: \([^)]*\) \@one.*Nullsv.*AV/s,
