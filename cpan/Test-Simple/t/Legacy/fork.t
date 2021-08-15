@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Config;
 
 use Test2::Util qw/CAN_FORK/;
 BEGIN {
@@ -14,7 +13,7 @@ BEGIN {
 BEGIN {
     if( $ENV{PERL_CORE} ) {
         chdir 't';
-        use lib '../lib';
+        @INC = '../lib';
     }
 }
 
