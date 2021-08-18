@@ -6,7 +6,7 @@ BEGIN {
     require Config; import Config;
     if (not $Config{'d_readdir'}) {
 	print "1..0\n";
-	#exit 0;
+	exit 0;
     }
 }
 
