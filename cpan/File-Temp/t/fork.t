@@ -7,13 +7,12 @@ use strict;
 
 BEGIN {
   require Config;
-  my $can_fork = $Config::Config{d_fork} ||
+  my $can_fork = ($Config::Config{d_fork} and $^O !~ /darwin-ios/) ||
     (($^O eq 'MSWin32' || $^O eq 'NetWare') and
      $Config::Config{useithreads} and
-     $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/ and
-     $Config::Config{archname} !~ /darwin-ios/
+     $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/
     );
-  if ( $can_fork && !(($^O eq 'MSWin32') && $Devel::Cover::VERSION) && $Config::Config{'archname'} !~ /darwin-ios/) {
+  if ( $can_fork && !(($^O eq 'MSWin32') && $Devel::Cover::VERSION)) {
     print "1..8\n";
   } else {
     if ( ($^O eq 'MSWin32') && $Devel::Cover::VERSION ) {
