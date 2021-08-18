@@ -12,7 +12,7 @@ BEGIN {
      $Config::Config{useithreads} and
      $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/
     );
-  if ( $can_fork && !(($^O eq 'MSWin32') && $Devel::Cover::VERSION)) {
+  if ( $can_fork && !(($^O eq 'MSWin32') && $Devel::Cover::VERSION) ) {
     print "1..8\n";
   } else {
     if ( ($^O eq 'MSWin32') && $Devel::Cover::VERSION ) {
