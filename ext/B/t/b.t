@@ -224,7 +224,7 @@ is(ref B::sv_yes(), "B::SPECIAL", "B::sv_yes()");
 is(ref B::sv_no(), "B::SPECIAL", "B::sv_no()");
 is(ref B::sv_undef(), "B::SPECIAL", "B::sv_undef()");
 SKIP: {
-    skip('iOS: no fork', 1) if $Config::Config{archname} =~ /darwin-ios/;
+    skip('iOS: no fork', 1) if $^O =~ /darwin-ios/;
     skip('no fork', 1)
 	unless ($Config::Config{d_fork} or $Config::Config{d_pseudofork});
     my $pid;
