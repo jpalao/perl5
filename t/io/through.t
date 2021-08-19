@@ -5,7 +5,7 @@ BEGIN {
     require './test.pl';
     set_up_inc('../lib');
     skip_all("iOS: pipe not supported")
-	    if is_darwin_ios();
+	    if $^O =~ /darwin-ios/;
     skip_all("VMS too picky about line endings for record-oriented pipes")
 	if $^O eq 'VMS';
 }

@@ -189,7 +189,7 @@ SKIP: {
 
 
 SKIP: {
-    if ($^O =~ /^(MSWin32|NetWare|os2)$/ || is_darwin_ios()) {
+    if ($^O =~ /^(MSWin32|NetWare|os2)$/ || $^O =~ /darwin-ios/) {
         skip "non_UNIX plafforms and PERL_EXIT_DESTRUCT_END (RT #132863)", 6;
     }
 
@@ -251,7 +251,7 @@ fresh_perl_is(
 );
 
 SKIP: {
-    skip('iOS: #TODO', 1) if is_darwin_ios();
+    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
     fresh_perl_like(
         "$testblocks INIT { die; }",
         qr/\Abegin\nunitcheck\ncheck\ninit\nDied[^\n]*\.\nINIT failed[^\n]*\.\nend\z/,

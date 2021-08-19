@@ -95,7 +95,7 @@ __EOH__
 	    splice @$expected, 1, 1 if $expected->[1] eq 'crlf';
 	}
 	my $n = scalar @$expected;
-	if (is_darwin_ios()) {
+	if ($^O =~ /darwin-ios/) {
 	    ok("iOS: STDIN not accessible");
     } else {
 	    is(scalar @$result, $n, "$id - layers == $n");

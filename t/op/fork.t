@@ -5,7 +5,7 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
-    skip_all('iOS: fork not supported') if is_darwin_ios();
+    skip_all('iOS: fork not supported') if $^O =~ /darwin-ios/;
     set_up_inc('../lib');
     require Config;
     skip_all('no fork')

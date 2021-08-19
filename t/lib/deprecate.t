@@ -11,7 +11,7 @@ use File::Spec ();
 plan(tests => 10);
 
 my $return_dir;
-if (is_darwin_ios()) {
+if ($^O =~ /darwin-ios/) {
     use Cwd qw(getcwd);
     $return_dir = getcwd();
 }
@@ -95,5 +95,5 @@ for my $lib (sort keys %tests) {
 
 END {
     File::Path::remove_tree('lib');
-    chdir $return_dir if is_darwin_ios();
+    chdir $return_dir if $^O =~ /darwin-ios/;
 }

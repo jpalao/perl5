@@ -392,7 +392,7 @@ like runperl(
 }
 
 SKIP: {
-  skip('iOS: no STDIN access', 2) if is_darwin_ios();
+  skip('iOS: no STDIN access', 2) if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
@@ -762,7 +762,7 @@ not_lexical11();
 }
 
 SKIP: {
-    skip('iOS: crashing #TODO') if is_darwin_ios;
+    skip('iOS: crashing #TODO') if $^O =~ /darwin-ios/;
 like runperl(
       switches => [ '-Mfeature=lexical_subs,state' ],
       prog     => 'my sub a { foo ref } a()',
@@ -804,7 +804,7 @@ like runperl(
 pass "pad taking ownership once more of packagified my-sub";
 
 SKIP: {
-  skip('iOS: no STDIN access', 1) if is_darwin_ios();
+  skip('iOS: no STDIN access', 1) if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(

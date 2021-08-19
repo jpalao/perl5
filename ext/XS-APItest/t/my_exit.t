@@ -9,7 +9,7 @@ plan(4);
 
 use XS::APItest;
 
-my $runperl_args = is_darwin_ios() ? { 'switches' => ['-I', '../../lib'] } : undef;
+my $runperl_args = $^O =~ /darwin-ios/ ? { 'switches' => ['-I', '../../lib'] } : undef;
 
 my ($prog, $expect) = (<<'PROG', <<'EXPECT');
 use XS::APItest;

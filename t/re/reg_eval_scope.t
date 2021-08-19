@@ -377,7 +377,7 @@ SKIP: {
 # "looks a bit like it has (?{}) but doesn't" qr//
     SKIP:
     {
-skip ("iOS: TODO", 1) if is_darwin_ios;
+skip ("iOS: TODO", 1) if $^O =~ /darwin-ios/;
 fresh_perl_like <<'CODE',
     BEGIN {$^H = 0x10000 }; # HINT_NEW_RE
     qr/\(?{/

@@ -706,7 +706,7 @@ sub byteorder
     SKIP: {
       my($nat,$be,$le) = eval { map { pack $format.$_, $value } '', '>', '<' };
       skip "cannot pack '$format' on this perl", 5
-        if is_valid_error($@) || is_darwin_ios();
+        if is_valid_error($@) || $^O =~ /darwin-ios/;
 
       {
         use warnings qw(NONFATAL utf8);
@@ -715,7 +715,7 @@ sub byteorder
 
       SKIP: {
         skip "cannot compare native byteorder with big-/little-endian", 1
-            if $ByteOrder eq 'unknown' || is_darwin_ios();
+            if $ByteOrder eq 'unknown' || $^O =~ /darwin-ios/;
 
         is($nat, $ByteOrder eq 'big' ? $be : $le);
       }
@@ -937,7 +937,7 @@ is("@{[unpack('U*', pack('U*', 100, 200, 300))]}", "100 200 300");
 is("@{[unpack('U*', pack('U*', 100, 200))]}", "100 200");
 
 SKIP: {
-    skip ('fresh_perl_* not working on iOS', 3) if (is_darwin_ios());
+    skip ('fresh_perl_* not working on iOS', 3) if ($^O =~ /darwin-ios/);
     # does pack U0C create Unicode?
     my $cp202 = chr(202);
     utf8::upgrade $cp202;
@@ -2047,7 +2047,7 @@ ok(1, "argument underflow did not crash");
 
 SKIP:
 SKIP: {
-    skip ('fresh_perl_* not working on iOS', 1) if is_darwin_ios();
+    skip ('fresh_perl_* not working on iOS', 1) if $^O =~ /darwin-ios/;
     # [perl #129149] the code below would write one past the end of the output
     # buffer, only detected by ASAN, not by valgrind
     skip "ASCII-centric test",1 if $::IS_EBCDIC;
@@ -2060,7 +2060,7 @@ EOS
 }
 
 SKIP: {
-    skip ('fresh_perl_* not working on iOS', 4) if is_darwin_ios();
+    skip ('fresh_perl_* not working on iOS', 4) if $^O =~ /darwin-ios/;
   # [perl #131844] pointer addition overflow
     $Config{ptrsize} == 4
       or skip "[perl #131844] need 32-bit build for this test", 4;
@@ -2084,7 +2084,7 @@ SKIP: {
 SKIP: {
     # [perl #132655] heap-buffer-overflow READ of size 11
     # only expect failure under ASAN (and maybe valgrind)
-    skip ('fresh_perl_* not working on iOS', 1) if is_darwin_ios();
+    skip ('fresh_perl_* not working on iOS', 1) if $^O =~ /darwin-ios/;
     fresh_perl_is('0.0 + unpack("u", "ab")', "", { stderr => 1 },
                   "ensure unpack u of invalid data nul terminates result");
 }

@@ -25,7 +25,7 @@ my $d_fork = defined $Config{d_fork} ? $Config{d_fork} eq 'define' ? 1 : 0 : 0;
 skip_all('fflush(NULL) or equivalent not available')
     unless $useperlio || $fflushNULL || $fflushall;
     
-skip_all('iOS: system, qx, popen not supported') || is_darwin_ios();
+skip_all('iOS: system, qx, popen not supported') || $^O =~ /darwin-ios/;
 
 plan(tests => 7);
 

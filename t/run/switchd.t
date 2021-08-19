@@ -16,7 +16,7 @@ my $r;
 
 my $filename = tempfile();
 SKIP: {
-    skip('iOS: no stdin access', 3) if is_darwin_ios();
+    skip('iOS: no stdin access', 3) if $^O =~ /darwin-ios/;
 	open my $f, ">$filename"
 	    or skip( "Can't write temp file $filename: $!" );
 	print $f <<'__SWDTEST__';
@@ -59,7 +59,7 @@ qr/^sub<Devel::switchd::unimport>;unimport<Devel::switchd a 42>;DB<main,$::tempf
 }
 
 SKIP: {
-    skip('iOS: no stdin access', 2) if is_darwin_ios();
+    skip('iOS: no stdin access', 2) if $^O =~ /darwin-ios/;
     # [perl #71806]
     cmp_ok(
       runperl(       # less is useful for something :-)
@@ -116,7 +116,7 @@ like(
  'Subroutines no longer found under their names can be called',
 );
 SKIP: {
-    skip('iOS: TODO', 2) if is_darwin_ios();
+    skip('iOS: TODO', 2) if $^O =~ /darwin-ios/;
     # [rt.cpan.org #69862]
     like(
       runperl(
@@ -156,7 +156,7 @@ like(
 # or seen and defined later
 SKIP:
 {
-    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if $^O =~ /darwin-ios/;
     is(
       runperl(
         # nodb.pm contains *DB::DB...if 0
@@ -171,7 +171,7 @@ SKIP:
 
 SKIP: {
 # [perl #115742] Recursive DB::DB clobbering its own pad
-skip('iOS: #TODO', 1) if is_darwin_ios();
+skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
 like(
   runperl(
     switches => [ '-Ilib' ],
@@ -199,7 +199,7 @@ like(
 );
 }
 SKIP: {
-    skip('iOS: no stdin access', 1) if is_darwin_ios();
+    skip('iOS: no stdin access', 1) if $^O =~ /darwin-ios/;
     # [perl #118627]
     like(
       runperl(
@@ -214,7 +214,7 @@ SKIP: {
 # PERL5DB with embedded newlines
 SKIP:
 {
-    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if $^O =~ /darwin-ios/;
     local $ENV{PERL5DB} = "sub DB::DB{}\nwarn";
     is(
       runperl(
@@ -231,7 +231,7 @@ SKIP:
 # test that DB::goto works
 SKIP:
 {
-    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if $^O =~ /darwin-ios/;
 is(
   runperl(
    switches => [ '-Ilib', '-d:switchd_goto' ],
@@ -243,7 +243,7 @@ is(
 );
 }
 SKIP: {
-    skip('iOS: no stdin access', 1) if is_darwin_ios();
+    skip('iOS: no stdin access', 1) if $^O =~ /darwin-ios/;
     # Test that %DB::lsub is not vivified
     is(
       runperl(
@@ -258,7 +258,7 @@ SKIP: {
 # Test setting of breakpoints without *DB::dbline aliased
 SKIP:
 {
-    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if $^O =~ /darwin-ios/;
     is(
       runperl(
        switches => [ '-Ilib', '-d:nodb' ],
@@ -284,7 +284,7 @@ SKIP:
 # Check that utf8 caches are flushed when $DB::sub is set
 SKIP:
 {
-    skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
+    skip( "iOS: no stdin access", 1 ) if $^O =~ /darwin-ios/;
     is(
       runperl(
        switches => [ '-Ilib', '-d:switchd_empty' ],
@@ -306,7 +306,7 @@ SKIP:
     );
 }
 SKIP: {
-  skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
+  skip( "iOS: no stdin access", 1 ) if $^O =~ /darwin-ios/;
     # [perl #122771] -d conflicting with sort optimisations
     is(
       runperl(
@@ -319,7 +319,7 @@ SKIP: {
 }
 SKIP: {
   skip_if_miniperl("under miniperl", 1);
-  skip( "iOS: no stdin access", 1 ) if is_darwin_ios();
+  skip( "iOS: no stdin access", 1 ) if $^O =~ /darwin-ios/;
   is(
     runperl(
      switches => [ '-Ilib', '-d:switchd_empty' ],

@@ -109,7 +109,7 @@ warn;
 ok @warnings==1 && ref($warnings[0]) eq "ARRAY" && $warnings[0] == $ea;
 
 SKIP: {
-    skip('iOS: #TODO', 1) if is_darwin_ios();
+    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
     fresh_perl_like(
      '
        $a = "\xee\n";
@@ -124,7 +124,7 @@ SKIP: {
 }
 
 SKIP: {
-   skip('iOS: #TODO', 1) if is_darwin_ios();
+   skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
    skip_if_miniperl('miniperl ignores -C', 1);
    $ee = uni_to_native("\xee");
    $bytes = byte_utf8a_to_utf8n("\xc3\xae");
@@ -142,7 +142,7 @@ fresh_perl_like(
 }
 
 SKIP: {
-    skip('iOS: #TODO', 1) if is_darwin_ios();
+    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
     $bytes = byte_utf8a_to_utf8n("\xc4\xac");
     fresh_perl_like(
      'warn chr 300',

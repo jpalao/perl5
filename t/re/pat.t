@@ -1293,7 +1293,7 @@ SKIP:
         my $str = "abc";
         like($str, qr/(?<a>abc)/, "'a' is legal IDStart");
         {
-            skip('iOS: TODO is legal IDStart', 6) if is_darwin_ios();
+            skip('iOS: TODO is legal IDStart', 6) if $^O =~ /darwin-ios/;
             like($str, qr/(?<_>abc)/, "'_' is legal IDStart");
             like($str, qr/(?<ß>abc)/, "U+00DF is legal IDStart");
             like($str, qr/(?<ℕ>abc)/, "U+2115' is legal IDStart");
@@ -1576,7 +1576,7 @@ EOP
 
         # Compiling for all 100 nested captures blows the stack under
         # clang and ASan; reduce.
-        my $max_captures = $Config{ccflags} =~ /sanitize/ || is_darwin_ios() ? 20 : 100;
+        my $max_captures = $Config{ccflags} =~ /sanitize/ || $^O =~ /darwin-ios/ ? 20 : 100;
 
         for my $i (1..100) {
             if ($i > $max_captures) {
@@ -1912,7 +1912,7 @@ EOP
         }
         SKIP:
         {
-            skip('iOS: TODO breaking with threads enabled', 2) if is_darwin_ios();
+            skip('iOS: TODO breaking with threads enabled', 2) if $^O =~ /darwin-ios/;
             my $is_cygwin = $^O eq "cygwin";
             local $::TODO = "this flaps on github cygwin vm, but not on cygwin iron #18129"
               if $is_cygwin;

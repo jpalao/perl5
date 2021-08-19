@@ -45,8 +45,7 @@ $|=1;
 
 # When in doubt, skip.
 skip_all($^O)
-    if $^O eq 'VMS' or $^O eq 'MSWin32' or $^O eq 'amigaos';
-skip_all_if_darwin_ios();
+    if $^O eq 'VMS' or $^O eq 'MSWin32' or $^O eq 'amigaos' or $^O =~ /darwin-ios/;
 
 sub make_tmp_file {
     my ($fname, $fcontents) = @_;

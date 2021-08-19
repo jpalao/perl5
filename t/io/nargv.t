@@ -7,7 +7,7 @@ BEGIN {
 }
 
 my $num_tests = 7;
-if (is_darwin_ios()) {
+if ($^O =~ /darwin-ios/) {
     $num_tests--;
 }
 
@@ -126,7 +126,7 @@ sub other {
       or die "Cannot open temp: $!";
     open my $f3, "<", $tfile
       or die "Cannot open temp: $!";
-    if (!is_darwin_ios()) {
+    if (!$^O =~ /darwin-ios/) {
         print +(fileno($f3) < 20 ? "ok" : "not ok"), " 7 # check fd leak\n";
     }
     close $f;

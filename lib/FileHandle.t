@@ -58,7 +58,7 @@ autoflush STDOUT 1;
 ok($|, "handle auto-flushing current output channel");
 
 SKIP: {
-    skip "No fork or pipe on DOS", 1 if ($^O eq 'dos' || is_darwin_ios);
+    skip "No fork or pipe on DOS", 1 if ($^O eq 'dos' || $^O =~ /darwin-ios/);
 
     my ($rd,$wr) = FileHandle::pipe;
     my $non_forking = (

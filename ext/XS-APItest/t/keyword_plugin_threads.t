@@ -10,7 +10,7 @@ if (!$Config{useithreads}) {
 }
 
 plan(1);
-my $runperl_args = is_darwin_ios() ? { 'switches' => ['-I', '../../lib'] } : {};
+my $runperl_args = $^O =~ /darwin-ios/ ? { 'switches' => ['-I', '../../lib'] } : {};
 fresh_perl_is( <<'----', <<'====', $runperl_args, "loading XS::APItest in threads works");
 use strict;
 use warnings;

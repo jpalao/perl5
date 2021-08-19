@@ -7,7 +7,7 @@ BEGIN {
     require Config; import Config;
 }
 
-skip_all('iOS: pipe not supported') if is_darwin_ios();
+skip_all('iOS: pipe not supported') if $^O =~ /darwin-ios/;
 if (!$Config{'d_fork'}) {
     skip_all("fork required to pipe");
 }

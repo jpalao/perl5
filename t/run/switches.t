@@ -27,7 +27,7 @@ END { unlink_all @tmpfiles }
 
 # Tests for -0
 SKIP: {
-    skip ('iOS: no stdin access', 12) if is_darwin_ios();
+    skip ('iOS: no stdin access', 12) if $^O =~ /darwin-ios/;
     $r = runperl(
         switches	=> [ '-0', ],
         stdin	=> 'foo\0bar\0baz\0',
@@ -209,7 +209,7 @@ SWTESTPM
 	switches    => [ "-m$package" ],
 	prog	    => '1',
     );
-    skip('iOS: #TODO', 1) if is_darwin_ios();
+    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
     {
         local $TODO = '';  # this one works on VMS
         is( $r, '', '-m' );
@@ -305,7 +305,7 @@ is runperl(stderr => 1, prog => '#!perl -M'),
         my $v = sprintf "%vd", $^V;
         my $ver = $Config{PERL_VERSION};
         my $rel = $Config{PERL_SUBVERSION};
-        my $archname = is_darwin_ios() ? 'darwin-thread-multi-2level' : $Config{archname};
+        my $archname = $^O =~ /darwin-ios/ ? 'darwin-thread-multi-2level' : $Config{archname};
         like( runperl( switches => ['-v'] ),
 	      qr/This is perl 5, version \Q$ver\E, subversion \Q$rel\E \(v\Q$v\E(?:[-*\w]+| \([^)]+\))?\) built for \Q$archname\E.+Copyright.+Larry Wall.+Artistic License.+GNU General Public License/s,
               '-v looks okay' );
@@ -317,7 +317,7 @@ is runperl(stderr => 1, prog => '#!perl -M'),
 SKIP: {
     local $TODO = '';   # these ones should work on VMS
 
-    skip 'iOS: #TODO junk in usage', 2 if is_darwin_ios();
+    skip 'iOS: #TODO junk in usage', 2 if $^O =~ /darwin-ios/;
     like( runperl( switches => ['-h'] ),
 	  qr/Usage: .+(?i:perl(?:$Config{_exe})?).+switches.+programfile.+arguments/,
           '-h looks okay' );
@@ -536,7 +536,7 @@ CODE
   SKIP:
     {
         skip "Need fork", 3 if !$Config{d_fork};
-        skip "iOS: Need fork", 3 if is_darwin_ios();
+        skip "iOS: Need fork", 3 if $^O =~ /darwin-ios/;
         open my $fh, ">", $work
           or die "Cannot open $work: $!";
         # we want only a single line for this test, otherwise
@@ -699,7 +699,7 @@ $r = runperl(
 );
 is( $r, "Hello, world!\n", "-E ~~" );
 
-my $tt = is_darwin_ios() ? 'no warnings q{experimental::smartmatch}; given(undef) {when(undef) { say q(Hello, world!)}}' :
+my $tt = $^O =~ /darwin-ios/ ? 'no warnings q{experimental::smartmatch}; given(undef) {when(undef) { say q(Hello, world!)}}' :
     '"no warnings q{experimental::smartmatch}; given(undef) {when(undef) { say q(Hello, world!)"}}';
 $r = runperl(
     switches	=> [ '-E', $tt]
