@@ -15,7 +15,6 @@ use Test2::Tools::Tiny;
 use Test2::Util qw/CAN_THREAD CAN_REALLY_FORK/;
 use Test2::IPC;
 use Test2::API qw/test2_ipc_set_timeout test2_ipc_get_timeout/;
-use Config;
 
 my $plan = 2;
 $plan += 2 if CAN_REALLY_FORK && $^O !~ /darwin-ios/;
