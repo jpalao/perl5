@@ -3,7 +3,6 @@
 use strict;
 use Devel::SelfStubber;
 use File::Spec::Functions;
-use Config;
 
 my $runperl = $^X;
 
