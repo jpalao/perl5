@@ -10,7 +10,6 @@ BEGIN {
 }
 
 use Test::More tests => 16;
-use Config;
 
 use_ok( 'B::Terse' );
 
