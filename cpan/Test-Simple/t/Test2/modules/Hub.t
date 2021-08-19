@@ -4,8 +4,7 @@ use warnings;
 use Test2::IPC;
 use Test2::Tools::Tiny;
 use Test2::API qw/context test2_ipc_drivers/;
-use Test2::Util qw/CAN_THREAD CAN_REALLY_FORK/;
-use Config;
+use Test2::Util qw/CAN_FORK CAN_THREAD CAN_REALLY_FORK/;
 
 {
     package My::Formatter;
