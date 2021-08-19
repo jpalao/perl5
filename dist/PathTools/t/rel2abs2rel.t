@@ -5,7 +5,6 @@
 
 use File::Spec;
 use lib File::Spec->catdir('t', 'lib');
-use Config;
 
 my $Is_Ios = 0;
 
