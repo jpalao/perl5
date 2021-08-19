@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use Config;
 
 use Test2::IPC;
 use Test2::Tools::Tiny;
