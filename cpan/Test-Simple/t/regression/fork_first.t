@@ -1,7 +1,6 @@
 use Test2::Tools::Tiny;
 use strict;
 use warnings;
-use Config;
 
 use Test2::IPC;
 use Test2::Util qw/CAN_THREAD CAN_REALLY_FORK/;
