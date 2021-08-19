@@ -1,5 +1,4 @@
 use Test::More tests => 100;
-use Config;
 
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
