@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use Config;
 use Test2::IPC;
 use Test2::Tools::Tiny;
 use Test2::API qw/context intercept test2_stack/;
