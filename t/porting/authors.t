@@ -9,7 +9,7 @@ BEGIN {
 
 skip_all("iOS: no git binary");
 
-if (!is_darwin_ios){
+if (!$^O =~ /darwin-ios/){
 use TestInit qw(T);   # T is chdir to the top level
 }
 use strict;

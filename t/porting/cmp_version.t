@@ -30,7 +30,7 @@ my $source = find_git_or_skip('all');
 my $oldpwd = getcwd();
 chdir $source or die "Can't chdir to $source: $!";
 
-if (is_darwin_ios())
+if ($^O =~ /darwin-ios/)
 {
     use Cwd;
     use cbrunperl;    
@@ -41,8 +41,8 @@ if (is_darwin_ios())
         progfile => "Porting/cmpVERSION.pl",
         args => ["--tap"]
     });
-    chdir $oldpwd && is_darwin_ios();
-    chdir 't' if -d 't' && is_darwin_ios();
+    chdir $oldpwd && $^O =~ /darwin-ios/;
+    chdir 't' if -d 't' && $^O =~ /darwin-ios/;
 }
 else
 {

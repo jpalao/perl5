@@ -91,7 +91,7 @@ ok(close($utffh));
 
     SKIP: {
       skip("TMPDIR not honored on this platform", 4)
-        if !$Config{d_mkstemp} || is_darwin_ios()
+        if !$Config{d_mkstemp} || $^O =~ /darwin-ios/
         || $^O eq 'VMS' || $^O eq 'MSwin32' || $^O eq 'os2' ;
       local $ENV{TMPDIR} = $nonexistent;
 

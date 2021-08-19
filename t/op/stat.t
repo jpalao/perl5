@@ -48,7 +48,7 @@ my $Is_VMS     = $^O eq 'VMS';
 my $Is_MPRAS   = $^O =~ /svr4/ && -f '/etc/.relid';
 my $Is_Android = $^O =~ /android/;
 my $Is_Dfly    = $^O eq 'dragonfly';
-my $Is_Ios     = is_darwin_ios();
+my $Is_Ios     = $^O =~ /darwin-ios/;
 
 my $Is_Dosish  = $Is_Dos || $Is_OS2 || $Is_MSWin32 || $Is_NetWare;
 
@@ -349,7 +349,7 @@ SKIP: {
     # but not likely to be *all* setuid files.
     my @bin = grep {-d && -r && -x} qw(/sbin /usr/sbin /bin /usr/bin);
     skip "Can't find a setuid file to test with", 3 unless @bin;
-    skip "iOS: Can't find a setuid file to test with", 3 if is_darwin_ios();
+    skip "iOS: Can't find a setuid file to test with", 3 if $^O =~ /darwin-ios/;
 
     for my $bin (@bin) {
         opendir BIN, $bin or die "Can't opendir $bin: $!";

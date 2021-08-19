@@ -52,7 +52,7 @@ ok( !eq_array(\@first_run, \@second_run),
 }
 
 SKIP: {
-skip('iOS: no backticks', 1) if is_darwin_ios();
+skip('iOS: no backticks', 1) if $^O =~ /darwin-ios/;
 # This test checks whether Perl called srand for you.
 @first_run  = `$^X -le "print int rand 100 for 1..100"`;
 sleep(1); # in case our srand() is too time-dependent

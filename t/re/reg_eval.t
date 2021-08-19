@@ -85,7 +85,7 @@ CODE
 
     SKIP:
     {
-skip ("iOS: TODO", 26) if is_darwin_ios;
+skip ("iOS: TODO", 26) if $^O =~ /darwin-ios/;
 # RT #129199: this is mainly for ASAN etc's benefit
 fresh_perl_is(<<'CODE', '', {}, "RT #129199:");
 /(?{<<""})/

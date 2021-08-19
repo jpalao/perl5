@@ -167,15 +167,6 @@ $ENV{EMXSHELL} = 'sh';        # For OS/2
 if ($show_elapsed_time) { require Time::HiRes }
 my %timings = (); # testname => [@et] pairs if $show_elapsed_time.
 
-sub is_darwin_ios {
-    unless (eval {require Config; 1}) {
-	warn "TEST had problems loading Config: $@";
-	return;
-    }
-    use Config;
-    return $^O =~ /darwin-ios/;
-}
-
 # Roll your own File::Find!
 our @found;
 sub _find_tests { @found=(); push @ARGV, _find_files('\.t$', $_[0]) }
@@ -260,7 +251,7 @@ sub _scan_test {
 	} else {
 	    $testswitch = '-I.. -MTestInit';  # -T will remove . from @INC
 	}
-	if (is_darwin_ios()){
+	if ($^O =~ /darwin-ios/){
         use Cwd qw/getcwd/;
         $return_dir = getcwd();
 	}
@@ -646,7 +637,7 @@ EOT
 	(local $Valgrind_Log = "$test.valgrind-current") =~ s/^.*\///;
 
     my $results = undef;
-    if (is_darwin_ios()) {
+    if ($^O =~ /darwin-ios/) {
         use Cwd qw/getcwd/;
         use cbrunperl;
         my $options = _scan_test($test, $type);

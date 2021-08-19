@@ -54,7 +54,7 @@ die "Failed to fail!";
 EOC
 
 SKIP: {
-    skip ('iOS: TODO', 1) if is_darwin_ios();
+    skip ('iOS: TODO', 1) if $^O =~ /darwin-ios/;
     fresh_perl_like($prog, qr/No dbm on this machine/, {},
             'implicit require fails');
 }

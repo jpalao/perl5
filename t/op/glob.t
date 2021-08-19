@@ -116,7 +116,7 @@ SKIP: {
 SKIP: {
     use Config;
     skip("glob() works when cross-compiling, but this test doesn't", 1)
-        if ($Config{usecrosscompile} || is_darwin_ios());
+        if ($Config{usecrosscompile} || $^O =~ /darwin-ios/);
 
     my $switches = [qw(-lw)];
     my $expected = "ok1\nok2\n";

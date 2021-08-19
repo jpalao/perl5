@@ -166,7 +166,7 @@ ok($foo[4]->()->(4));
 # Additional tests by Tom Phoenix <rootbeer@teleport.com>.
 
 SKIP: {
-    skip("iOS: no fork, no pipe") if is_darwin_ios();
+    skip("iOS: no fork, no pipe") if $^O =~ /darwin-ios/;
     use strict;
 
     our $test;
@@ -407,7 +407,7 @@ END
 	  }
 
 	  if ($Config{d_fork} and $^O ne 'VMS' and $^O ne 'MSWin32' and $^O ne 'NetWare'
-	    and !is_darwin_ios()) {
+	    and !$^O =~ /darwin-ios/) {
 	    # Fork off a new perl to run the tests.
 	    # (This is so we can catch spurious warnings.)
 	    $| = 1; print ""; $| = 0; # flush output before forking
@@ -456,7 +456,7 @@ END
 	    }
 	    if ($?) {
 	      printf "not ok: exited with error code %04X\n", $?;
-	      exit if !is_darwin_ios();
+	      exit if !$^O =~ /darwin-ios/;
 	    }
 	    { local $/; open IN, $errfile; $errors = <IN>; close IN }
 	  }

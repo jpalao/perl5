@@ -31,7 +31,7 @@ BEGIN {
 	}
 	SKIP:
 	{
-	    skip('iOS: TODO', 1) if $_ eq "SIG" && is_darwin_ios();
+	    skip('iOS: TODO', 1) if $_ eq "SIG" && $^O =~ /darwin-ios/;
 	    skip_if_miniperl("the module for *$_ may not be available in "
 			     . "miniperl", 1) if $non_mini{$_};
 	    ok defined *$v, "*$_ appears to be defined at the outset";
@@ -56,7 +56,7 @@ $Is_VMS      = $^O eq 'VMS';
 $Is_Dos      = $^O eq 'dos';
 $Is_os2      = $^O eq 'os2';
 $Is_Cygwin   = $^O eq 'cygwin';
-$Is_Ios      = is_darwin_ios();
+$Is_Ios      = $^O =~ /darwin-ios/;
 
 my $orig_path;
 if ($Is_Ios) {
@@ -312,7 +312,7 @@ $$ = $pid; # Tests below use $$
 
 # $^X and $0
 SKIP: {
-    skip('iOS: no backticks', 6) if is_darwin_ios();
+    skip('iOS: no backticks', 6) if $^O =~ /darwin-ios/;
     my $is_abs = $Config{d_procselfexe} || $Config{usekernprocpathname}
       || $Config{usensgetexecutablepath};
     if ($^O eq 'qnx') {

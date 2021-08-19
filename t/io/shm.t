@@ -27,7 +27,7 @@ BEGIN {
   }
   skip_all_if_miniperl();
   skip_all('iOS: #TODO')
-        if is_darwin_ios();  
+        if $^O =~ /darwin-ios/;  
   if ($Config{'d_shm'} ne 'define') {
     skip_all('-- $Config{d_shm} undefined');
   }

@@ -1996,7 +1996,7 @@ EXPECT
 	      { stderr => 1 }, '#123245 panic in sv_chop');
 
 SKIP: {
-skip('iOS: TODO: STDOUT STDERR capture race cond.', 1) if is_darwin_ios();
+skip('iOS: TODO: STDOUT STDERR capture race cond.', 1) if $^O =~ /darwin-ios/;
 fresh_perl_is(<<'EOP', <<'EXPECT',
 use warnings 'syntax' ;
 format STDOUT =
@@ -2057,7 +2057,7 @@ fresh_perl_is('for(1..2){formline*0}', '', { stderr => 1 } , "#130722 - assertio
 # Just a complete test for format, including top-, left- and bottom marging
 # and format detection through glob entries
 
-if ($^O eq 'VMS' || $^O eq 'MSWin32' || $^O eq 'dos' || is_darwin_ios() ||
+if ($^O eq 'VMS' || $^O eq 'MSWin32' || $^O eq 'dos' || $^O =~ /darwin-ios/ ||
     ($^O eq 'os2' and not eval '$OS2::can_fork')) {
   $test = curr_test();
  SKIP: {

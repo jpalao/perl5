@@ -5,7 +5,7 @@ BEGIN {
     require './test.pl';
     set_up_inc('../lib');
     skip_all_if_miniperl("miniperl can't load attributes");
-    skip_all('iOS: TODO') if is_darwin_ios();
+    skip_all('iOS: TODO') if $^O =~ /darwin-ios/;
 }
 
 plan tests => 4;

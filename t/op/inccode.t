@@ -21,7 +21,7 @@ unless (is_miniperl()) {
 
 use strict;
 
-plan(tests => 68 + (!is_miniperl() && !is_darwin_ios()) * (3 + 14 * $can_fork));
+plan(tests => 68 + (!is_miniperl() && !$^O =~ /darwin-ios/) * (3 + 14 * $can_fork));
 
 sub get_temp_fh {
     my $f = tempfile();
@@ -315,7 +315,7 @@ SKIP: {
 }
 
 
-exit if is_miniperl() || is_darwin_ios();
+exit if is_miniperl() || $^O =~ /darwin-ios/;
 
 SKIP: {
     skip( "No PerlIO available", 3 ) unless $has_perlio;

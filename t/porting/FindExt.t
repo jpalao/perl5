@@ -33,7 +33,7 @@ sub compare {
     $want = [sort split ' ', $want]
         unless ref $want eq 'ARRAY';
     local $::Level = $::Level + 1;
-    @have = grep(!/DB_File/, @have) if is_darwin_ios;
+    @have = grep(!/DB_File/, @have) if $^O =~ /darwin-ios/;
     is(scalar @have, scalar @$want, "We find the same number of $desc");
     is("@have", "@$want", "We find the same list of $desc");
 }

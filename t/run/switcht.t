@@ -19,7 +19,7 @@ is( ${^TAINT}, -1, '${^TAINT} == -1' );
 my $out = `$Perl -le "print q(Hello)"`;
 SKIP:
 {
-  skip('iOS: no backticks', 1) if is_darwin_ios();
+  skip('iOS: no backticks', 1) if $^O =~ /darwin-ios/;
   is( $out, "Hello\n",                      '`` worked' );
 }
 like( $warning, qr/^Insecure .* $Tmsg/, '    taint warn' );
@@ -30,7 +30,7 @@ like( $warning, qr/^Insecure .* $Tmsg/, '    taint warn' );
     my $out = `$Perl -le "print q(Hello)"`;
     SKIP:
     {
-      skip('iOS: no backticks', 1) if is_darwin_ios();
+      skip('iOS: no backticks', 1) if $^O =~ /darwin-ios/;
       is( $out, "Hello\n",                      '`` worked' );
     }
     is( $warning, '',                       '   no warnings "taint"' );

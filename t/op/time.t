@@ -52,7 +52,7 @@ SKIP: {
     skip "No tzset()", 1
         if $^O eq "VMS" || $^O eq "cygwin" ||
            $^O eq "djgpp" || $^O eq "MSWin32" || $^O eq "dos" ||
-           $^O eq "interix" || is_darwin_ios();
+           $^O eq "interix" || $^O =~ /darwin-ios/;
 
 # check that localtime respects changes to $ENV{TZ}
 $ENV{TZ} = "GMT-5";
