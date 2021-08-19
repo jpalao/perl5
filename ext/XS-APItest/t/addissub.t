@@ -3,7 +3,6 @@ use strict;
 
 use Test::More tests => 9;
 use XS::APItest ();
-use Config;
 
 alarm 10 unless $^O =~ /darwin-ios/;   # likely failure mode is an infinite loop
 
