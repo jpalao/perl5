@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use Config;
 use Encode ();
 
 use Test::More;
