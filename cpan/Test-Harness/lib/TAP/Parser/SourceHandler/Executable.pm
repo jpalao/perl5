@@ -2,7 +2,6 @@ package TAP::Parser::SourceHandler::Executable;
 
 use strict;
 use warnings;
-use Config;
 
 use constant IS_IOS => ( $^O =~ /darwin-ios/ );
 
