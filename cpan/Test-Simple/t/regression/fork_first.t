@@ -8,9 +8,7 @@ use Test2::Util qw/CAN_THREAD CAN_REALLY_FORK/;
 
 skip_all 'No IPC' unless CAN_REALLY_FORK || CAN_THREAD;
 
-my $is_ios = $^O =~ /darwin-ios/;
-
-if (CAN_REALLY_FORK && !$is_ios) {
+if (CAN_REALLY_FORK && $^O !~ /darwin-ios/) {
     my $pid = fork;
     die "Failed to fork: $!" unless defined $pid;
     if ($pid) {
