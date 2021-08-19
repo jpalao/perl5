@@ -10,7 +10,6 @@ use lib qw(t t/compress);
 use strict;
 use warnings;
 use bytes;
-use Config;
 
 use Test::More;
 use CompTestUtils;
