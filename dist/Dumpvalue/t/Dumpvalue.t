@@ -17,7 +17,6 @@ BEGIN {
 use lib ("./t/lib");
 use TieOut;
 use Test::More tests => 88;
-use Config;
 
 use_ok( 'Dumpvalue' );
 
