@@ -1,12 +1,9 @@
 use strict;
 use warnings;
-use Config;
 
 use Test2::Util qw/CAN_REALLY_FORK/;
 use Test2::IPC;
 use Test2::API qw/context/;
-
-my $is_ios = $^O =~ /darwin-ios/;
 
 sub plan {
     my $ctx = context();
@@ -22,7 +19,7 @@ sub ok($;$) {
 }
 
 plan(0, skip_all => 'System cannot fork')
-    unless (CAN_REALLY_FORK() && !$is_ios);
+    unless (CAN_REALLY_FORK() && $^O !~ /darwin-ios/);
 
 plan(6);
 
