@@ -36,7 +36,7 @@ my $local = gethostbyname('localhost')
     or note "gethostbyname('localhost') failed: $!";
 
 my $fork = $Config{d_fork} || $Config{d_pseudofork};
-undef $fork if is_darwin_ios();
+undef $fork if $^O =~ /darwin-ios/;
 
 {
     # basic socket creation
@@ -274,7 +274,7 @@ SKIP:
 
 SKIP: {
     skip "no fcntl", 1 unless $Config{d_fcntl};
-    skip "iOS: #TODO", 1 if is_darwin_ios();
+    skip "iOS: #TODO", 1 if $^O =~ /darwin-ios/;
     my $sock;
     socket($sock, PF_INET, SOCK_STREAM, $tcp) or die "socket: $!";
     my $sockfd = fileno($sock);

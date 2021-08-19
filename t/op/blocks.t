@@ -251,7 +251,7 @@ fresh_perl_is(
 );
 
 SKIP: {
-    skip('iOS: #TODO', 1) if is_darwin_ios();
+    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
     fresh_perl_like(
         "$testblocks INIT { die; }",
         qr/\Abegin\nunitcheck\ncheck\ninit\nDied[^\n]*\.\nINIT failed[^\n]*\.\nend\z/,

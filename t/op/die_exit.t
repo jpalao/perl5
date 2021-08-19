@@ -8,7 +8,7 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
-    skip_all('iOS: exec not supported') if is_darwin_ios();
+    skip_all('iOS: exec not supported') if $^O =~ /darwin-ios/;
     set_up_inc('../lib');
 }
 

@@ -600,7 +600,7 @@ is $o::numcount, 1, 'sprintf %d number overload count is 1';
 if (scalar @hexfloat) {
 
 SKIP: {  # hexfp
-    skip "no IEEE, no hexfp", scalar @hexfloat if (is_darwin_ios());
+    skip "no IEEE, no hexfp", scalar @hexfloat if ($^O =~ /darwin-ios/);
     unless ($Config{d_double_style_ieee}) { skip "no IEEE, no hexfp", scalar @hexfloat }
 
 my $ppc_linux = $Config{archname} =~ /^(?:ppc|power(?:pc)?)(?:64)?-linux/;
@@ -954,7 +954,7 @@ SKIP: {
 # "memory wrap" - DAPM)
 
 SKIP: {
-    skip "iOS: TODO", 3 if (is_darwin_ios());
+    skip "iOS: TODO", 3 if ($^O =~ /darwin-ios/);
     my $s = 8 * $Config{sizesize};
     my $i = 1;
     my $max;

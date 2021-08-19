@@ -5,7 +5,7 @@
 BEGIN {
       chdir 't' if -d 't';
       require './test.pl';
-      skip_all_if_darwin_ios();
+      skip_all('iOS: #TODO') if $^O =~ /darwin-ios/;
 }
 
 use strict;

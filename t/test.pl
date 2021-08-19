@@ -36,7 +36,7 @@ our $TODO = 0;
 our $NO_ENDING = 0;
 our $Tests_Are_Passing = 1;
 
-if (is_darwin_ios()) {
+if ($^O =~ /darwin-ios/) {
     use Cwd qw/getcwd/;
     use cbrunperl;
     $cbrunperl::DEBUG = 0;
@@ -115,18 +115,9 @@ sub is_miniperl {
     return !defined &DynaLoader::boot_DynaLoader;
 }
 
-sub is_darwin_ios {
-    unless (eval {require Config; 1}) {
-        warn "test.pl had problems loading Config: $@";
-        return;
-    }
-    use Config;
-    return $^O =~ /darwin-ios/;
-}
-
 sub set_up_inc {
     # Don’t clobber @INC under miniperl
-    @INC = () unless (is_miniperl || is_darwin_ios);
+    @INC = () unless (is_miniperl || $^O =~ /darwin-ios/);
     unshift @INC, @_;
 }
 
@@ -156,10 +147,6 @@ sub skip_all {
 
 sub skip_all_if_miniperl {
     skip_all(@_) if is_miniperl();
-}
-
-sub skip_all_if_darwin_ios {
-    skip_all("Running on iOS... skipping all tests") if is_darwin_ios();
 }
 
 sub skip_all_without_dynamic_extension {
@@ -543,10 +530,6 @@ sub skip {
 
 sub skip_if_miniperl {
     skip(@_) if is_miniperl();
-}
-
-sub skip_if_darwin_ios {
-    skip(@_) if is_darwin_ios();
 }
 
 sub skip_without_dynamic_extension {

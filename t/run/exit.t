@@ -7,9 +7,10 @@ BEGIN {
     chdir 't' if -d 't';
 	require './test.pl';
     @INC = qw(. ../lib);
+    skip_all('iOS: #TODO') if $^O =~ /darwin-ios/;
 }
 
-skip_all_if_darwin_ios();
+
 
 # Run some code, return its wait status.
 sub run {

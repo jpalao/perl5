@@ -85,7 +85,7 @@ is &$f2, $f2, 'sub(){__SUB__} anonymous closure returns self ref';
 $f = sub () { eval ""; __SUB__ };
 is &$f, $f, 'anonymous sub(){eval ""; __SUB__} returns self ref';
 SKIP: {
-    skip('iOS: no stdin access') if is_darwin_ios();
+    skip('iOS: no stdin access') if $^O =~ /darwin-ios/;
     local $ENV{PERL5DB} = 'sub DB::DB {}';
     is runperl(
         switches => [ '-d' ],

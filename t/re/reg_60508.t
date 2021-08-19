@@ -40,7 +40,7 @@ CODE
     #local $TODO = "[perl #60508]";
 
     my $result = fresh_perl($code,  {});
-    if (is_darwin_ios()) {
+    if ($^O =~ /darwin-ios/) {
         $result .= "\n";
         utf8::encode($result);
     }

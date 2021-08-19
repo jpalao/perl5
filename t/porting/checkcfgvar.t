@@ -33,7 +33,7 @@ if ( $Config{usecrosscompile} ) {
   skip_all( "Not all files are available during cross-compilation" );
 }
 
-if (is_darwin_ios())
+if ($^O =~ /darwin-ios/)
 {
     use Cwd;
     use cbrunperl;    
@@ -44,7 +44,7 @@ if (is_darwin_ios())
         progfile => "Porting/checkcfgvar.pl",
         args => ["--tap"]
     });
-    chdir 't' if -d 't' && is_darwin_ios();
+    chdir 't' if -d 't' && $^O =~ /darwin-ios/;
 }
 else
 {

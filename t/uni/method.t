@@ -74,7 +74,7 @@ is(do { use utf8; use open qw( :utf8 :std ); eval 'Ｆｏｏ->ｂｏｏｇｉｅ
 #the output of that program before using it.
 SKIP: {
     skip_if_miniperl('no dynamic loading on miniperl, no Encode');
-    skip_if_darwin_ios('runperl backticks not supported');
+    skip('iOS: backticks not supported', 1) if $^O =~ /darwin-ios/;
 
     my $prog = q!use utf8; use open qw( :utf8 :std ); sub Ｔ::DESTROY { $x = $_[0]; } bless [], "Ｔ";!;
     utf8::decode($prog);

@@ -15,7 +15,7 @@ sub test_require {
     open my $fh, '<', 'README' or die "Can't open README: $!";
     my $fileno = fileno $fh;
     if (defined $want) {
-        if (is_darwin_ios()) {
+        if ($^O =~ /darwin-ios/) {
             ok(1, "iOS: TODO file handle has correct numeric file descriptor $state");
         } else {
             is($fileno, $want,
@@ -32,7 +32,7 @@ sub test_require {
     isnt($INC{'test_use_14937.pm'}, undef, "test_use_14937 is loaded $state");
 
     open $fh, '<', 'README' or die "Can't open README: $!";
-        if (is_darwin_ios()) {
+        if ($^O =~ /darwin-ios/) {
             ok(1, "iOS: TODO file handle has the same numeric file descriptor $state");
         } else {
             is(fileno $fh, $fileno,

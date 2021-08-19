@@ -326,7 +326,7 @@ SKIP: {
             is($first, $MIN_INT+$ii, 'Lower bound okay');
             is($last, $MIN_INT+10, 'Upper bound okay');
         } else {
-            if (is_darwin_ios() && ( -3 <= $ii <= -1 )) {
+            if ($^O =~ /darwin-ios/ && ( -3 <= $ii <= -1 )) {
                 ok(1, "iOS: TODO Lower bound rejected fails \$ii: $ii");
             }
             else {
@@ -354,7 +354,7 @@ SKIP: {
             is($first, $MIN_INT, 'Lower bound okay');
             is($last, $MIN_INT+$ii, 'Upper bound okay');
         } else {
-            if (is_darwin_ios() && ( -3 <= $ii <= -1 )) {
+            if ($^O =~ /darwin-ios/ && ( -3 <= $ii <= -1 )) {
                 ok(1, "iOS: TODO Upper bound rejected fails \$ii: $ii");
             }
             else {

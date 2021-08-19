@@ -9,7 +9,7 @@ BEGIN {
     @INC = '../lib';
     require Config; import Config;
     require './test.pl';
-    skip_all('iOS: no fork') if is_darwin_ios();
+    skip_all('iOS: no fork') if $^O =~ /darwin-ios/;
     skip_all_without_config('d_fork');
 }
 

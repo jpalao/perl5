@@ -186,7 +186,7 @@ print scalar @DB::args;
 EOP
     close $fh;
 SKIP: {
-    skip('iOS: #TODO', 2) if is_darwin_ios();
+    skip('iOS: #TODO', 2) if $^O =~ /darwin-ios/;
     foreach (0, 1) {
         my $got = runperl(progfile => $tmpfile, args => [$_]);
         $got =~ s/\s+/ /gs;

@@ -25,7 +25,7 @@ ok !exists $INC{'Tie/Hash/NamedCapture.pm'},
 
 SKIP: {
     use tests 1; # ARGV
-    skip('iOS: no stdin access', 1) if is_darwin_ios();
+    skip('iOS: no stdin access', 1) if $^O =~ /darwin-ios/;
     fresh_perl_is
      '$count=0; ++$count while(<foo::ARGV>); print $count',
      '0',

@@ -24,7 +24,7 @@ like($@, qr/Modification of a read-only value attempted/, '[perl #19566]');
 }
 
 SKIP: {
-  skip( 'iOS: no STDIN access', 8 ) if is_darwin_ios;
+  skip( 'iOS: no STDIN access', 8 ) if $^O =~ /darwin-ios/;
   # [perl #21614]: 82 is chosen to exceed the length for sv_grow in
   # do_readline (80)
   foreach my $k (1, 82) {
@@ -90,7 +90,7 @@ fresh_perl_is('BEGIN{<>}', '',
               'No ARGVOUT used only once warning');
 
 SKIP: {
-skip( 'STDIN not accessible on iOS', 1 ) if is_darwin_ios;
+skip( 'STDIN not accessible on iOS', 1 ) if $^O =~ /darwin-ios/;
 fresh_perl_is('print readline', 'foo',
               { switches => ['-w'], stdin => 'foo', stderr => 1 },
               'readline() defaults to *ARGV');
@@ -180,7 +180,7 @@ SKIP: {
     TODO: {
         todo_skip( 'alarm() on Windows does not interrupt system calls' ) if $^O eq 'MSWin32';
         todo_skip( 'readline not interrupted by alarm on VMS -- why?' ) if $^O eq 'VMS';
-        todo_skip( 'readline not interrupted by alarm on iOS' ) if is_darwin_ios;
+        todo_skip( 'readline not interrupted by alarm on iOS' ) if $^O =~ /darwin-ios/;
         $twice = test_eintr_readline( $in, 1 );
         isnt( $twice, "once\n", "readline didn't re-return things when interrupted" );
     }
@@ -188,7 +188,7 @@ SKIP: {
     TODO: {
         todo_skip( 'alarm() on Windows does not interrupt system calls' ) if $^O eq 'MSWin32';
         todo_skip( 'readline not interrupted by alarm on VMS -- why?' ) if $^O eq 'VMS';
-        todo_skip( 'readline not interrupted by alarm on iOS' ) if is_darwin_ios;
+        todo_skip( 'readline not interrupted by alarm on iOS' ) if $^O =~ /darwin-ios/;
         local our $TODO = "bad readline returns '', not undef";
         is( $twice, undef, "readline returned undef when interrupted" );
     }
@@ -245,7 +245,7 @@ SKIP: {
 }
 
 SKIP: {
-    skip( 'iOS: TODO', 3 ) if is_darwin_ios;
+    skip( 'iOS: TODO', 3 ) if $^O =~ /darwin-ios/;
     my $obj = bless [];
     $obj .= <DATA>;
     like($obj, qr/main=ARRAY.*world/, 'rcatline and refs');

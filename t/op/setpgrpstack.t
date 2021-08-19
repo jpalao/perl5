@@ -13,7 +13,7 @@ ok(!eval { package A;sub foo { die("got here") }; package main; A->foo(setpgrp()
 ok($@ =~ /got here/, "setpgrp() should extend the stack before modifying it");
 
 SKIP: {
-    if (is_darwin_ios()) {
+    if ($^O =~ /darwin-ios/) {
         skip ('TODO iOS: setpgrp with one argument', 1);
     } else {
         is join("_", setpgrp(0)), 1, 'setpgrp with one argument';

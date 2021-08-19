@@ -19,7 +19,7 @@ open(DUPERR,">&STDERR");
 
 my $tempfile = tempfile();
 
-if (!is_darwin_ios()) {
+if (!$^O =~ /darwin-ios/) {
     open(STDOUT,">$tempfile")  || die "Can't open stdout";
     open(STDERR,">&STDOUT") || die "Can't open stderr";
 
@@ -41,8 +41,8 @@ if (!is_darwin_ios()) {
     system sprintf $echo, 6;
     system sprintf "$echo 1>&2", 7;
 
-    close(STDOUT) or die "Could not close: $!" if !is_darwin_ios();
-    close(STDERR) or die "Could not close: $!" if !is_darwin_ios();
+    close(STDOUT) or die "Could not close: $!" if !$^O =~ /darwin-ios/;
+    close(STDERR) or die "Could not close: $!" if !$^O =~ /darwin-ios/;
 
     open(STDOUT,">&DUPOUT") or die "Could not open: $!";
     open(STDERR,">&DUPERR") or die "Could not open: $!";

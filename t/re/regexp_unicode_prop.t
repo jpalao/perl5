@@ -21,7 +21,7 @@ BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
     skip_all_if_miniperl("no dynamic loading on miniperl, no File::Spec (used by charnames)");
-    skip_all("iOS: TODO") if is_darwin_ios();
+    skip_all("iOS: TODO") if $^O =~ /darwin-ios/;
 }
 
 sub run_tests;
@@ -293,7 +293,7 @@ sub match {
 }
 
 sub run_tests {
-if (!is_darwin_ios)
+if (!$^O =~ /darwin-ios/)
 {
     for (my $i = 0; $i < @DEFERRED; $i+=2) {
         if (ref $DEFERRED[$i+1] eq 'ARRAY') {
@@ -391,7 +391,7 @@ if (!is_darwin_ios)
         match $_, $in_pat,  $out_pat for @in;
         match $_, $out_pat, $in_pat  for @out;
     }
-if (is_darwin_ios) {
+if ($^O =~ /darwin-ios/) {
     print "# User-defined properties with errors in their definition\n";
     while (my $error_property = shift @USER_ERROR_PROPERTIES) {
         my $error_re = shift @USER_ERROR_PROPERTIES;

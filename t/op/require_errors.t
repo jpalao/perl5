@@ -17,7 +17,7 @@ my $nonfile = tempfile();
 # code would read memory before the start of the SV's buffer
 
 SKIP: {
-    skip ('iOS: #TODO fix regex', 2) if is_darwin_ios();
+    skip ('iOS: #TODO fix regex', 2) if $^O =~ /darwin-ios/;
     for my $file ($nonfile, ' ') {
         eval {
         require $file;
@@ -133,7 +133,7 @@ like $@, qr/^Bareword in require must not start with a double-colon:/,
         "correct error message for require ::$nonfile";
 
 SKIP: {
-    skip ('iOS: #TODO fix regex', 5) if is_darwin_ios();
+    skip ('iOS: #TODO fix regex', 5) if $^O =~ /darwin-ios/;
     eval {
         require "$nonfile.ph";
     };

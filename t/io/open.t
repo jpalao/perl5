@@ -15,7 +15,7 @@ plan tests => 188;
 sub ok_cloexec {
     SKIP: {
 	skip "no fcntl", 1 unless $Config{d_fcntl};
-	skip 'iOS: open flavor not supported', 1 if is_darwin_ios();
+	skip 'iOS: open flavor not supported', 1 if $^O =~ /darwin-ios/;
 	my $fd = fileno($_[0]);
 	fresh_perl_is(qq(
 	    print open(F, "+<&=$fd") ? 1 : 0, "\\n";
@@ -92,7 +92,7 @@ my $afile = tempfile();
 }
 SKIP:
 {
-    skip('iOS: pipe flavor not supported', 5) if is_darwin_ios();
+    skip('iOS: pipe flavor not supported', 5) if $^O =~ /darwin-ios/;
     ok( open(my $f, '-|', <<EOC),     'open -|' );
     $Perl -e "print qq(a row\\n); print qq(another row\\n)"
 EOC
@@ -104,7 +104,7 @@ EOC
 }
 SKIP:
 {
-    skip('iOS: pipe flavor not supported', 5) if is_darwin_ios();
+    skip('iOS: pipe flavor not supported', 5) if $^O =~ /darwin-ios/;
     ok( open(my $f, '|-', <<EOC),     'open |-' );
     $Perl -pe "s/^not //"
 EOC
@@ -202,7 +202,7 @@ ok( -s $afile < 20,                     '       -s' );
 
 SKIP:
 {
-    skip('iOS: open -| not supported', 5) if is_darwin_ios();
+    skip('iOS: open -| not supported', 5) if $^O =~ /darwin-ios/;
     ok( open(local $f, '-|', <<EOC),  'open local $f, "-|", ...' );
     $Perl -e "print qq(a row\\n); print qq(another row\\n)"
 EOC
@@ -215,7 +215,7 @@ EOC
 
 SKIP:
 {
-    skip('iOS: open |- not supported', 5) if is_darwin_ios();
+    skip('iOS: open |- not supported', 5) if $^O =~ /darwin-ios/;
     ok( open(local $f, '|-', <<EOC),  'open local $f, "|-", ...' );
     $Perl -pe "s/^not //"
 EOC
@@ -240,7 +240,7 @@ like( $@, qr/Bad filehandle:\s+$afile/,          '       right error' );
 
 SKIP:
 {
-    skip('iOS: open -| not supported', 16) if is_darwin_ios();
+    skip('iOS: open -| not supported', 16) if $^O =~ /darwin-ios/;
     local *F;
     for (1..2) {
 	ok( open(F, qq{$Perl -le "print 'ok'"|}), 'open to pipe' );
@@ -386,7 +386,7 @@ is($@, '', 'no "Modification of a read-only value" when closing');
 
 SKIP:
 {
-    skip('iOS: open -| not supported', 1) if is_darwin_ios();
+    skip('iOS: open -| not supported', 1) if $^O =~ /darwin-ios/;
     package p73626;
     sub TIESCALAR { bless {} }
     sub FETCH { "$Perl -e 1"}
