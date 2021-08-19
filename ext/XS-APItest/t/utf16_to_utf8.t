@@ -3,7 +3,6 @@
 use strict;
 use Test::More;
 use Encode;
-use Config;
 
 plan skip_all => 'Unclear how EBCIDC should behave' if ord "A" != 65;
 
