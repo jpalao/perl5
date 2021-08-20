@@ -40,8 +40,6 @@ my @y = ("15\nok","16");
 print @x,"14\nok",@y;
 {
     local $\ = "ok 17\n# null =>[\000]\nok 18\n";
-    $\ = "ok 17\nok 18 # skip iOS: #TODO printing \\000 breaks STDIO capture\n"
-        if $^O =~ /darwin-ios/;
     print "";
 }
 
