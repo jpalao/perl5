@@ -432,6 +432,8 @@ $^O =~ /darwin-ios/ && eval {
 		'../dist/IO/t/io_dup.t',
 
 		# TODO
+		'io/perlio_leaks.t',
+
 		'../dist/Time-HiRes/t/ualarm.t',
 
 		'../ext/Devel-Peek/t/Peek.t',
