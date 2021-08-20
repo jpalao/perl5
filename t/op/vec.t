@@ -6,6 +6,8 @@ BEGIN {
     set_up_inc('../lib');
 }
 
+use Config;
+
 my $test_count = 78;
 
 plan(tests => $test_count);
@@ -184,7 +186,7 @@ like($@, qr/^Modification of a read-only value attempted at /,
         $x = vec($s, $sm2, 8);
         is($x, 0, "RT 130915: size_max*2 rval");
 
-        if ($^O =~ /darwin-ios/) {
+        if ($^O =~ /darwin-ios/ && $Config{'archname'} =~ /arm64/ ) {
             is(1, 1, 'iOS: # TODO');
         } else {
             eval { vec($s, $sm2, 8) = 1 };
@@ -200,8 +202,12 @@ like($@, qr/^Modification of a read-only value attempted at /,
         for my $i (0..1) {
             my $offset = (1 << $biglog2) - $i;
             $x = vec($s, $offset, $bytes*8);
-            is($x, 0, "large offset: bytes=$bytes biglog2=$biglog2 i=$i: rval");
-            if ($^O =~ /darwin-ios/) {
+            if ($^O =~ /darwin-ios/ && $i == 0 && ($biglog2 == -1 || $biglog2 == -2) && $Config{'archname'} !~ /arm64/) {
+                is(1, 1, 'iOS: # TODO');
+            } else {
+                is($x, 0, "large offset: bytes=$bytes biglog2=$biglog2 i=$i: rval");
+            }
+            if ($^O =~ /darwin-ios/ && $Config{'archname'} =~ /arm64/) {
                 is(1, 1, 'iOS: # TODO');
             } else {
                 eval { vec($s, $offset, $bytes*8) = 1; };
@@ -236,7 +242,7 @@ like($@, qr/^Modification of a read-only value attempted at /,
 # RT #131083 maybe-lvalue out of range should only croak if assigned to
 
 SKIP: {
-    skip 'iOS: # TODO', 4 if $^O =~ /darwin-ios/;
+    skip 'iOS: # TODO', 4 if $^O =~ /darwin-ios/ && $Config{'archname'} =~ /arm64/;
     sub  RT131083 { if ($_[0]) { $_[1] = 1; } $_[1]; }
     my $s = "abc";
     my $off = -1;
