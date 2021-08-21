@@ -246,8 +246,7 @@ static char * test_result_filename = "perl-tests.txt";
             [[CBPerl alloc] initWithFileName:self.scriptPath withAbsolutePwd:dirPath.absoluteURL.path withDebugger:0 withOptions:options withArguments:nil error: &error completion: (PerlCompletionBlock) ^ (int perlResult) {
                 [self handlePerlError:error];
                 [self cleanupStdioRedirection];
-                NSTimeInterval timeInterval = -[self.startTime timeIntervalSinceNow];
-                [self updateOutputText: [NSString stringWithFormat:@"Execution took: %f s.", timeInterval] withColor:[self colorFromHexString: @"#28FE14"]];
+                [[self outputTextView] setUserInteractionEnabled:YES];
                 [self updateOutputTextView];
                 [self.timer invalidate];
             }];
