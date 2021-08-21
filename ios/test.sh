@@ -204,7 +204,7 @@ test_perl_device() {
     REFRESH_PID=$!
     sleep 2
     
-    tail -f $IOS_MOUNTPOINT/perl-tests.tap
+    tail -f $IOS_MOUNTPOINT/perl-tests.txt
     
     echo "kill $REFRESH_PID"
     kill $REFRESH_PID
