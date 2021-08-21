@@ -1,5 +1,5 @@
 #!./perl
-$|=1;
+
 # We suppose that perl _mostly_ works at this moment, so may use
 # sophisticated testing.
 
@@ -8,26 +8,11 @@ BEGIN {
     @INC = '../lib';              # pick up only this build's lib
 }
 
-$ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
-# $ENV{PERL_CORE} = 1;
-# $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
-# $ENV{PERL_BENCHMARK} = 1;
-# $ENV{PERL_TEST_MEMORY} = 1;
-# $ENV{PERL_VALGRIND} = 1;
-# $ENV{PERL_TEST_HARNESS_ASAP} = 1;
-# $ENV{PERL_USE_UNSAFE_INC}
-$ENV{LC_ALL} = 'C';
-$ENV{LC_CTYPE} = 'C';
-$ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 0;
-
 my $torture; # torture testing?
 
-use open ":std", ":encoding(UTF-8)";
-use Fcntl;
 use TAP::Harness 3.13;
 use strict;
 use Config;
-use Data::Dumper;
 
 $::do_nothing = $::do_nothing = 1;
 require './TEST';
@@ -374,106 +359,7 @@ $h->callback(
 	     }
 	     );
 
-$^O =~ /darwin-ios/ && eval {
-	my $test_dumper = Data::Dumper->new([@tests])->Dump();
-	#print STDOUT "Tests to run before cleanup:\n" . $test_dumper;
-
-	my @ios_blacklist = (
-		# on iOS these tests may either:
-		# hang, crash or exit unexpectedly,
-		# or may pass, causing havoc afterwards,
-		# or they may pass or hang/crash indistinctly
-
-		'io/openpid.t',
-		'io/closepid.t',
-
-		# pass, fail randomly
-		're/pat_advanced.t',
-		're/pat_advanced_thr.t',
-
-		# DB_File not built in
-		'../cpan/DB_File/t/db-threads.t',
-		'../cpan/DB_File/t/db-recno.t',
-		'../cpan/DB_File/t/db-hash.t',
-		'../cpan/DB_File/t/db-btree.t',
-
-		# hangs
-		'../cpan/File-Temp/t/lock.t',
-
-		# TODO
-		'../cpan/IPC-SysV/t/ipcsysv.t',
-		'../cpan/IPC-SysV/t/msg.t',
-		'../cpan/IPC-SysV/t/pod.t',
-		'../cpan/IPC-SysV/t/podcov.t',
-		'../cpan/IPC-SysV/t/sem.t',
-		'../cpan/IPC-SysV/t/shm.t',
-
-		# no exec
-		'../cpan/autodie/t/exec.t',
-
-		# no command running on iOS
-		'../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
-		'../cpan/IPC-Cmd/t/02_Interactive.t',
-		'../cpan/IPC-Cmd/t/03_run-forked.t',
-
-		# TODO test after proper subclassing of Iterator::Array
-		'../cpan/Test-Harness/t/compat/inc-propagation.t',
-		'../cpan/Test-Harness/t/compat/inc_taint.t',
-		'../cpan/Test-Harness/t/compat/test-harness-compat.t',
-		'../cpan/Test-Harness/t/compat/regression.t',
-		'../cpan/Test-Harness/t/regression.t',
-
-		# no backticks
-		'../cpan/Pod-Usage/t/pod/selectsections.t',
-		'../cpan/Pod-Usage/t/pod/headwithmarkup.t',
-		'../cpan/Pod-Usage/t/pod/selectheaders.t',
-
-		# no backticks
-		'../dist/IO/t/io_dup.t',
-
-		# TODO
-		'io/perlio_leaks.t',
-
-		'../dist/Time-HiRes/t/ualarm.t',
-
-		'../ext/Devel-Peek/t/Peek.t',
-
-		'../ext/DynaLoader/t/DynaLoader.t',
-
-		'../ext/POSIX/t/sigaction.t',
-
-		'../ext/IPC-Open3/t/fd.t',
-		'../ext/IPC-Open3/t/IPC-Open2.t',
-		'../ext/IPC-Open3/t/IPC-Open3.t',
-
-		'../ext/XS-APItest/t/clone-with-stack.t',
-
-		'../lib/feature/unicode_strings.t',
-	);
-
-	for my $black_list (@ios_blacklist)
-	{
-		for (my $index = 0; $index < scalar @tests;  $index ++)
-		{
-			if ($tests[$index] =~ m!$black_list!)
-			{
-				#print STDOUT "# iOS: Blacklisted test: $tests[$index]\n";
-				splice(@tests, $index, 1);
-			}
-		}
-	}
-
-	# these are passing consistently, speed up
-	# @tests = grep(/^(?:(?!re\/uniprops))/, @tests);
-
-	# postponed
-	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-MakeMaker))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-Install))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/cpan\/Test\-Harness))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-CBuilder))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-ParseXS))/, @tests);
-};
-
+@tests = exclude_tests(@tests) if $^O =~ /darwin-ios/;
 
 my $agg = $h->runtests(@tests);
 _cleanup_valgrind(\$htoolnm, \$hgrind_ct);
