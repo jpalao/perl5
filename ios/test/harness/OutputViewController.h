@@ -11,7 +11,6 @@
 @property (weak, nonatomic) IBOutlet UITextView * outputTextView;
 @property (retain) UIPinchGestureRecognizer * pinchGestRecognizer;
 @property (retain) NSTimer * timer;
-@property (retain) NSDate * startTime;
 
 - (UIColor *) colorFromHexString: (NSString *) hexString;
 - (NSArray *) processMultilineOutput: (NSString *) str;

@@ -18,10 +18,12 @@ static char * test_result_filename = "perl-tests.tap";
 {
     [super viewDidLoad];
 
-    self.startTime = [NSDate date];
     _outputText =  [[[self outputTextView] attributedText] mutableCopy];
     self.outputTextLength = 0;
     _fontSize = 13;
+    // TODO: There is a bug that causes tests to fail while scrolling. Workaround is to disable and reenable when
+    // tests are done
+    [[self outputTextView] setUserInteractionEnabled:NO];
     [[self outputTextView] setFont:[UIFont fontWithName:@"CourierNewPSMT" size:_fontSize]];
     [[self outputTextView] setTextColor:[self colorFromHexString: @"#28FE14"]];
     [[self outputTextView] scrollRangeToVisible:NSMakeRange([[self outputTextView].text length], 0)];
@@ -270,8 +272,7 @@ static char * test_result_filename = "perl-tests.tap";
             [[CBPerl alloc] initWithFileName:self.scriptPath withAbsolutePwd:dirPath.absoluteURL.path withDebugger:0 withOptions:options withArguments:nil error: &error completion: (PerlCompletionBlock) ^ (int perlResult) {
                 [self handlePerlError:error];
                 [self cleanupStdioRedirection];
-                NSTimeInterval timeInterval = -[self.startTime timeIntervalSinceNow];
-                [self updateOutputText: [NSString stringWithFormat:@"Execution took: %f s.", timeInterval] withColor:[self colorFromHexString: @"#28FE14"]];
+                [[self outputTextView] setUserInteractionEnabled:YES];
                 [self updateOutputTextView];
                 [self.timer invalidate];
             }];
