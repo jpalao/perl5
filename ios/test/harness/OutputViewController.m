@@ -48,7 +48,7 @@ static char * test_result_filename = "perl-tests.tap";
     [self updateOutputText: [self boilerplateString] withColor:[self colorFromHexString: @"#28FE14"]];
 
     [self setupStdioRedirection];
-    self.scriptPath = [NSMutableString stringWithFormat:@"%@/t/harness", [self applicationDocumentsDirectory]];
+    self.scriptPath = [NSMutableString stringWithFormat:@"%@/t/ios_harness", [self applicationDocumentsDirectory]];
     [self startPerlScript];
 
     _timer = [NSTimer scheduledTimerWithTimeInterval:.5
