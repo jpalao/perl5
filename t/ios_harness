@@ -1,6 +1,9 @@
 #!./perl
 $|=1;
 use open ":std", ":encoding(UTF-8)";
+use strict;
+use warnings;
+use Config;
 
 $ENV{LC_ALL} = 'C';
 $ENV{LC_CTYPE} = 'C';
@@ -66,13 +69,16 @@ my @ios_blacklist = (
     '../dist/IO/t/io_dup.t',
 
     # TODO
+    'io/perlio_leaks.t',
+
     '../dist/Time-HiRes/t/ualarm.t',
 
     '../ext/Devel-Peek/t/Peek.t',
 
     '../ext/DynaLoader/t/DynaLoader.t',
-
+    '../ext/POSIX/t/posix.t',
     '../ext/POSIX/t/sigaction.t',
+        '../ext/POSIX/t/wrappers.t',
 
     '../ext/IPC-Open3/t/fd.t',
     '../ext/IPC-Open3/t/IPC-Open2.t',
@@ -81,6 +87,94 @@ my @ios_blacklist = (
     '../ext/XS-APItest/t/clone-with-stack.t',
 
     '../lib/feature/unicode_strings.t',
+    
+    '../dist/I18N-LangTags/t/80_all_env.t',
+);
+
+my @simul_blacklist = (
+    'io/argv.t',
+    'io/fflush.t',
+    'io/defout.t',
+    'io/inplace.t',
+
+    'run/switches.t',
+    'run/switchd.t',
+        'run/switchM.t',
+    'cmd/switch.t',
+
+    'op/do.t',
+    'op/64bitint.t',
+    #'op/chr.t'
+    'op/chdir.t',
+    'op/heredoc.t',
+    'op/pack.t',
+    'op/sprintf2.t',
+    'op/stat.t',
+    'op/vec.t',
+    
+    'porting/checkcase.t',
+    'porting/checkcfgvar.t',
+    'porting/checkcfgvar.t',
+    'porting/cmp_version.t',
+    'porting/diag.t',
+
+    'porting/manifest.t',
+    'porting/pending-author.t',
+    'porting/perlfunc.t',
+    'porting/podcheck.t',
+    
+    'porting/readme.t',
+    'porting/regen.t', 
+    'porting/utils.t',
+
+    '../cpan/Archive-Tar/t/02_methods.t',
+    '../cpan/Archive-Tar/t/04_resolved_issues.t',
+    '../cpan/Filter-Util-Call/t/call.t',
+    '../cpan/Pod-Simple/t/htmlbat.t',
+
+    '../cpan/Pod-Simple/t/search10.t',
+    '../cpan/Pod-Simple/t/search12.t',
+    '../cpan/Pod-Simple/t/search20.t',
+    '../cpan/Pod-Simple/t/search22.t',
+    '../cpan/Pod-Simple/t/search25.t',
+    '../cpan/Pod-Simple/t/search26.t',
+    '../cpan/Pod-Simple/t/search27.t',
+    '../cpan/Pod-Simple/t/search28.t',
+    '../cpan/Pod-Simple/t/search29.t',
+    '../cpan/Pod-Simple/t/search60.t',
+    
+    '../cpan/Scalar-List-Utils/t/uniqnum.t',
+    
+    '../dist/PathTools/t/cwd.t',
+    '../dist/PathTools/t/abs2rel.t',
+    '../dist/PathTools/t/taint.t',
+    
+    '../dist/Carp/t/stack_after_err.t',
+    
+    '../dist/Storable/t/file_magic.t',
+    '../dist/Storable/t/malice.t',
+
+    '../dist/threads/t/kill3.t',
+    
+    '../ext/File-Find/t/taint.t',
+    '../ext/File-Glob/t/basic.t',
+    '../ext/File-Glob/t/threads.t',
+
+    '../ext/XS-APItest/t/join_with_space.t',
+    '../ext/XS-APItest/t/keyword_multiline.t',
+    '../ext/XS-APItest/t/keyword_plugin.t',
+    '../ext/XS-APItest/t/loopblock.t',
+    '../ext/XS-APItest/t/newDEFSVOP.t',
+    '../ext/XS-APItest/t/scopelessblock.t',
+    '../ext/XS-APItest/t/stmtasexpr.t',
+    '../ext/XS-APItest/t/stmtsasexpr.t',
+    '../ext/XS-APItest/t/stuff_modify_bug.t',
+    '../ext/XS-APItest/t/stuff_svcur_bug.t',
+    '../ext/XS-APItest/t/subsignature.t',
+    '../ext/XS-APItest/t/swaplabel.t',
+    '../ext/XS-APItest/t/swaptwostmts.t',
+
+    '../lib/perl5db.t',
 );
 
 sub dump_list {
@@ -98,10 +192,26 @@ sub exclude_tests {
 		{
 			if ($tests[$index] =~ m!$black_list!)
 			{
-				print STDOUT "iOS: excluding test: $tests[$index]\n";
+				print STDERR "# iOS: excluding test: $tests[$index]\n";
 				splice(@tests, $index, 1);
 			}
 		}
+	}
+	
+	if ($Config{archname} =~ /x86_64/) {
+    	print STDERR "# NOTE: the following tests pass on device but fail on simulator. #TODO\n";
+        for my $simul_black_list (@simul_blacklist)
+        {
+            for (my $index = 0; $index < scalar @tests;  $index ++)
+            {
+                if ($tests[$index] =~ m!$simul_black_list!)
+                {
+                    print STDERR "# iOS: excluding test: $tests[$index]\n";
+                    splice(@tests, $index, 1);
+                }
+            }
+        }
+        @tests = grep(/^(?:(?!\.\.\/ext\/Pod\-Html))/, @tests);
 	}
 
 	# TODO. Device w/ make for CPAN installations that do not require cc
