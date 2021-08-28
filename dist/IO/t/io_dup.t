@@ -9,6 +9,10 @@ BEGIN {
 	    exit 0;
         }
     }
+    if($^O =~ /darwin-ios/) {
+    	print "1..0 # Skip: iOS no backticks\n";
+	    exit 0;
+    }
 }
 
 use IO::Handle;
