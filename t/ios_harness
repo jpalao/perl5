@@ -187,40 +187,40 @@ sub dump_list {
 
 sub exclude_tests {
     my @tests = @_;
-	for my $black_list (@ios_blacklist)
-	{
-		for (my $index = 0; $index < scalar @tests;  $index ++)
-		{
-			if ($tests[$index] =~ m!$black_list!)
-			{
-				print STDERR "# iOS: excluding test: $tests[$index]\n";
-				splice(@tests, $index, 1);
-			}
-		}
-	}
-	
-	if ($Config{archname} =~ /x86_64/) {
-    	print STDERR "# NOTE: the following tests pass on device but fail on simulator. #TODO\n";
+    for my $black_list (@ios_blacklist)
+    {
+        for (my $index = 0; $index < scalar @tests;  $index ++)
+        {
+            if ($tests[$index] =~ m!$black_list!)
+            {
+                print "# iOS: excluding test: $tests[$index]\n";
+                splice(@tests, $index, 1);
+            }
+        }
+    }
+
+    if ($Config{archname} =~ /x86_64/) {
+        print "# NOTE: the following tests pass on device but fail on simulator. #TODO\n";
         for my $simul_black_list (@simul_blacklist)
         {
             for (my $index = 0; $index < scalar @tests;  $index ++)
             {
                 if ($tests[$index] =~ m!$simul_black_list!)
                 {
-                    print STDERR "# iOS: excluding test: $tests[$index]\n";
+                    print "# iOS: excluding test: $tests[$index]\n";
                     splice(@tests, $index, 1);
                 }
             }
         }
         @tests = grep(/^(?:(?!\.\.\/ext\/Pod\-Html))/, @tests);
-	}
+    }
 
-	# TODO. Device w/ make for CPAN installations that do not require cc
-	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-MakeMaker))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-Install))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/cpan\/Test\-Harness))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-CBuilder))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-ParseXS))/, @tests);
+    # TODO. Device w/ make for CPAN installations that do not require cc
+    @tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-MakeMaker))/, @tests);
+    @tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-Install))/, @tests);
+    @tests = grep(/^(?:(?!\.\.\/cpan\/Test\-Harness))/, @tests);
+    @tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-CBuilder))/, @tests);
+    @tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-ParseXS))/, @tests);
 };
 
 do './harness';
