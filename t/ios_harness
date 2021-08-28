@@ -21,10 +21,10 @@ my @ios_blacklist = (
     # or may pass, causing havoc afterwards,
     # or they may pass or hang/crash indistinctly
 
-    'io/openpid.t',
-    'io/closepid.t',
+    # TODO
+    'io/perlio_leaks.t',
 
-    # pass, fail randomly
+    # test race cond?
     're/pat_advanced.t',
     're/pat_advanced_thr.t',
 
@@ -34,24 +34,9 @@ my @ios_blacklist = (
     '../cpan/DB_File/t/db-hash.t',
     '../cpan/DB_File/t/db-btree.t',
 
-    # hangs
-    '../cpan/File-Temp/t/lock.t',
-
     # TODO
-    '../cpan/IPC-SysV/t/ipcsysv.t',
-    '../cpan/IPC-SysV/t/msg.t',
-    '../cpan/IPC-SysV/t/pod.t',
-    '../cpan/IPC-SysV/t/podcov.t',
-    '../cpan/IPC-SysV/t/sem.t',
-    '../cpan/IPC-SysV/t/shm.t',
-
-    # no exec
+    '../cpan/File-Temp/t/lock.t',
     '../cpan/autodie/t/exec.t',
-
-    # no command running on iOS
-    '../cpan/IPC-Cmd/t/01_IPC-Cmd.t',
-    '../cpan/IPC-Cmd/t/02_Interactive.t',
-    '../cpan/IPC-Cmd/t/03_run-forked.t',
 
     # TODO test after proper subclassing of Iterator::Array
     '../cpan/Test-Harness/t/compat/inc-propagation.t',
@@ -65,28 +50,17 @@ my @ios_blacklist = (
     '../cpan/Pod-Usage/t/pod/headwithmarkup.t',
     '../cpan/Pod-Usage/t/pod/selectheaders.t',
 
-    # no backticks
-    '../dist/IO/t/io_dup.t',
-
-    # TODO
-    'io/perlio_leaks.t',
-
     '../dist/Time-HiRes/t/ualarm.t',
 
     '../ext/Devel-Peek/t/Peek.t',
 
     '../ext/DynaLoader/t/DynaLoader.t',
+
     '../ext/POSIX/t/posix.t',
     '../ext/POSIX/t/sigaction.t',
     '../ext/POSIX/t/wrappers.t',
 
-    '../ext/IPC-Open3/t/fd.t',
-    '../ext/IPC-Open3/t/IPC-Open2.t',
-    '../ext/IPC-Open3/t/IPC-Open3.t',
-
     '../ext/XS-APItest/t/clone-with-stack.t',
-
-    '../lib/feature/unicode_strings.t',
     
     '../dist/I18N-LangTags/t/80_all_env.t',
 );
@@ -215,12 +189,17 @@ sub exclude_tests {
         @tests = grep(/^(?:(?!\.\.\/ext\/Pod\-Html))/, @tests);
     }
 
-    # TODO. Device w/ make for CPAN installations that do not require cc
-    @tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-MakeMaker))/, @tests);
-    @tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils\-Install))/, @tests);
-    @tests = grep(/^(?:(?!\.\.\/cpan\/Test\-Harness))/, @tests);
-    @tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-CBuilder))/, @tests);
-    @tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils\-ParseXS))/, @tests);
+	# TODO. Device w/ make for CPAN installations that do not require cc
+	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils-MakeMaker))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils-Install))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/cpan\/Test-Harness))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils-CBuilder))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils-ParseXS))/, @tests);
+
+	# most likely will never pass on iOS
+	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-SysV))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-Cmd))/, @tests);
+	@tests = grep(/^(?:(?!\.\.\/ext\/IPC-Open3))/, @tests);
 };
 
 do './harness';
