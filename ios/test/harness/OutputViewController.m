@@ -246,7 +246,9 @@ static char * test_result_filename = "perl-tests.txt";
             [[CBPerl alloc] initWithFileName:self.scriptPath withAbsolutePwd:dirPath.absoluteURL.path withDebugger:0 withOptions:options withArguments:nil error: &error completion: (PerlCompletionBlock) ^ (int perlResult) {
                 [self handlePerlError:error];
                 [self cleanupStdioRedirection];
-                [[self outputTextView] setUserInteractionEnabled:YES];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[self outputTextView] setUserInteractionEnabled:YES];
+                });
                 [self updateOutputTextView];
                 [self.timer invalidate];
             }];
