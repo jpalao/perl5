@@ -13,7 +13,6 @@
 @property (retain) NSTimer * timer;
 
 - (UIColor *) colorFromHexString: (NSString *) hexString;
-- (NSArray *) processMultilineOutput: (NSString *) str;
 - (void) scaleTextView: (UIPinchGestureRecognizer *) pinchGestRecognizer;
 - (void) showDialog: (NSString *) title withMessage: (NSString *) message;
 - (void) updateOutputText : (NSString *) output withColor: (UIColor *) color;

@@ -102,36 +102,20 @@ static char * test_result_filename = "perl-tests.txt";
 
 - (void) processStderrNotification: (NSString *) notificationText
 {
-    NSArray * texts = [self processMultilineOutput: notificationText];
-    for (id text in texts)
-    {
-        if ( text != nil)
-        {
-            NSString * eolTerminated = [NSString stringWithFormat: @"%@\n", text];
-            [[self stderrOutput] appendString: text];
-            [self updateOutputText: eolTerminated withColor: [self colorFromHexString: @"#FF2C38"]];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [[self stderrReadHandle] waitForDataInBackgroundAndNotify];
-            });
-        }
-    }
+    [[self stderrOutput] appendString: notificationText];
+    [self updateOutputText: notificationText withColor: [self colorFromHexString: @"#FF2C38"]];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[self stderrReadHandle] waitForDataInBackgroundAndNotify];
+    });
 }
 
 - (void) processStdoutNotification: (NSString *) notificationText
 {
-    NSArray * texts = [self processMultilineOutput: notificationText];
-    for (id text in texts)
-    {
-        if ( text != nil)
-        {
-            NSString * eolTerminated = [NSString stringWithFormat: @"%@\n", text];
-            [[self stdoutOutput] appendString:eolTerminated];
-            [self updateOutputText: eolTerminated withColor:[self colorFromHexString: @"#28FE14"]];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [[self stdoutReadHandle] waitForDataInBackgroundAndNotify];
-            });
-        }
-    }
+    [[self stdoutOutput] appendString:notificationText];
+    [self updateOutputText: notificationText withColor:[self colorFromHexString: @"#28FE14"]];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[self stdoutReadHandle] waitForDataInBackgroundAndNotify];
+    });
 }
 
 - (NSString *) boilerplateString
@@ -141,16 +125,6 @@ static char * test_result_filename = "perl-tests.txt";
         self.bundlePath,
         [self applicationDocumentsDirectory]
     ];
-}
-
-- (NSArray *) processMultilineOutput: (NSString *) str
-{
-    NSMutableArray * items = [[str componentsSeparatedByString: @"\n"] mutableCopy];
-    if ([items.lastObject isEqualToString: @""])
-    {
-        [items removeLastObject];
-    }
-    return (NSArray *) items;
 }
 
 - (void) textToLogFile: (NSString *) notificationText
@@ -272,7 +246,9 @@ static char * test_result_filename = "perl-tests.txt";
             [[CBPerl alloc] initWithFileName:self.scriptPath withAbsolutePwd:dirPath.absoluteURL.path withDebugger:0 withOptions:options withArguments:nil error: &error completion: (PerlCompletionBlock) ^ (int perlResult) {
                 [self handlePerlError:error];
                 [self cleanupStdioRedirection];
-                [[self outputTextView] setUserInteractionEnabled:YES];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[self outputTextView] setUserInteractionEnabled:YES];
+                });
                 [self updateOutputTextView];
                 [self.timer invalidate];
             }];
