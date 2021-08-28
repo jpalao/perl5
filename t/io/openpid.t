@@ -13,7 +13,7 @@ BEGIN {
     set_up_inc('../lib');
 }
 
-if ($^O eq 'dos') {
+if ($^O eq 'dos' || $^O =~ /darwin-ios/) {
     skip_all("no multitasking");
 }
 
