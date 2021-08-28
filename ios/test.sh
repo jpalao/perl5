@@ -69,7 +69,7 @@ check_host_perl_version () {
     macos_perl_version=`perl -v`
     macos_perl_version_grep=`echo "$macos_perl_version" | grep -o "$PERL_VERSION"`
     if [ "$macos_perl_version_grep" = "$PERL_VERSION" ]; then
-        echo "perl $PERL_VERSION seems installed at"
+        echo "perl $PERL_VERSION seems installed at:"
         echo `which perl`
         return 1
     else
