@@ -6,11 +6,9 @@ BEGIN {
     set_up_inc('../lib');
 }
 
-if ($^O eq 'dos') {
+if ($^O eq 'dos' || $^O =~ /darwin-ios/) {
     skip_all("no multitasking");
 }
-
-skip_all("iOS: no mulitasking") if $^O =~ /darwin-ios/;
 
 plan tests => 3;
 watchdog(10, $^O eq 'MSWin32' ? "alarm" : '');
