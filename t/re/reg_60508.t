@@ -20,7 +20,9 @@ k2.1 = >\x{2022}
 k2.2 = \x{2022}
 EXPECT
     utf8::encode($expect);
+
     #local $TODO = "[perl #60508]";
+
     my $code = <<'CODE';
 binmode STDOUT, ":utf8";
 sub f { $_[0] =~ s/([>X])//g; }
