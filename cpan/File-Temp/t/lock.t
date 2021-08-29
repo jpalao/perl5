@@ -28,26 +28,19 @@ my $flags = O_CREAT | O_RDWR | O_EXLOCK;
 
 my $timeout = 5;
 my $status;
-
-SKIP: {
-    if ($^O =~ /darwin-ios/) {
-        skip('iOS: #TODO', 1);
-    } else {
-        eval {
-           local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
-           alarm $timeout;
-           my $newfh;
-           $newfh = &Symbol::gensym if $] < 5.006;
-           $status = sysopen($newfh, "$fh", $flags, 0600);
-           alarm 0;
-        };
-
-        if ($@) {
-            die unless $@ eq "alarm\n";   # propagate unexpected errors
-        }
-    }
-    ok( !$status, "File $fh is locked" );
+eval {
+   local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+   alarm $timeout;
+   my $newfh;
+   $newfh = &Symbol::gensym if $] < 5.006;
+   $status = sysopen($newfh, "$fh", $flags, 0600);
+   alarm 0;
+};
+if ($@) {
+   die unless $@ eq "alarm\n";   # propagate unexpected errors
+   # timed out
 }
+ok( !$status, "File $fh is locked" );
 
 # Now get a tempfile with locking disabled
 $fh = File::Temp->new( EXLOCK => 0 );
@@ -61,11 +54,7 @@ eval {
    alarm 0;
 };
 if ($@) {
-   if ($^O !~ /darwin-ios/){
-       die unless $@ eq "alarm\n";   # propagate unexpected errors
-   } else {
-       warn "timeout" unless $@ eq "alarm\n";
-   }
+   die unless $@ eq "alarm\n";   # propagate unexpected errors
    # timed out
 }
 ok( $status, "File $fh is not locked");
