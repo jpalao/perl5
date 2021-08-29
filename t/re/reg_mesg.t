@@ -354,12 +354,6 @@ my @death =
  '/(?[ (?x:(?[ ])) ])/'  => 'Incomplete expression within \'(?[ ])\' {#} m/(?[ (?x:(?[ {#}])) ])/', # GH #16779
 );
 
-# TODO this test does not work on iOS
-if ($^O =~ /darwin-ios/) {
-    my ($index) = grep { $death[$_] ~~ "/$bug133423/" } 0 .. $#death;
-    splice(@death, $index, $index + 2);
-}
-
 # These are messages that are death under 'use re "strict"', and may or may
 # not warn otherwise.  See comment before @warning as to why some have a
 # \x{100} in them.  This array has 3 elements per construct.  [0] is the regex
