@@ -992,8 +992,7 @@ sub run_tests {
     # check that the optimiser is applied to code blocks: see if aelem has
     # been converted to aelemfast
 
-SKIP: {
-    skip('not working on iOS', 5) if $^O =~ /darwin-ios/;
+    {
 	my $out;
 	for my $prog (
 	    '/(?{$a[0]})/',
