@@ -384,18 +384,15 @@ sub run_tests {
         match $_, $out_pat, $in_pat  for @out;
     }
 
-SKIP: {
     print "# User-defined properties with errors in their definition\n";
-    skip('iOS: TODO', 5) if $^O =~ /darwin-ios/;
     while (my $error_property = shift @USER_ERROR_PROPERTIES) {
         my $error_re = shift @USER_ERROR_PROPERTIES;
 
+        utf8::decode($error_property) if $^O =~ /darwin-ios/;
         undef $@;
         eval { 'A' =~ /\p{$error_property}/; };
-
         like($@, $error_re, "$error_property gave correct failure message");
     }
-}
 }
 
 
