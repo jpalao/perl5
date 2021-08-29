@@ -1906,7 +1906,6 @@ EOP
                 fresh_perl_is($code, $expect, {}, "$bug - $test_name" );
             }
         }
-
         {
             my $is_cygwin = $^O eq "cygwin";
             local $::TODO = "this flaps on github cygwin vm, but not on cygwin iron #18129"
