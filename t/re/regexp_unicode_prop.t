@@ -9,7 +9,6 @@ use strict;
 use warnings;
 use v5.16;
 use utf8;
-use Config;
 
 # To verify that messages containing the expansions work on UTF-8
 my $utf8_comment;
@@ -21,7 +20,6 @@ BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
     skip_all_if_miniperl("no dynamic loading on miniperl, no File::Spec (used by charnames)");
-    skip_all("iOS: TODO") if $^O =~ /darwin-ios/;
 }
 
 sub run_tests;
@@ -293,8 +291,7 @@ sub match {
 }
 
 sub run_tests {
-if (!$^O =~ /darwin-ios/)
-{
+
     for (my $i = 0; $i < @DEFERRED; $i+=2) {
         if (ref $DEFERRED[$i+1] eq 'ARRAY') {
             my ($str, $name) = get_str_name($DEFERRED[$i+1][0]);
@@ -311,11 +308,6 @@ if (!$^O =~ /darwin-ios/)
                                 "$DEFERRED[$i] gave correct failure message (defn. not known until runtime)");
         }
     }
-} else {
-    for (my $i = 0; $i < @DEFERRED; $i+=2) {
-        ok("iOS: TODO\n");
-    }
-}
 
     while (@CLASSES) {
         my $class = shift @CLASSES;
@@ -391,18 +383,17 @@ if (!$^O =~ /darwin-ios/)
         match $_, $in_pat,  $out_pat for @in;
         match $_, $out_pat, $in_pat  for @out;
     }
-if ($^O =~ /darwin-ios/) {
+
+SKIP: {
     print "# User-defined properties with errors in their definition\n";
+    skip('iOS: TODO', 5) if $^O =~ /darwin-ios/;
     while (my $error_property = shift @USER_ERROR_PROPERTIES) {
         my $error_re = shift @USER_ERROR_PROPERTIES;
 
         undef $@;
         eval { 'A' =~ /\p{$error_property}/; };
+
         like($@, $error_re, "$error_property gave correct failure message");
-    }
-} else {
-    while (my $error_property = shift @USER_ERROR_PROPERTIES) {
-        ok("iOS: TODO\n");
     }
 }
 }
