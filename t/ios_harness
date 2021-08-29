@@ -24,9 +24,10 @@ my @ios_blacklist = (
     # TODO
     'io/perlio_leaks.t',
 
-    # test race cond?
+    # TODO race cond?
     're/pat_advanced.t',
     're/pat_advanced_thr.t',
+    're/regexp_unicode_prop_thr.t',
 
     # DB_File not built in
     '../cpan/DB_File/t/db-threads.t',
@@ -66,26 +67,22 @@ my @ios_blacklist = (
 );
 
 my @simul_blacklist = (
-    'io/argv.t',
-    'io/fflush.t',
-    'io/defout.t',
-    'io/inplace.t',
-
     'run/switches.t',
     'run/switchd.t',
-        'run/switchM.t',
+    'run/switchM.t',
+
     'cmd/switch.t',
 
-    'op/do.t',
+    'io/argv.t',
+
     'op/64bitint.t',
-    #'op/chr.t'
-    'op/chdir.t',
-    'op/heredoc.t',
+    'op/blocks.t',
+    'op/coreamp.t',
     'op/pack.t',
     'op/sprintf2.t',
     'op/stat.t',
     'op/vec.t',
-    
+
     'porting/checkcase.t',
     'porting/checkcfgvar.t',
     'porting/checkcfgvar.t',
@@ -104,18 +101,6 @@ my @simul_blacklist = (
     '../cpan/Archive-Tar/t/02_methods.t',
     '../cpan/Archive-Tar/t/04_resolved_issues.t',
     '../cpan/Filter-Util-Call/t/call.t',
-    '../cpan/Pod-Simple/t/htmlbat.t',
-
-    '../cpan/Pod-Simple/t/search10.t',
-    '../cpan/Pod-Simple/t/search12.t',
-    '../cpan/Pod-Simple/t/search20.t',
-    '../cpan/Pod-Simple/t/search22.t',
-    '../cpan/Pod-Simple/t/search25.t',
-    '../cpan/Pod-Simple/t/search26.t',
-    '../cpan/Pod-Simple/t/search27.t',
-    '../cpan/Pod-Simple/t/search28.t',
-    '../cpan/Pod-Simple/t/search29.t',
-    '../cpan/Pod-Simple/t/search60.t',
     
     '../cpan/Scalar-List-Utils/t/uniqnum.t',
     
@@ -133,21 +118,6 @@ my @simul_blacklist = (
     '../ext/File-Find/t/taint.t',
     '../ext/File-Glob/t/basic.t',
     '../ext/File-Glob/t/threads.t',
-
-    '../ext/XS-APItest/t/join_with_space.t',
-    '../ext/XS-APItest/t/keyword_multiline.t',
-    '../ext/XS-APItest/t/keyword_plugin.t',
-    '../ext/XS-APItest/t/loopblock.t',
-    '../ext/XS-APItest/t/newDEFSVOP.t',
-    '../ext/XS-APItest/t/scopelessblock.t',
-    '../ext/XS-APItest/t/stmtasexpr.t',
-    '../ext/XS-APItest/t/stmtsasexpr.t',
-    '../ext/XS-APItest/t/stuff_modify_bug.t',
-    '../ext/XS-APItest/t/stuff_svcur_bug.t',
-    '../ext/XS-APItest/t/subsignature.t',
-    '../ext/XS-APItest/t/swaplabel.t',
-    '../ext/XS-APItest/t/swaptwostmts.t',
-    '../ext/XS-APItest/t/synthetic_scope.t',
 
     '../lib/perl5db.t',
 );
@@ -187,6 +157,7 @@ sub exclude_tests {
             }
         }
         @tests = grep(/^(?:(?!\.\.\/ext\/Pod\-Html))/, @tests);
+        @tests = grep(/^(?:(?!\.\.\/cpan\/Pod\-Simple))/, @tests);
     }
 
 	# TODO. Device w/ make for CPAN installations that do not require cc
