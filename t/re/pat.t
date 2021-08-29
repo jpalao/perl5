@@ -1283,7 +1283,6 @@ sub run_tests {
         unlike($str, qr/\P{ASCII_Hex_Digit=False}/, "Non-Unicode matches \\P{AHEX=FALSE}");
     }
 
-SKIP: 
     {
         # Test that IDstart works, but because the author (khw) knows
         # regexes much better than the rest of the core, it is being done here
@@ -1292,12 +1291,9 @@ SKIP:
         use utf8;
         my $str = "abc";
         like($str, qr/(?<a>abc)/, "'a' is legal IDStart");
-        {
-            skip('iOS: TODO is legal IDStart', 6) if $^O =~ /darwin-ios/;
-            like($str, qr/(?<_>abc)/, "'_' is legal IDStart");
-            like($str, qr/(?<ß>abc)/, "U+00DF is legal IDStart");
-            like($str, qr/(?<ℕ>abc)/, "U+2115' is legal IDStart");
-        }
+        like($str, qr/(?<_>abc)/, "'_' is legal IDStart");
+        like($str, qr/(?<ß>abc)/, "U+00DF is legal IDStart");
+        like($str, qr/(?<ℕ>abc)/, "U+2115' is legal IDStart");
 
         # This test works on Unicode 6.0 in which U+2118 and U+212E are legal
         # IDStarts there, but are not Word characters, and therefore Perl
@@ -1310,7 +1306,7 @@ use utf8;;
 "abc" =~ qr/(?<$char>abc)/;
 EOP
             utf8::encode($prog);
-            fresh_perl_like($prog, qr!Group name must start with a non-digit word character!, {switches => [ '-I.']},
+            fresh_perl_like($prog, qr!Group name must start with a non-digit word character!, {},
                         sprintf("'U+%04X not legal IDFirst'", ord($char)));
         }
     }
@@ -1910,12 +1906,13 @@ EOP
                 fresh_perl_is($code, $expect, {}, "$bug - $test_name" );
             }
         }
-        SKIP:
+
         {
-            skip('iOS: TODO breaking with threads enabled', 2) if $^O =~ /darwin-ios/;
             my $is_cygwin = $^O eq "cygwin";
             local $::TODO = "this flaps on github cygwin vm, but not on cygwin iron #18129"
               if $is_cygwin;
+            local $::TODO = "iOS: TODO"
+              if $^O =~ /darwin-ios/;
             my $expected = "Timeout";
             my $code = '
                 BEGIN{require q(test.pl);}
@@ -1932,7 +1929,7 @@ EOP
             my ($iter, $result, $status);
             for my $i (1..$max) {
                 $iter = $i;
-                $result = fresh_perl($code,{switches => [ '-I.']});
+                $result = fresh_perl($code,{});
                 $status = $?;
                 last if $result ne $expected;
             }
