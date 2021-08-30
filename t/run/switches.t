@@ -693,19 +693,6 @@ $r = runperl(
 );
 is( $r, "Hello, world!\n", "-E say" );
 
-
-$r = runperl(
-    switches	=> [ '-E', '"no warnings q{experimental::smartmatch}; undef ~~ undef and say q(Hello, world!)"']
-);
-is( $r, "Hello, world!\n", "-E ~~" );
-
-my $tt = $^O =~ /darwin-ios/ ? 'no warnings q{experimental::smartmatch}; given(undef) {when(undef) { say q(Hello, world!)}}' :
-    '"no warnings q{experimental::smartmatch}; given(undef) {when(undef) { say q(Hello, world!)"}}';
-$r = runperl(
-    switches	=> [ '-E', $tt]
-);
-is( $r, "Hello, world!\n", "-E given" );
-
 $r = runperl(
     switches    => [ '-nE', q("} END { say q/affe/") ],
     stdin       => 'zomtek',
