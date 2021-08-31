@@ -2,7 +2,6 @@
 
 use strict;
 use File::Find;
-use Config;
 
 =head1 NAME
 
