@@ -9,7 +9,7 @@ use TAP::Parser::IteratorFactory       ();
 
 if (IS_IOS) {
     use cbrunperl;
-    use TAP::Parser::Iterator::Array   ();
+    use TAP::Parser::Iterator::iOS   ();
 } else {
     use TAP::Parser::Iterator::Process ();
 }
@@ -148,7 +148,7 @@ to L<TAP::Parser::Iterator::Process>.
 
 =cut
 
-use constant iterator_class => IS_IOS ? 'TAP::Parser::Iterator::Array' :
+use constant iterator_class => IS_IOS ? 'TAP::Parser::Iterator::iOS' :
                                         'TAP::Parser::Iterator::Process';
 
 # Turns on autoflush for the handle passed
