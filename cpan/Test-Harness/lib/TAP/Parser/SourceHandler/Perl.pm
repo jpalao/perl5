@@ -6,9 +6,14 @@ use Config;
 
 use constant IS_WIN32 => ( $^O =~ /^(MS)?Win32$/ );
 use constant IS_VMS => ( $^O eq 'VMS' );
+use constant IS_IOS => ( $^O =~ 'darwin-ios' );
 
-use TAP::Parser::IteratorFactory           ();
-use TAP::Parser::Iterator::Process         ();
+use TAP::Parser::IteratorFactory               ();
+if (IS_IOS) {
+    use TAP::Parser::Iterator::iOS             ();
+} else {
+    use TAP::Parser::Iterator::Process         ();
+}
 use Text::ParseWords qw(shellwords);
 
 use base 'TAP::Parser::SourceHandler::Executable';
@@ -248,13 +253,16 @@ sub _run {
 sub _create_iterator {
     my ( $class, $source, $command, $setup, $teardown ) = @_;
 
-    return TAP::Parser::Iterator::Process->new(
-        {   command  => $command,
-            merge    => $source->merge,
-            setup    => $setup,
-            teardown => $teardown,
-        }
-    );
+    my $iterator = {   command  => $command,
+        merge    => $source->merge,
+        setup    => $setup,
+        teardown => $teardown,
+    };
+    if (IS_IOS) {
+        return TAP::Parser::Iterator::iOS->new($iterator);
+    } else {
+        return TAP::Parser::Iterator::Process->new($iterator);
+    }
 }
 
 sub _get_command_for_switches {
