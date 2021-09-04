@@ -10,19 +10,16 @@ require './t/test.pl';
 if ($^O =~ /darwin-ios/)
 {
     use Cwd;
-    use cbrunperl;    
-    warn "getcwd(): " . getcwd() ."\n";
+    use cbrunperl;
     exec_perl({
         pwd => getcwd(), 
         switches => ["-I.", "-MTestInit"], 
         progfile => "Porting/bench.pl",
         args => ["--action=selftest"]
     });
-    chdir 't' if -d 't' && $^O =~ /darwin-ios/;
 }
 else
 {
     system "$^X -I. -MTestInit Porting/bench.pl --action=selftest";
 }
-
 
