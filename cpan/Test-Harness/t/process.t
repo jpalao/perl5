@@ -12,6 +12,7 @@ BEGIN {
 
 use Test::More (
       $^O eq 'VMS' ? ( skip_all => 'VMS' )
+    : $^O =~ 'darwin-ios' ? ( skip_all => 'iOS' )
     : $hires ? ( tests => 9 * 3 )
     : ( skip_all => 'Need Time::HiRes' )
 );
