@@ -13,7 +13,7 @@ use Test::More;
 
 plan skip_all => 'Dynaloading not enabled' if !$Config{usedl} or $Config{usedl} ne 'define';
 plan skip_all => "ExtUtils::CBuilder not installed or couldn't find a compiler"
-  unless have_compiler() && ($^O !~ /darwin-ios/);
+  unless have_compiler();
 my @tests = list_dynamic();
 plan skip_all => "No tests" unless @tests;
 plan tests => 6 * @tests;

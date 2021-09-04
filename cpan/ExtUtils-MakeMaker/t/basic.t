@@ -23,8 +23,7 @@ use MakeMaker::Test::Setup::BFD;
 use Config;
 use ExtUtils::MM;
 use Test::More
-    ( ( !MM->can_run(make()) && $ENV{PERL_CORE} && $Config{'usecrosscompile'} ) ||
-    $^O =~ /darwin-ios/ )
+    !MM->can_run(make()) && $ENV{PERL_CORE} && $Config{'usecrosscompile'}
     ? (skip_all => "cross-compiling and make not available")
     : (tests => 188);
 use File::Find;
