@@ -92,7 +92,7 @@ sub wait { shift->exit }
 
 sub exit {
     my $self = shift;
-    return 0 if $self->{idx} >= @{ $self->{array} };
+    return 0 if $self->{array} && $self->{idx} >= @{ $self->{array} };
     return;
 }
 
