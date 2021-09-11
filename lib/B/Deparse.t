@@ -2135,7 +2135,7 @@ $a x= $b;
 # @_ with padrange
 my($a, $b, $c) = @_;
 ####
-# SKIP ? $^O =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/ && "iOS: TODO"
 # SKIP ?$] < 5.017004 && "lexical subs not implemented on this Perl version"
 # lexical subroutine
 # CONTEXT use feature 'lexical_subs';
@@ -2149,7 +2149,7 @@ my sub f {
 }
 print f();
 ####
-# SKIP ? $^O =~ /darwin-ios/
+# SKIP ? $^O =~ /darwin-ios/ && "iOS: TODO"
 # SKIP ?$] < 5.017004 && "lexical subs not implemented on this Perl version"
 # lexical "state" subroutine
 # CONTEXT use feature 'state', 'lexical_subs';
