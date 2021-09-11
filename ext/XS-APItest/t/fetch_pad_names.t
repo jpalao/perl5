@@ -41,27 +41,24 @@ my $names_av    = fetch_pad_names($cv);
 my $flagged     = my $unflagged = "\$z\x{c3}\x{a8}st";
 Encode::_utf8_on($flagged);
 
-SKIP: {
-    skip('iOS: #TODO', 10) if $^O =~ /darwin-ios/;
-    general_tests( $cv->(), $names_av, {
-        results => [
-                    { cmp => 'latin-1', msg => 'Fetches through UTF-8.' },
-                    { cmp => 'latin-1', msg => 'Fetches through Latin-1.' },
-                    { cmp => 'NOT_IN_PAD', msg => "Doesn't fetch using octets." },
-                   ],
-        pad_size => {
-                        total     => { cmp => 2, msg => 'Sub has two lexicals.' },
-                        utf8      => { cmp => 2, msg => 'Sub has only UTF-8 vars.' },
-                        invariant => { cmp => 0, msg => 'Sub has no invariant vars.' },
-                    },
-        vars    => [
-                    { name => '$zest', msg => 'Sub has [\$zest].', type => 'ok' },
-                    { name =>  "\$z\x{e8}st", msg => "Sub has [\$t\x{e8}st].", type => 'ok' },
-                    { name => $unflagged, msg => "Sub doesn't have [$unflagged].", type => 'not ok' },
-                    { name => $flagged, msg => "But does have it when flagged.", type => 'ok' },
-                   ],
-    });
-}
+general_tests( $cv->(), $names_av, {
+    results => [
+                { cmp => 'latin-1', msg => 'Fetches through UTF-8.' },
+                { cmp => 'latin-1', msg => 'Fetches through Latin-1.' },
+                { cmp => 'NOT_IN_PAD', msg => "Doesn't fetch using octets." },
+               ],
+    pad_size => {
+                    total     => { cmp => 2, msg => 'Sub has two lexicals.' },
+                    utf8      => { cmp => 2, msg => 'Sub has only UTF-8 vars.' },
+                    invariant => { cmp => 0, msg => 'Sub has no invariant vars.' },
+                },
+    vars    => [
+                { name => '$zest', msg => 'Sub has [\$zest].', type => 'ok' },
+                { name =>  "\$z\x{e8}st", msg => "Sub has [\$t\x{e8}st].", type => 'ok' },
+                { name => $unflagged, msg => "Sub doesn't have [$unflagged].", type => 'not ok' },
+                { name => $flagged, msg => "But does have it when flagged.", type => 'ok' },
+               ],
+});
 
 $cv = do {
     my $ascii = 'Defined';
@@ -119,13 +116,9 @@ END
 my $err = $@;
 ok !$err, $@;
 
-SKIP: {
-    skip('iOS: #TODO', 12) if $^O =~ /darwin-ios/;
+$names_av = fetch_pad_names($cv);
 
-    $names_av = fetch_pad_names($cv);
-
-    general_tests( $cv->(), $names_av,
-    {
+general_tests( $cv->(), $names_av, {
     results => [
                 { cmp => 'Invariant', msg => '' },
                 { cmp => 'Latin-1', msg => "Fetched through [$leon1]" },
@@ -144,12 +137,10 @@ SKIP: {
                 { name => $leon2, msg => "Sub has [$leon2].", type => 'ok' },
                 { name => $leon3, msg => "Sub doesn't have [$leon3]", type => 'not ok' },
                ],
-    });
-}
+});
 
-SKIP: {
-    skip('iOS: #TODO', 8) if $^O =~ /darwin-ios/;
 
+{
     use utf8;
     my $Cèon = 4;
     my $str1 = "\$C\x{e8}on";
