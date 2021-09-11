@@ -80,7 +80,7 @@ SKIP: {
 }
 # check plain tilde expansion
 SKIP: {
-    skip('iOS: no $ENV{HOME}', 2) if $^O =~ /darwin-ios/;
+    skip('iOS: ~ expands to /var/mobile', 2) if $^O =~ /darwin-ios/;
     my $tilde_check = sub {
         my @a = bsd_glob('~');
 
@@ -177,7 +177,7 @@ is_deeply(\@a, ['TEST', 'a', 'b'], "Got list of 3 elements, including 'TEST'");
 
 # "~" should expand to $ENV{HOME}
 SKIP: {
-    skip('iOS: no $ENV{HOME}', 2) if $^O =~ /darwin-ios/;
+    skip('iOS: ~ expands to /var/mobile', 2) if $^O =~ /darwin-ios/;
     local $ENV{HOME} = "sweet home";
     @a = bsd_glob('~', GLOB_TILDE | GLOB_NOMAGIC);
     is_deeply(\@a, [$ENV{HOME}], "~ expands to envvar \$HOME");
