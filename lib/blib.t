@@ -6,7 +6,6 @@ BEGIN {
 }
 
 use strict;
-use Config;
 use File::Spec;
 my($blib, $blib_arch, $blib_lib, @blib_dirs);
 
