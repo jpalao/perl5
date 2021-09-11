@@ -150,11 +150,9 @@ can_ok( 'main', "qx" );
 eval "qx('unqualified'".
      ($^O eq 'MSWin32' ? " 2>&1)" : ")");
 TODO: {
-    local $::TODO = $^O eq 'MSWin32' ? "Tainting of PATH not working of Windows" : $::TODO;
-    if ($^O =~ 'darwin') {
-        use Config;
-        $::TODO = "iOS: PATH taint not working" if $^O =~ /darwin-ios/;
-    }
+    local $::TODO = $^O eq 'MSWin32' ? "Tainting of PATH not working on Windows" :
+                    $^O =~ 'darwin-ios' ? "Tainting of PATH not working on iOS"  :
+                    $::TODO;
     like( $@, qr/^Insecure/, "qx('unqualified') doesn't work" );
 }
 is( main::qx('main'), "qx-main", "main::qx() is func" );
