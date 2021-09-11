@@ -18,7 +18,7 @@ else {print "not ok 1\n";}
 # check `` processing
 use Config;
 if ($^O =~ /darwin-ios/) {
-  print "ok 2 # skipped on ios: no `` processing\n"
+  print "ok 2 # iOS: no backticks\n"
 } else {
   $x = `$^X -le "print 'hi there'"`;
   if ($x eq "hi there\n") {print "ok 2\n";} else {print "not ok 2\n";}
