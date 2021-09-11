@@ -12,8 +12,6 @@ BEGIN {
 
 if (!$^O =~ /darwin-ios/) {
     use warnings;
-    use Cwd;
-    use cbrunperl;
 }
 use strict;
 
@@ -182,6 +180,8 @@ unlike($a, qr/sub g/,
 #Re: perlbug #35857, patch #24505
 #handle warnings::register-ed packages properly.
 package B::Deparse::Wrapper;
+use strict;
+use warnings;
 
 use warnings::register;
 sub getcode {
