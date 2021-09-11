@@ -122,8 +122,6 @@ open my $fh, '>', $tmpfile or die "Cannot open $tmpfile: $!";
 print $fh "no warnings;format =\n@<<<\n\$a\n@>>>\n\@b\n.";
 close $fh;
 
-SKIP: {
-skip( 'iOS: # TODO test unreliable', 2 ) if $^O =~ /darwin-ios/;
 checkOptree ( name      => 'formats',
 	      bcopts    => 'STDOUT',
 	      progfile	=> $tmpfile,
@@ -169,8 +167,6 @@ EOT_EOT
 # a              <1> rv2av[t3] lK/1 ->b
 # 9                 <$> gv(*b) s ->a
 EONT_EONT
-
-} #skip
 
 checkOptree ( name      => 'padrange',
 	      code	=> sub { my ($x,$y); @a = ($x,$y); ($x,$y) = @a },
