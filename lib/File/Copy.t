@@ -115,7 +115,7 @@ SKIP: {
   # Recheck the mtime rather than rely on utime in case we're on a
   # system where utime doesn't work or there's no mtime at all.
   # The destination file will reflect the same difficulties.
-  my $mtime = 0; #(stat("copy-$$"))[9];
+  my $mtime = (stat("copy-$$"))[9];
 
   ok move("copy-$$", "file-$$"), 'move';
   ok -e "file-$$",              '  destination exists';
@@ -158,7 +158,7 @@ SKIP: {
   open(R, "<", "lib/file-$$") or die "open lib/file-$$: $!"; $foo = <R>; close(R);
   is $foo, "ok\n", 'move(fn, dir): same contents';
   ok !-e "file-$$", 'file moved indeed';
-  unlink "lib/file-$$" or die "unlink: $!"; 
+  unlink "lib/file-$$" or die "unlink: $!";
 }
 
   SKIP: {
