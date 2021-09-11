@@ -274,7 +274,7 @@ SKIP:
 
 SKIP: {
     skip "no fcntl", 1 unless $Config{d_fcntl};
-    skip "iOS: #TODO", 1 if $^O =~ /darwin-ios/;
+    skip "iOS: this test throws 'illegal seek'", 1 if $^O =~ /darwin-ios/;
     my $sock;
     socket($sock, PF_INET, SOCK_STREAM, $tcp) or die "socket: $!";
     my $sockfd = fileno($sock);
