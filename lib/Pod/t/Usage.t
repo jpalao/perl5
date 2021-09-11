@@ -8,7 +8,6 @@ BEGIN {
 use File::Basename;
 use File::Spec;
 use Test::More;
-use Config;
 plan tests => 8;
 
 use_ok( 'Pod::Usage' );
