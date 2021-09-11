@@ -9,8 +9,6 @@ plan(4);
 
 use XS::APItest;
 
-my $runperl_args = $^O =~ /darwin-ios/ ? { 'switches' => ['-I', '../../lib'] } : undef;
-
 my ($prog, $expect) = (<<'PROG', <<'EXPECT');
 use XS::APItest;
 print "ok\n";
@@ -19,7 +17,7 @@ print "not\n";
 PROG
 ok
 EXPECT
-fresh_perl_is($prog, $expect, $runperl_args);
+fresh_perl_is($prog, $expect);
 
 # C's EXIT_FAILURE ends up as SS$_ABORT (decimal 44) on VMS, which gets
 # shifted to 4.  Perl_my_exit (unlike Perl_my_failure_exit) does not 
@@ -36,6 +34,6 @@ print "not\n";
 PROG
 ok
 EXPECT
-fresh_perl_is($prog, $expect, $runperl_args);
+fresh_perl_is($prog, $expect);
 is($? >> 8, $exit_failure, "exit code my_exit inside a call_sv with G_EVAL");
 
