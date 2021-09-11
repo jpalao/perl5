@@ -434,7 +434,6 @@ SKIP: {
     is(POSIX::close($testfd), '0 but true', 'close');
     $! = 0;
     is(read($fd1, $buffer, 4), undef, 'read on closed file handle fails');
-    diag("JOSEEEE: $fd1, $buffer");
     cmp_ok($!, '==', POSIX::EBADF);
 }
 
