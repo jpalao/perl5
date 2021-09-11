@@ -240,13 +240,9 @@ $d->dumpvars( 'Fake', 'veryfake' );
 like( $out->read, qr/^String space:/, 'printed usage message fine' );
 delete $d->{usageOnly};
 
-TODO: {
-    # this should report @INC and %INC
-    todo_skip('iOS: dumped variables from a package', 1)
-        if $^O =~ /darwin-ios/;
-    $d->dumpvars( 'main', 'INC' );
-    like( $out->read, qr/\use lib /, 'dumped variables from a package' );
-}
+# this should report @INC and %INC
+$d->dumpvars( 'main', 'INC' );
+like( $out->read, qr/\@INC =/, 'dumped variables from a package' );
 
 # this should report nothing
 $DB::signal = 1;
