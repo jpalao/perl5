@@ -9,8 +9,7 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
-    skip_all('iOS: #TODO')
-        if $^O =~ /darwin-ios/;
+    skip_all('iOS: #TODO') if $^O =~ 'darwin-ios';
     set_up_inc('../lib');
     skip_all_without_dynamic_extension('Fcntl');
 }
