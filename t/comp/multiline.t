@@ -90,9 +90,14 @@ if ($^O =~ /darwin-ios/) {
   while(<FH>){
     $out .= $_;
   }
+} else {
+  $out = (($^O eq 'MSWin32') || $^O eq 'NetWare') ? `type $filename`
+  : ($^O eq 'VMS') ? `type $filename.;0`   # otherwise .LIS is assumed
+  : `cat $filename`;
 }
 
 like($out, qr/.*\n.*\n.*\n$/);
-is($out, $y);
+
 close(TRY) || (die "Can't close $filename: $!");
 
+is($out, $y);
