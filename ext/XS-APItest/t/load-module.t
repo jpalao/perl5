@@ -55,18 +55,12 @@ for (["", qr!\ABareword in require maps to empty filename!],
     ["WOOSH\0sock", qr!\ACan't locate WOOSH\\0sock.pm:!],
     )
 {
-SKIP:   {
     my ($module, $error) = @$_;
-    if ($module eq "WOOSH\0sock" && $^O =~ /darwin-ios/) {
-        skip('iOS: # TODO', 2);
-    } else {
-        my $module2 = $module; # load_module mangles its first argument
-        no warnings 'syscalls';
-        is(eval { load_module(PERL_LOADMOD_NOIMPORT, $module); 1}, undef,
-           "expect load_module() for '$module2' to fail");
-        like($@, $error, "check expected error for $module2");
-    }
-        }
+    my $module2 = $module; # load_module mangles its first argument
+    no warnings 'syscalls';
+    is(eval { load_module(PERL_LOADMOD_NOIMPORT, $module); 1}, undef,
+       "expect load_module() for '$module2' to fail");
+    like($@, $error, "check expected error for $module2");
 }
 
 done_testing();
