@@ -39,6 +39,7 @@ WORKDIR=`pwd`
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
+PERL_TEST_LOG="$IOS_MOUNTPOINT/perl-tests.txt"
 
 # CAMELBONES #
 export CAMELBONES_PREFIX="$CAMELBONES_PREFIX"
@@ -106,11 +107,6 @@ prepare_ios() {
   git clone --single-branch --branch "$PERL_5_BRANCH" "$PERL5_GIT" "perl-$PERL_VERSION"
 }
 
-prepare_appletv() {
-  rm -Rf "perl-$PERL_VERSION"
-  git clone --single-branch --branch "$PERL_5_BRANCH" "$PERL5_GIT" "perl-$PERL_VERSION"
-}
-
 build_libffi() {
     pushd ./libffi-3.2.1
     xcodebuild -scheme libffi-"$CAMELBONES_TARGET"
@@ -171,10 +167,6 @@ test_perl_device() {
     git checkout ext/File-Find/t/find.t
     git checkout ext/File-Find/t/taint.t
 
-    # exceptions
-    git checkout ext/File-Find/t/find.t
-    git checkout ext/File-Find/t/taint.t
-
     echo 'Patched files:'
     git --no-pager diff --name-only
 
@@ -203,21 +195,13 @@ test_perl_device() {
     check_exit_code
     sleep 2
     
-    # needed for scrolling to keep in sync w/ device's ifuse fs
-    perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
-    REFRESH_PID=$!
+    TEST_SH_PID=$$
+    # keep scrolling in sync w/ device's ifuse fs and exit after PASS|FAIL
+    perl -s -w -e 'while (1) {`ls '"$IOS_MOUNTPOINT"'`; `tail -2 '"$PERL_TEST_LOG"' | grep -E "Result: (PASS|FAIL)" > /dev/null 2>&1`; if (!$?) { `kill '"$TEST_SH_PID"'`; exit 0 }}' > /dev/null 2>&1 &
+    
     sleep 2
     
-    tail -f $IOS_MOUNTPOINT/perl-tests.txt
-    
-    echo "kill $REFRESH_PID"
-    kill $REFRESH_PID
-    check_exit_code
-    
-    umount -f $IOS_MOUNTPOINT
-    
-    rm -Rf $IOS_MOUNTPOINT
-    check_exit_code
+    tail -f "$PERL_TEST_LOG"
 }
 
 build_camelbones_framework() {

@@ -5,7 +5,7 @@ BEGIN {
     require Test::More;
     if ((!$Config{'d_fork'}
        # open2/3 supported on win32
-       && $^O ne 'MSWin32' && $^O ne 'NetWare')) ||
+       && $^O ne 'MSWin32' && $^O ne 'NetWare') ||
        $^O =~ /darwin-ios/)
     {
 	Test::More->import(skip_all => 'open2/3 not available with MSWin32+Netware');

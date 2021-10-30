@@ -131,10 +131,6 @@ $dummy  =   int $var    ; check_count 'int $tied_inf';
 }
 $dummy  = atan2 $var, 1 ; check_count 'atan2';
 
-SKIP:
-{
-skip('iOS: TODO', 245) if $^O =~ /darwin-ios/;
-
 # Readline/glob
 tie my $var0, "main", \*DATA;
 $dummy  = <$var0>       ; check_count '<readline>';
@@ -256,7 +252,6 @@ for ([chdir=>''],[chmod=>'0,'],[chown=>'0,0,'],[utime=>'0,0,'],
     eval "$op $args \$ref $postargs";
     check_count "$op $args\\\$tied_glob$postargs";
 }
-} # SKIP
 
 SKIP:
 {

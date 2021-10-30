@@ -3,13 +3,6 @@
 # Calls all tests in op/inccode.t after tying @INC first.
 
 use Tie::Array;
-use Config;
-
-if ($^O =~ /darwin-ios/) {
-    use Cwd;
-    use cbrunperl;
-}
-
 my @orig_INC = @INC;
 tie @INC, 'Tie::StdArray';
 @INC = @orig_INC;

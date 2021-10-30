@@ -281,13 +281,6 @@ eval { die "foo\n" };
 is $@, "foo\n";
 
 ok !*@{HASH}, 'no %@';
-SKIP:
-{
-    skip('iOS: #TODO', 2) if $Is_Ios;
-    eval { warn "foo\n" };
-    is $@, "foo\n";
-    ok !*@{HASH}, 'no %@';
-}
 
 cmp_ok($$, '>', 0);
 my $pid = $$;
@@ -476,7 +469,7 @@ EOP
   }
 }
 
-SKIP: {
+{
     my $ok = 1;
     my $warn = '';
     local $SIG{'__WARN__'} = sub { $ok = 0; $warn = join '', @_; $warn =~ s/\n$//; };
@@ -702,7 +695,7 @@ fresh_perl_is
 # ${^OPEN} and $^H interaction
 # Setting ${^OPEN} causes $^H to change, but setting $^H would only some-
 # times make ${^OPEN} change, depending on whether it was in the same BEGIN
-# block.  Don't test actual values (subject to change); just test for
+# block.  Don’t test actual values (subject to change); just test for
 # consistency.
 my @stuff;
 eval '

@@ -21,10 +21,10 @@ TODO: {
         my $base_fd = do{ open my $in, '<', $0 or die $!; fileno $in };
 
         for(1 .. 3){
-        if ($^O !~ /darwin-ios/ && $_ == 1) {
-            skip("iOS: STDIN not accessible", 1);
-        }
 	    local $::TODO;
+        if ($^O !~ /darwin-ios/ && $_ == 1) {
+            $::TODO = "iOS: STDIN not accessible";
+        }	    
 	    if ($_ > 1 && $layer =~ /^:(unix|stdio)$/) {
 		$::TODO = "[perl #56644] PerlIO resource leaks on open() and then :pop in :unix and :stdio"
 	    }

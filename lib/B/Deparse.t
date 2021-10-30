@@ -10,9 +10,8 @@ BEGIN {
     require 'test.pl';
 }
 
-if (!$^O =~ /darwin-ios/) {
-    use warnings;
-}
+
+use warnings;
 use strict;
 
 my $tests = 52; # not counting those in the __DATA__ section
@@ -366,17 +365,17 @@ EOCODN
 
 # CORE::format
 SKIP: {
-    skip ('iOS: no backquotes', 2) if $^O =~ /darwin-ios/;
-    $a = readpipe qq`$^X $path "-MO=Deparse" -e "use feature q|:all|;`
-                 .qq` my sub format; CORE::format =" -e. 2>&1`;
-    like($a, qr/CORE::format/, 'CORE::format when lex format sub is in scope');
+skip ('iOS: no backquotes', 2) if $^O =~ /darwin-ios/;
+$a = readpipe qq`$^X $path "-MO=Deparse" -e "use feature q|:all|;`
+             .qq` my sub format; CORE::format =" -e. 2>&1`;
+like($a, qr/CORE::format/, 'CORE::format when lex format sub is in scope');
 
-    # literal big chars under 'use utf8'
-    is($deparse->coderef2text(sub{ use utf8; /€/; }),
-    '{
-        /\x{20ac}/;
-    }',
-    "qr/euro/");
+# literal big chars under 'use utf8'
+is($deparse->coderef2text(sub{ use utf8; /€/; }),
+'{
+    /\x{20ac}/;
+}',
+"qr/euro/");
 }
 
 

@@ -634,7 +634,7 @@ END_TAP
 
     isa_ok $parser, 'TAP::Parser';
 
-    if ($^O =~ 'darwin-ios') {
+    if ($^O =~ /darwin-ios/) {
         isa_ok $parser->_iterator, 'TAP::Parser::Iterator::iOS';
     } else {
         isa_ok $parser->_iterator, 'TAP::Parser::Iterator::Process';

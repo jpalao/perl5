@@ -160,7 +160,7 @@ for my $test (@schedule) {
         }
         else {
             SKIP: {
-                skip('iOS: #TODO', 1) if $^O =~ 'darwin-ios';
+                skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
                 ok @$stash == 0, "$name: EOF OK";
 
                 # Make sure we only get one EOF per stream

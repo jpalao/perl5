@@ -10,7 +10,6 @@ require './t/test.pl';
 if ($^O =~ /darwin-ios/)
 {
     use Cwd;
-    use cbrunperl;
     exec_perl({
         pwd => getcwd(), 
         switches => ["-I.", "-MTestInit"], 

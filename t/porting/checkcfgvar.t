@@ -35,8 +35,7 @@ if ( $Config{usecrosscompile} ) {
 
 if ($^O =~ /darwin-ios/)
 {
-    use Cwd;
-    use cbrunperl;    
+    use Cwd; 
     warn "getcwd(): " . getcwd() ."\n";
     exec_perl({
         pwd => getcwd(), 

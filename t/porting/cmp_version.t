@@ -32,8 +32,6 @@ chdir $source or die "Can't chdir to $source: $!";
 
 if ($^O =~ /darwin-ios/)
 {
-    use Cwd;
-    use cbrunperl;    
     warn "getcwd(): " . getcwd() ."\n";
     exec_perl({
         pwd => getcwd(), 
