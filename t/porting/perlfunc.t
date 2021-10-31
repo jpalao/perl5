@@ -30,6 +30,7 @@ use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 
 if ($^O =~ /darwin-ios/) {
     use Cwd qw(getcwd);
+    use cbrunperl;
     my $result;
     my %runperl_config = (
         'progfile' => 'ext/Pod-Functions/Functions_pm.PL',
