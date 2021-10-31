@@ -113,7 +113,7 @@ END {
 
 SKIP: {
 skip('iOS: no backticks', 2) if $Is_Ios;
-eval '$ENV{"FOO"} = "hi there";'; # check that ENV is inited inside eval
+eval '$ENV{"FOO"} = "hi there";';      # check that ENV is inited inside eval
 # cmd.exe will echo 'variable=value' but 4nt will echo just the value
 # -- Nikola Knezevic
 
@@ -223,12 +223,11 @@ is join(':',@val1), join(':',@val2);
 cmp_ok @val1, '>', 1;
 
 SKIP: {
-    # [perl #24237]
-    skip('iOS: chdir $ENV{HOME} not permitted', 1) if $Is_Ios;
-    # deleting $::{ENV}
-    is runperl(prog => 'delete $::{ENV}; chdir; print qq-ok\n-'), "ok\n",
-      'deleting $::{ENV}';
-}
+skip('iOS: chdir $ENV{HOME} not permitted', 1) if $Is_Ios;
+# deleting $::{ENV}
+is runperl(prog => 'delete $::{ENV}; chdir; print qq-ok\n-'), "ok\n",
+  'deleting $::{ENV}';
+      }
 
 # regex vars
 'foobarbaz' =~ /b(a)r/;
@@ -237,8 +236,8 @@ is $&, 'bar';
 is $', 'baz';
 is $+, 'a';
 
-SKIP: {
 # [perl #24237]
+SKIP: {
 skip('iOS: #TODO', 3) if $Is_Ios;
 for (qw < ` & ' >) {
  fresh_perl_is
@@ -246,7 +245,7 @@ for (qw < ` & ' >) {
   "[f]\n", {},
   "referencing \@$_ before \$$_ etc. still saws off ampersands";
 }
-}
+      }
 
 # $"
 @a = qw(foo bar baz);
@@ -268,19 +267,21 @@ is((keys %h)[0], "foo\034bar");
 }
 
 SKIP: {
-	skip('iOS: no system', 2)
-	    if $Is_MSWin32 || $Is_NetWare || $Is_Dos || $Is_Ios;
-	# $?, $@, $$
-	system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(0)"];
-	is $?, 0;
-	system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(1)"];
-	isnt $?, 0;
-}
+skip('iOS: no system', 2) if $Is_Ios;
+# $?, $@, $$
+system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(0)"];
+is $?, 0;
+system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(1)"];
+isnt $?, 0;
+      }
 
 eval { die "foo\n" };
+SKIP: {
+skip('iOS: #TODO', 2) if $Is_Ios;
 is $@, "foo\n";
 
 ok !*@{HASH}, 'no %@';
+      }
 
 cmp_ok($$, '>', 0);
 my $pid = $$;
@@ -305,7 +306,7 @@ $$ = $pid; # Tests below use $$
 
 # $^X and $0
 SKIP: {
-    skip('iOS: no backticks', 6) if $^O =~ /darwin-ios/;
+    skip('iOS: no backticks', 8) if $^O =~ /darwin-ios/;
     my $is_abs = $Config{d_procselfexe} || $Config{usekernprocpathname}
       || $Config{usensgetexecutablepath};
     if ($^O eq 'qnx') {
@@ -483,6 +484,7 @@ SKIP: {
    no warnings 'void';
 
 # Make sure Errno hasn't been prematurely autoloaded
+
    skip('iOS: #TODO prematurely autoloaded', 1) if $Is_Ios;
    ok !keys %Errno::;
 
@@ -761,6 +763,7 @@ SKIP: {
 	skip("clearing \%ENV is not safe when running under valgrind or on VMS")
 	    if $ENV{PERL_VALGRIND} || $Is_VMS;
     skip('iOS: no backticks') if $Is_Ios;
+
 	    $PATH = $ENV{PATH};
 	    $SYSTEMROOT = $ENV{SYSTEMROOT} if exists $ENV{SYSTEMROOT}; # win32
 	    $PDL = $ENV{PERL_DESTRUCT_LEVEL} || 0;
