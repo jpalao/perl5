@@ -1,18 +1,13 @@
 package cbrunperl;
 
-=head1 NAME
-cbrunperl.pm
-=cut
-
 # auto-flush on socket
 $| = 1;
 use strict;
 use open ":std", ":encoding(UTF-8)";
-
+use CamelBones qw(:All);
 use JSON::PP;
 use Data::Dumper;
 use Cwd qw(abs_path chdir getcwd);
-use if $^O !~ /darwin-ios/, "CamelBones";
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
