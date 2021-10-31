@@ -360,7 +360,6 @@ $h->callback(
 	     );
 
 @tests = exclude_tests(@tests) if $^O =~ /darwin-ios/;
-#@tests = ('run/fresh_perl.t');
 
 my $agg = $h->runtests(@tests);
 _cleanup_valgrind(\$htoolnm, \$hgrind_ct);
