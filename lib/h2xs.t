@@ -30,6 +30,7 @@ use Config;
 
 my $Is_ios = $^O =~ /darwin-ios/;
 if ($Is_ios) {
+    use cbrunperl;
     use Cwd qw(getcwd);
 }
 
