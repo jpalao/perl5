@@ -26,6 +26,12 @@ use Test::More tests => 58;
 use File::Spec;
 use File::Find;
 
+my $Is_ios = $^O =~ /darwin-ios/;
+if ($Is_ios) {
+    use Cwd qw(getcwd);
+    use cbrunperl;
+}
+
 my $Is_VMS   = $^O eq 'VMS';
 my $Is_VMS_mode = 0;
 my $Is_VMS_lc = 0;
@@ -84,8 +90,7 @@ sub split_a_file {
     close FILE or die "Can't close $file: $!";
   }
 
-  if ($^O =~ /darwin-ios/) {
-      use Cwd qw(getcwd);
+  if ($Is_ios) {
       my ($result) = exec_perl_capture ({
         prog => "use AutoSplit; autosplit (qw(@_))",
         pwd => getcwd(),

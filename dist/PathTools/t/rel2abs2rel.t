@@ -8,8 +8,9 @@ use lib File::Spec->catdir('t', 'lib');
 
 my $Is_Ios = 0;
 
-if ($^O =~ /darw    in-ios/) {
+if ($^O =~ /darwin-ios/) {
     $Is_Ios = 1;
+    use cbrunperl;
     use Cwd qw(getcwd);
 }
 

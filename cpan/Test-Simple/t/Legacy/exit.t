@@ -22,6 +22,13 @@ use Cwd;
 use File::Spec;
 
 my $Orig_Dir = cwd;
+my $Is_Ios = 0;
+
+if ($^O =~ /darwin-ios/) {
+    use Cwd qw(getcwd);
+    use cbrunperl;
+    $Is_Ios = 1;
+};
 
 my $Perl = File::Spec->rel2abs($^X);
 if( $^O eq 'VMS' ) {
@@ -68,7 +75,7 @@ for my $exit (0..255) {
     # This correctly emulates Test::Builder's behavior.
     my $out;
     my $exit_code;
-    if ($^O =~ /darwin-ios/) {
+    if ($Is_Ios) {
         my $result;
         my %runperl_config = (
             'progfile' => 'exit_map_test',
@@ -86,7 +93,7 @@ for my $exit (0..255) {
 
     $TB->like( $out, qr/^exit $exit\n/, "exit map test for $exit" );
 
-    $Exit_Map{$exit} = exitstatus($^O =~ /darwin-ios/ ? $exit_code : $?);
+    $Exit_Map{$exit} = exitstatus($Is_Ios ? $exit_code : $?);
 }
 print "# Done.\n";
 
@@ -117,7 +124,7 @@ while( my($test_name, $exit_code) = each %Tests ) {
     my $file = File::Spec->catfile($lib, $test_name);
     my $wait_stat;
 
-    if ($^O =~ /darwin-ios/) {
+    if ($Is_Ios) {
         if ($test_name eq 'pre_plan_death.plx') {
           $TB->skip('iOS: #TODO', 1);
           next;
