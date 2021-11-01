@@ -325,8 +325,8 @@ eval { my $x = 'peace'; eval q[ print "$x\n" ] }
 EXPECT
 inner peace
 ########
-# SKIP: $^O =~ /darwin-ios/ # iOS: TODO: STDOUT STDERR capture race cond.
 -w
+# SKIP: $^O =~ /darwin-ios/ # TODO STDOUT STDERR capture race cond
 $| = 1;
 sub foo {
     print "In foo1\n";
