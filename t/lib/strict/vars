@@ -44,6 +44,7 @@ $freddy = 2 ;
 EXPECT
 
 ########
+
 # strict vars - error
 # SKIP ? $^O =~ /darwin-ios/
 use strict ;
@@ -143,6 +144,7 @@ Global symbol "$joe" requires explicit package name (did you forget to declare "
 Compilation failed in require at - line 2.
 ########
 # SKIP ? $^O =~ /darwin-ios/
+
 --FILE-- abc
 use strict 'vars' ;
 use utf8;
@@ -174,6 +176,7 @@ Compilation failed in require at - line 2.
 BEGIN failed--compilation aborted at - line 2.
 ########
 # SKIP ? $^O =~ /darwin-ios/
+
 --FILE-- abc.pm
 use strict 'vars' ;
 use utf8;
@@ -275,6 +278,7 @@ Global symbol "$joe" requires explicit package name (did you forget to declare "
 Execution of - aborted due to compilation errors.
 ########
 # SKIP ? $^O =~ /darwin-ios/
+
 # Check scope of pragma with eval
 use strict 'vars' ;
 use utf8;
@@ -404,6 +408,7 @@ Global symbol "$fred" requires explicit package name (did you forget to declare 
 Execution of - aborted due to compilation errors.
 ########
 # SKIP ? $^O =~ /darwin-ios/
+
 # strict vars with elapsed our - error
 use strict 'vars' ;
 use utf8;
@@ -507,6 +512,7 @@ Global symbol "@i_like_crackers" requires explicit package name (did you forget 
 Execution of - aborted due to compilation errors.
 ########
 # SKIP ? $^O =~ /darwin-ios/
+
 # [perl #21914] New bug > 5.8.0. Used to dump core.
 use strict 'vars';
 @k = <$k>;
@@ -522,8 +528,8 @@ EXPECT
 Global symbol "$foo" requires explicit package name (did you forget to declare "my $foo"?) at - line 3.
 Execution of - aborted due to compilation errors.
 ########
-# Regex compilation errors weren't UTF-8 clean.
 # SKIP ? $^O =~ /darwin-ios/
+# Regex compilation errors weren't UTF-8 clean.
 use strict 'vars';
 use utf8;
 use open qw( :utf8 :std );

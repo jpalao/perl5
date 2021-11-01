@@ -91,7 +91,7 @@ else {
 SKIP:
 {
     skip ('iOS: cmd pipe not supported', 2) if $^O =~ /darwin-ios/;
-    if (!$^O =~ /darwin-ios/) {
+    if ($^O !~ /darwin-ios/) {
         open $fh, "$echo_command $pass_arg|" or die $!;
         do $fh or die;
 

@@ -11,10 +11,7 @@ BEGIN {
 
 BEGIN { $| = 1 }
 
-my $tests = 28;
-$tests -= 5 if $^O =~ /darwin-ios/;
-
-plan($tests);
+plan(28);
 
 sub PVBM () { 'foo' }
 { my $dummy = index 'foo', PVBM }
@@ -39,7 +36,7 @@ sub PVBM () { 'foo' }
     ok (scalar eval { tied $pvbm; 1  }, 'tied(PVBM) doesn\'t segfault');
 }
 
-SKIP: {
+{
     my $pvbm = PVBM;
 
     ok (scalar eval { pipe $pvbm, PIPE; }, 'pipe(PVBM, ) succeeds');
@@ -51,13 +48,13 @@ SKIP: {
     ok (!eval { pipe \$pvbm, PIPE;  }, 'pipe(PVBM ref, ) fails');
     ok (!eval { pipe PIPE, \$pvbm;  }, 'pipe(, PVBM ref) fails');
 
-    ok (!eval { truncate $pvbm, 0 }, 'truncate(PVBM) fails') if !$^O =~ /darwin-ios/;
+    ok (!eval { truncate $pvbm, 0 }, 'truncate(PVBM) fails');
     ok (!eval { truncate \$pvbm, 0}, 'truncate(PVBM ref) fails');
 
-    ok (!eval { stat $pvbm }, 'stat(PVBM) fails') if !$^O =~ /darwin-ios/;
+    ok (!eval { stat $pvbm }, 'stat(PVBM) fails');
     ok (!eval { stat \$pvbm }, 'stat(PVBM ref) fails');
 
-    ok (!eval { lstat $pvbm }, 'lstat(PVBM) fails') if !$^O =~ /darwin-ios/;
+    ok (!eval { lstat $pvbm }, 'lstat(PVBM) fails');
     ok (!eval { lstat \$pvbm }, 'lstat(PVBM ref) fails');
 
     ok (!eval { chdir $pvbm }, 'chdir(PVBM) fails');
@@ -66,7 +63,7 @@ SKIP: {
     ok (!eval { close $pvbm }, 'close(PVBM) fails');
     ok (!eval { close $pvbm }, 'close(PVBM ref) fails');
 
-    ok (!eval { chmod 0600, $pvbm }, 'chmod(PVBM) fails') if !$^O =~ /darwin-ios/;
+    ok (!eval { chmod 0600, $pvbm }, 'chmod(PVBM) fails');
     ok (!eval { chmod 0600, \$pvbm }, 'chmod(PVBM ref) fails');
 
     SKIP: {
@@ -75,7 +72,7 @@ SKIP: {
         ok (!eval { chown 0, 0, \$pvbm }, 'chown(PVBM ref) fails');
     }
 
-    ok (!eval { utime 0, 0, $pvbm }, 'utime(PVBM) fails') if !$^O =~ /darwin-ios/;
+    ok (!eval { utime 0, 0, $pvbm }, 'utime(PVBM) fails');
     ok (!eval { utime 0, 0, \$pvbm }, 'utime(PVBM ref) fails');
 
     ok (!eval { <$pvbm> }, '<PVBM> fails');
