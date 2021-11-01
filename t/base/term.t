@@ -16,7 +16,6 @@ elsif ($x eq chr(21)) { print "ok 1 # EBCDIC\n"; }
 else {print "not ok 1\n";}
 
 # check `` processing
-use Config;
 if ($^O =~ /darwin-ios/) {
   print "ok 2 # iOS: no backticks\n"
 } else {

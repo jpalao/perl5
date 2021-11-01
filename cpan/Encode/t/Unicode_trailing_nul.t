@@ -7,7 +7,7 @@ use File::Spec;
 
 SKIP: {
 
-skip 'iOS: no system(), no shell redirection', 1 if $^O =~ 'darwin-ios';
+skip 'iOS: no system(), no shell redirection', 1 if $^O =~ /darwin-ios/;
 # This test relies on https://github.com/Perl/perl5/issues/10623;
 # if that bug is ever fixed then this test may never fail again.
 
