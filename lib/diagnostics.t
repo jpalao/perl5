@@ -266,4 +266,4 @@ Uncaught exception from user code:
 	BEGIN failed--compilation aborted at -e line 1.
 EOX
 
-chdir 't' if $^O =~ /darwin-ios/;
+chdir 't' if -d 't' && $^O =~ /darwin-ios/;
