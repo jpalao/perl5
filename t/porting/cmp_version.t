@@ -30,10 +30,7 @@ my $source = find_git_or_skip('all');
 my $oldpwd = getcwd();
 chdir $source or die "Can't chdir to $source: $!";
 
-if ($^O =~ /darwin-ios/)
-{
-    use Cwd;
-    use cbrunperl;    
+if ($^O =~ /darwin-ios/) {
     warn "getcwd(): " . getcwd() ."\n";
     exec_perl({
         pwd => getcwd(), 
@@ -43,9 +40,7 @@ if ($^O =~ /darwin-ios/)
     });
     chdir $oldpwd && $^O =~ /darwin-ios/;
     chdir 't' if -d 't' && $^O =~ /darwin-ios/;
-}
-else
-{
+} else {
     system "$^X Porting/cmpVERSION.pl --tap";
 }
 
