@@ -1,5 +1,9 @@
 package cbrunperl;
 
+=head1 NAME
+cbrunperl.pm
+=cut
+
 # auto-flush on socket
 $| = 1;
 use strict;
