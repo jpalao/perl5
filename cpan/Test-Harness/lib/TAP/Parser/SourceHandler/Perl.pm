@@ -6,7 +6,7 @@ use Config;
 
 use constant IS_WIN32 => ( $^O =~ /^(MS)?Win32$/ );
 use constant IS_VMS => ( $^O eq 'VMS' );
-use constant IS_IOS => ( $^O =~ 'darwin-ios' );
+use constant IS_IOS => ( $^O =~ /darwin-ios/ );
 
 use TAP::Parser::IteratorFactory               ();
 if (IS_IOS) {

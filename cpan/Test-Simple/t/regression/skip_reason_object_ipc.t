@@ -6,7 +6,7 @@ use Test2::IPC;
 use Test::Builder;
 use Test2::Util qw/CAN_REALLY_FORK/;
 
-skip_all 'No IPC' unless CAN_REALLY_FORK && $^O !~ 'darwin-ios';
+skip_all 'No IPC' unless CAN_REALLY_FORK && $^O !~ /darwin-ios/;
 
 ok(1, "pre-test");
 

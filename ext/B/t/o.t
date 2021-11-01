@@ -20,7 +20,7 @@ require_ok( 'O' );
 my @lines = get_lines( '-MO=success,foo,bar' );
 
 
-if ($^O =~ 'darwin-ios') {
+if ($^O =~ /darwin-ios/) {
     my @expected = ('Compiling!', '\(foo\) <bar>', '\[\]', '-e syntax OK');
     for my $e (@expected) {
         is( grep (qr "$e", "@lines"), 1, 'Compiler output' );
@@ -41,7 +41,7 @@ is( $lines[1], "[Compiling!", '... but should be in $O::BEGIN_output' );
 is( scalar @lines, 3, '-qq should suppress even the syntax OK message' );
 
 @lines = get_lines( '-MO=success,fail' );
-if ($^O =~ 'darwin-ios') {
+if ($^O =~ /darwin-ios/) {
     is( grep (qr/fail at .eval/, "@lines"), 1,
         'O.pm should die if backend compile() does not return a subref' );
 } else {

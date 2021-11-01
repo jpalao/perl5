@@ -29,7 +29,7 @@ use Config;
 use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 
 if ($^O =~ /darwin-ios/) {
-    use Cwd;
+    use Cwd qw(getcwd);
     use cbrunperl;
     my $result;
     my %runperl_config = (
