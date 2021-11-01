@@ -26,10 +26,10 @@ my $dir = File::Spec->catdir(
     'source_tests'
 );
 
-my $iterator_class = $^O =~ 'darwin-ios' ? 'TAP::Parser::Iterator::iOS'    :
+my $iterator_class = $^O =~ /darwin-ios/ ? 'TAP::Parser::Iterator::iOS'    :
                                            'TAP::Parser::Iterator::Process';
 
-my $perl = $^O =~ 'darwin-ios' ? 'perl' : $^X;
+my $perl = $^O =~ /darwin-ios/ ? 'perl' : $^X;
 
 my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
   qw( source source.1 source.bat source.pl source.sh source_args.sh source.t
@@ -199,7 +199,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
         $source->assemble_meta;
         my $iterator = $class->make_iterator($source);
         my @command;
-        if ($^O =~ 'darwin-ios' && !$iterator->{command}) {
+        if ($^O =~ /darwin-ios/ && !$iterator->{command}) {
             skip ('iOS: #TODO', 1);
         } else {
             @command  = @{ $iterator->{command} };
@@ -300,7 +300,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
 
 # IO::Handle TAP source tests
 SKIP: {
-    if ($^O =~ 'darwin-ios') {
+    if ($^O =~ /darwin-ios/) {
         skip ('iOS: #TODO', 21);
         exit 0;
     }
@@ -395,7 +395,7 @@ sub test_handler {
             if ( $test->{output} ) {
                 my $i = 1;
                 for my $line ( @{ $test->{output} } ) {
-                    skip ('iOS: #TODO', 1) if $^O =~ 'darwin-ios';
+                    skip ('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
                     is $iterator->next, $line, "... line $i";
                     $i++;
                 }
