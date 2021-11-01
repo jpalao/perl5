@@ -15,13 +15,13 @@ my $has_perlio = $Config{useperlio};
 
 unless (is_miniperl()) {
     if ($Config{d_fork} && eval 'require POSIX; 1') {
-	$can_fork = 1;
+	$can_fork = 1 && $^O !~ /darwin-ios/;
     }
 }
 
 use strict;
 
-plan(tests => 68 + (!is_miniperl() && $^O !~ /darwin-ios/) * (3 + 14 * $can_fork));
+plan(tests => 68 + !is_miniperl() * (3 + 14 * $can_fork));
 
 sub get_temp_fh {
     my $f = tempfile();
