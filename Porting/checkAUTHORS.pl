@@ -967,6 +967,7 @@ john\100atlantech.com                   john\100titanic.atlantech.com
 john\100johnwright.org                  john.wright\100hp.com
 joseph\100cscaper.com                   joseph\1005sigma.com
 joshua\100rodd.us                       jrodd\100pbs.org
+jose\100palao.com                       dr.palao@gmail.com
 jtobey\100john-edwin-tobey.org          jtobey\100user1.channel1.com
 jpeacock\100messagesystems.com          john.peacock\100havurah-software.org
 +                                       jpeacock\100havurah-software.org
