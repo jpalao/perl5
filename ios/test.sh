@@ -39,6 +39,7 @@ WORKDIR=`pwd`
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
+PERL_TEST_LOG="$IOS_MOUNTPOINT/perl-tests.txt"
 
 # CAMELBONES #
 export CAMELBONES_PREFIX="$CAMELBONES_PREFIX"
@@ -106,11 +107,6 @@ prepare_ios() {
   git clone --single-branch --branch "$PERL_5_BRANCH" "$PERL5_GIT" "perl-$PERL_VERSION"
 }
 
-prepare_appletv() {
-  rm -Rf "perl-$PERL_VERSION"
-  git clone --single-branch --branch "$PERL_5_BRANCH" "$PERL5_GIT" "perl-$PERL_VERSION"
-}
-
 build_libffi() {
     pushd ./libffi-3.2.1
     xcodebuild -scheme libffi-"$CAMELBONES_TARGET"
@@ -154,7 +150,10 @@ test_perl_device() {
     pushd "$WORKDIR/perl-$PERL_VERSION/"
 
     echo 'substitute @INC = (...) with use lib (...). Patching files...'
-    find . -name "*.t" -o -name "TEST" -o -name "harness" -o -name "TestInit.pm" | \
+
+    perl -0777 -p -i -e 's/(\@INC\s*=\s*)((?:(?!.*map.*)))/use lib \2/g' TestInit.pm
+
+    find . -name "*.t" -o -name "TEST" -o -name "harness" | \
         xargs grep -EL 'local\s*@INC\s*=' | \
         xargs grep -EL '\\@INC\s*=' | \
         xargs grep -El '^\s*[^#]*\s*\s*@INC\s*=' | \
@@ -170,10 +169,7 @@ test_perl_device() {
     # exceptions
     git checkout ext/File-Find/t/find.t
     git checkout ext/File-Find/t/taint.t
-
-    # exceptions
-    git checkout ext/File-Find/t/find.t
-    git checkout ext/File-Find/t/taint.t
+    git checkout t/op/inccode-tie.t
 
     echo 'Patched files:'
     git --no-pager diff --name-only
@@ -182,9 +178,8 @@ test_perl_device() {
 
     echo "Copy perl build directory to iOS device..."
     cp -RL "$WORKDIR/perl-$PERL_VERSION/." $IOS_MOUNTPOINT 2>/dev/null
-    #check_exit_code
 
-    echo "Delete Build dir..."
+    echo "Delete test Build dir, we are installed already..."
     rm -Rf "$IOS_MOUNTPOINT/ios/test/Build"
     
     echo "Delete unsigned bundle files from harness mountpoint..."
