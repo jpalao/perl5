@@ -22,12 +22,10 @@ use Cwd;
 use File::Spec;
 
 my $Orig_Dir = cwd;
-my $Is_Ios = 0;
 
 if ($^O =~ /darwin-ios/) {
-    use Cwd qw(getcwd);
+    use Cwd qw/getcwd/;
     use cbrunperl;
-    $Is_Ios = 1;
 };
 
 my $Perl = File::Spec->rel2abs($^X);
@@ -73,27 +71,9 @@ END { 1 while unlink "exit_map_test" }
 
 for my $exit (0..255) {
     # This correctly emulates Test::Builder's behavior.
-    my $out;
-    my $exit_code;
-    if ($Is_Ios) {
-        my $result;
-        my %runperl_config = (
-            'progfile' => 'exit_map_test',
-            'args'     => ["$exit"],
-            'pwd'      => getcwd()
-        );
-        eval {
-            ($result) = exec_perl_capture(\%runperl_config);
-        };
-        $exit_code = $result->[0];
-        $out = $result->[1] ? $result->[1] : $@;
-    } else {
-        $out = qx[$Perl exit_map_test $exit];
-    }
-
+    my $out = qx[$Perl exit_map_test $exit];
     $TB->like( $out, qr/^exit $exit\n/, "exit map test for $exit" );
-
-    $Exit_Map{$exit} = exitstatus($Is_Ios ? $exit_code : $?);
+    $Exit_Map{$exit} = exitstatus($?);
 }
 print "# Done.\n";
 
@@ -122,26 +102,12 @@ chdir 't';
 my $lib = File::Spec->catdir(qw(lib Test Simple sample_tests));
 while( my($test_name, $exit_code) = each %Tests ) {
     my $file = File::Spec->catfile($lib, $test_name);
-    my $wait_stat;
 
-    if ($Is_Ios) {
-        if ($test_name eq 'pre_plan_death.plx') {
+    if ($^O =~ /darwin-ios/ && $test_name eq 'pre_plan_death.plx') {
           $TB->skip('iOS: #TODO', 1);
           next;
-        }
-        my %runperl_config = (
-            'progfile' => $file,
-            'switches' => ['-I../blib/lib', '-I../lib', '-I../t/lib'],
-            'pwd'      => getcwd()
-        );
-        my $result;
-        eval {
-            ($result) = exec_perl_capture(\%runperl_config);
-        };
-        $wait_stat = $result->[0];
-    } else {
-        $wait_stat = system(qq{$Perl -"I../blib/lib" -"I../lib" -"I../t/lib" $file});
     }
+    my $wait_stat = system(qq{$Perl -"I../blib/lib" -"I../lib" -"I../t/lib" $file});
     my $actual_exit = exitstatus($wait_stat);
 
     if( $exit_code eq 'not zero' ) {
