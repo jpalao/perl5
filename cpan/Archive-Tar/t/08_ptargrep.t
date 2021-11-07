@@ -5,6 +5,9 @@ use Test::More tests => 1;
 use File::Spec;
 use FindBin '$Bin';
 use Archive::Tar;
+if ($^O =~ /darwin-ios/) {
+    use cbrunperl;
+}
 
 # filenames
 my $tartest = File::Spec->catfile("t", "ptargrep");
@@ -25,11 +28,8 @@ $tar->add_files($foo);
 $tar->write($tarfile);
 
 # see if ptargrep matches
-SKIP: {
-  skip "qx not supported on iOS", 1 if $^O =~ /darwin-ios/;
-  my $out = qx{$cmd};
-  cmp_ok($out, 'eq', "$foo\n", "ptargrep shows matched file");
-}
+my $out = qx{$cmd};
+cmp_ok($out, 'eq', "$foo\n", "ptargrep shows matched file");
 
 # cleanup
 END {
