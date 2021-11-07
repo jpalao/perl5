@@ -315,7 +315,7 @@ SKIP: {
 }
 
 
-exit if is_miniperl() || $^O =~ /darwin-ios/;
+exit if is_miniperl();
 
 SKIP: {
     skip( "No PerlIO available", 3 ) unless $has_perlio;
