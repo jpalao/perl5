@@ -4,6 +4,24 @@ package cbrunperl;
 cbrunperl.pm
 =cut
 
+BEGIN {
+    *CORE::GLOBAL::readpipe = sub {
+        my ($code, $result);
+        eval {
+            ($code, $result) = exec_cli(getcwd(), "@_")
+        };
+        $? = $code >> 8;
+        return $result;
+    };
+    *CORE::GLOBAL::system = sub {
+        my ($code);
+        eval {
+            ($code) = exec_cli(getcwd(), "@_")
+        };
+        return $code >> 8;
+    };
+}
+
 # auto-flush on socket
 $| = 1;
 use strict;
@@ -12,6 +30,7 @@ use CamelBones qw(:All);
 use JSON::PP;
 use Data::Dumper;
 use Cwd qw(abs_path chdir getcwd);
+use Text::ParseWords;
 
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
@@ -108,28 +127,41 @@ sub parse_test {
   my ($pwd, $t) = @_;
   print Dumper("parse_test pwd", $pwd) if $DEBUG;
   print Dumper("parse_test t", $t) if $DEBUG;
-  
-  my ($cmd) = $t =~ s/.*?perl\s*(.*$)/$1/r;
+  my ($file, $arg, $switch, @args, @switches);
+  my $first = $t =~ /[^\s]*(perl|harness)/;
+  my ($cmd) = $t =~ s/[^\s]*(perl|harness)["']?\s*(.*$)/$2/r;
+
+  $cmd =~ s/2>&1//;
   print Dumper("cmd", $cmd) if $DEBUG;
 
-  my ($file) = $cmd =~ s/(.*?)([^\s]*)\s*$/$2/r;
-  print Dumper("File", $file) if $DEBUG;
+  my @cmd_words = &quotewords('\s+', 0, $cmd);
+  if ($first && -e $cmd_words[0]) {
+    $file = $cmd_words[0];
+    print Dumper("File", $file) if $DEBUG;
+    splice @cmd_words, 0, 1;
+    push (@args, @cmd_words);
+    print Dumper("Args", @args) if $DEBUG;
+  } else {
+    $file = $cmd =~ s/(.*?)([^\s]*)\s*$/$2/r;
+    print Dumper("File", $file) if $DEBUG;
+
+#     if (! -e "$pwd/$file") {
+#         warn "parse_test() file not found: $pwd/$file\n";
+#         return {
+#           file => undef
+#         }
+#     }
+
+    $arg = $t =~ s/(.*?$file)(.*)/$2/r;
+    print Dumper("Args", $arg) if $DEBUG;
+    @args = split " ", $arg;
+
+    $switch = $cmd =~ s/(.*?)([^\s]*)\s*$/$1/r;
+    @switches = split " ", $switch;
+    print Dumper("Switches:", @switches) if $DEBUG;
   
-  if (! -e "$pwd/$file") {
-    warn "parse_test() file not found: $pwd/$file\n";
-    return {
-      file => undef
-    }
   }
 
-  my ($arg) = $t =~ s/(.*?$file)(.*)/$2/r;
-  print Dumper("Args", $arg) if $DEBUG;
-  my @args = split " ", $arg;
-
-  my ($switch) = $cmd =~ s/(.*?)([^\s]*)\s*$/$1/r;
-  my @switches = split " ", $switch;
-  print Dumper("Switches:", @switches) if $DEBUG;
-  
   my $result = {
     progfile => $file,
     pwd => $pwd,
@@ -163,4 +195,21 @@ sub exec_test {
       };
       return ($result, "");
   }
+}
+
+sub exec_cli {
+  my ($pwd, $test) = @_;
+  die ('Could not chdir to $pwd') if ($pwd && ! chdir $pwd);
+  print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
+  my $json = parse_test($pwd, $test);
+  print  Dumper("json", $json) if $DEBUG;
+  my $result;
+  local $@;
+
+  eval {
+    ($result) = exec_perl_capture($json);
+  };
+  print  Dumper("code", $result->[0]) if $DEBUG;
+  print  Dumper("output", $result->[1]) if $DEBUG;
+  return ($result->[0], $result->[1] ? $result->[1] : $@);
 }
