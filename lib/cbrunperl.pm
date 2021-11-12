@@ -179,7 +179,7 @@ sub parse_cli {
     if ($cmd !~ /\-e['" ]+/) {
         for (my $i = 0; $i < scalar @cmd_words; $i++) {
             print Dumper("trying word", $cmd_words[$i]) if $DEBUG;
-            if (-e $cmd_words[$i] && ! -d $cmd_words[$i]) {
+            if (-f $cmd_words[$i]) {
                 $file = $cmd_words[$i];
                 print Dumper("File", $file) if $DEBUG;
                 $file_index = $i;
