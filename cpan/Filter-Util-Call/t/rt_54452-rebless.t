@@ -17,8 +17,7 @@ use strict;
 use warnings;
 
 if ($^O =~ /darwin-ios/) {
-  print "1..0 # skip: iOS no backticks\n";
-  exit 0;
+    use cbrunperl;
 }
 
 use FindBin;
