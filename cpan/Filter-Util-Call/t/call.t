@@ -1,4 +1,7 @@
 use Config;
+if ($^O =~ /darwin-ios/) {
+    use cbrunperl;
+}
 
 BEGIN {
     if ($ENV{PERL_CORE}) {
@@ -20,11 +23,6 @@ use lib "$FindBin::Bin"; # required to load filter-util.pl
 require 'filter-util.pl';
 
 use vars qw($Inc $Perl);
-
-if ($^O =~ /darwin-ios/) {
-    print "1..0 # skip iOS no backticks\n";
-    exit 0;
-};
 
 print "1..34\n";
 
