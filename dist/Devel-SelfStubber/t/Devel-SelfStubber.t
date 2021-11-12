@@ -4,6 +4,10 @@ use strict;
 use Devel::SelfStubber;
 use File::Spec::Functions;
 
+if ($^O =~ /darwin-ios/) {
+    use cbrunperl;
+}
+
 my $runperl = $^X;
 
 # ensure correct output ordering for system() calls
@@ -144,7 +148,7 @@ print ${module}->foo;
   close FH or die $!;
 }
 
-SKIP: {
+{
   my %output;
   foreach my $module (@module) {
     print "# $runperl \"-I$inlib\" $module--$$\n";
@@ -152,9 +156,7 @@ SKIP: {
       =~ s/\'s foo//;
   }
 
-  if ($^O =~ /darwin-ios/) {
-    print "ok 7 # skip: iOS no backticks\n";
-  } elsif (&fail (\%wrong, \%output)) {
+  if (&fail (\%wrong, \%output)) {
     print "not ok 7\n", &faildump (\%wrong, \%output);
   } else {
     print "ok 7\n";
@@ -195,29 +197,26 @@ print "ok 8\n";
       =~ s/\'s foo//;
   }
 
-  if ($^O =~ /darwin-ios/) {
-    print "ok 9 # skip: no backticks\n";
-  } elsif (&fail (\%right, \%output)) {
+  if (&fail (\%right, \%output)) {
     print "not ok 9\n", &faildump (\%right, \%output);
   } else {
     print "ok 9\n";
   }
 }
 
-if ($^O !~ /darwin-ios/) {
-    # Check that the DATA handle stays open
-    system "$runperl -w \"-I$lib\" \"-MData\" -e \"Data::ok\"";
+# Check that the DATA handle stays open
+if ($^O =~ /darwin-ios/) {
+    print `$runperl -w -I$lib -MData -e Data::ok`;
 } else {
-    print "ok 10 # skip: no backticks\n";
+    system "$runperl -w \"-I$lib\" \"-MData\" -e \"Data::ok\"";
 }
-
 
 # Possibly a pointless test as this doesn't really verify that it's been
 # stubbed.
-if ($^O !~ /darwin-ios/) {
-    system "$runperl -w \"-I$lib\" \"-MEnd\" -e \"End::lime\"";
+if ($^O =~ /darwin-ios/) {
+    print `$runperl -w -I$lib -MEnd -e End::lime`;
 } else {
-    print "ok 11 # skip: no backticks\n";
+    system "$runperl -w \"-I$lib\" \"-MEnd\" -e \"End::lime\"";
 }
 
 # But check that the documentation after the __END__ survived.
