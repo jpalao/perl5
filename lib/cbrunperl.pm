@@ -16,8 +16,9 @@ BEGIN {
     *CORE::GLOBAL::system = sub {
         my ($code);
         eval {
-            ($code) = exec_cli(getcwd(), "@_")
+            ($code, $result) = exec_cli(getcwd(), "@_")
         };
+        #print $result if ($result);
         return $code >> 8;
     };
 }
@@ -76,140 +77,175 @@ sub yield {
 #   verbose  => print the command line
 
 sub exec_perl {
-  my ($req) = @_;
-  my $runPerl = {
-	switches => $req->{switches},
-	nolib => $req->{nolib},
-	non_portable => $req->{non_portable},
-	prog => $req->{prog},
-    progs => $req->{progs},
-    progfile => $req->{progfile},
-	stdin => $req->{stdin},
-	stderr => $req->{stderr},
-    args => $req->{args},
-    verbose => $req->{verbose},
-    pwd => $req->{pwd},
-  };
-  my $exec = $json->utf8->canonical->pretty->encode($runPerl);
-  print "\$exec: $exec\n" if $DEBUG;
-  my $t = CamelBones::CBRunPerl($exec);
-  print "\$t: $t\n" if $DEBUG;
-  return int($t);
+    my ($req) = @_;
+    my $runPerl = {
+        switches => $req->{switches},
+        nolib => $req->{nolib},
+        non_portable => $req->{non_portable},
+        prog => $req->{prog},
+        progs => $req->{progs},
+        progfile => $req->{progfile},
+        stdin => $req->{stdin},
+        stderr => $req->{stderr},
+        args => $req->{args},
+        verbose => $req->{verbose},
+        pwd => $req->{pwd},
+    };
+    my $exec = $json->utf8->canonical->pretty->encode($runPerl);
+    print "\$exec: $exec\n" if $DEBUG;
+    my $t = CamelBones::CBRunPerl($exec);
+    print "\$t: $t\n" if $DEBUG;
+    return int($t);
 }
 
 sub exec_perl_capture {
-  my ($req) = @_;
-  my $runPerl = {
-	switches => $req->{switches},
-	nolib => $req->{nolib},
-	non_portable => $req->{non_portable},
-	prog => $req->{prog},
-    progs => $req->{progs},
-    progfile => $req->{progfile},
-	stdin => $req->{stdin},
-	stderr => $req->{stderr},
-    args => $req->{args},
-    verbose => $req->{verbose},
-    pwd => $req->{pwd},
-  };
-  my $exec = $json->utf8->canonical->pretty->encode($runPerl);
-  print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
-  my ($exit_code, $result);
-  local $@;
-  eval {
-    ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
-  };
-  print "exec_perl_capture \$result: $result:\n" if ($result && $DEBUG);
-  return ($exit_code, $result ? $result : $@);
+    my ($req) = @_;
+    my $runPerl = {
+        switches => $req->{switches},
+        nolib => $req->{nolib},
+        non_portable => $req->{non_portable},
+        prog => $req->{prog},
+        progs => $req->{progs},
+        progfile => $req->{progfile},
+        stdin => $req->{stdin},
+        stderr => $req->{stderr},
+        args => $req->{args},
+        verbose => $req->{verbose},
+        pwd => $req->{pwd},
+    };
+    my $exec = $json->utf8->canonical->pretty->encode($runPerl);
+    print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
+    my ($exit_code, $result);
+    local $@;
+    eval {
+        ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
+    };
+    print "exec_perl_capture \$result: $result:\n" if ($result && $DEBUG);
+    return ($exit_code, $result ? $result : $@);
 }
 
 sub parse_test {
-  my ($pwd, $t) = @_;
-  print Dumper("parse_test pwd", $pwd) if $DEBUG;
-  print Dumper("parse_test t", $t) if $DEBUG;
-  my ($file, $arg, $switch, @args, @switches);
-  my $first = $t =~ /[^\s]*(perl|harness)/;
-  my ($cmd) = $t =~ s/[^\s]*(perl|harness)["']?\s*(.*$)/$2/r;
+    my ($pwd, $t) = @_;
+    print Dumper("parse_test pwd", $pwd) if $DEBUG;
+    print Dumper("parse_test t", $t) if $DEBUG;
 
-  $cmd =~ s/2>&1//;
-  print Dumper("cmd", $cmd) if $DEBUG;
+    my ($cmd) = $t =~ s/.*?perl\s*(.*$)/$1/r;
+    print Dumper("cmd", $cmd) if $DEBUG;
 
-  my @cmd_words = &quotewords('\s+', 0, $cmd);
-  if ($first && -e $cmd_words[0]) {
-    $file = $cmd_words[0];
-    print Dumper("File", $file) if $DEBUG;
-    splice @cmd_words, 0, 1;
-    push (@args, @cmd_words);
-    print Dumper("Args", @args) if $DEBUG;
-  } else {
-    $file = $cmd =~ s/(.*?)([^\s]*)\s*$/$2/r;
+    my ($file) = $cmd =~ s/(.*?)([^\s]*)\s*$/$2/r;
     print Dumper("File", $file) if $DEBUG;
 
-#     if (! -e "$pwd/$file") {
-#         warn "parse_test() file not found: $pwd/$file\n";
-#         return {
-#           file => undef
-#         }
-#     }
+    if (! -e "$pwd/$file") {
+        warn "parse_test() file not found: $pwd/$file\n";
+        return {
+            file => undef
+        }
+    }
 
-    $arg = $t =~ s/(.*?$file)(.*)/$2/r;
+    my ($arg) = $t =~ s/(.*?$file)(.*)/$2/r;
     print Dumper("Args", $arg) if $DEBUG;
-    @args = split " ", $arg;
+    my @args = split " ", $arg;
 
-    $switch = $cmd =~ s/(.*?)([^\s]*)\s*$/$1/r;
-    @switches = split " ", $switch;
+    my ($switch) = $cmd =~ s/(.*?)([^\s]*)\s*$/$1/r;
+    my @switches = split " ", $switch;
     print Dumper("Switches:", @switches) if $DEBUG;
-  
-  }
 
-  my $result = {
-    progfile => $file,
-    pwd => $pwd,
-    switches => \@switches,
-    args => \@args,
-  };
+    my $result = {
+        progfile => $file,
+        pwd => $pwd,
+        switches => \@switches,
+        args => \@args,
+    };
 
-  print Dumper("parse_test", $result) if $DEBUG;
-  return $result
+    print Dumper("parse_test", $result) if $DEBUG;
+    return $result
+}
+
+sub parse_cli {
+    my ($pwd, $cli) = @_;
+    print Dumper("parse_test pwd", $pwd) if $DEBUG;
+    print Dumper("parse_test t", $cli) if $DEBUG;
+    my ($file, $arg, $switch, $stderr, @args, @switches);
+
+    my ($cmd) = $cli =~ s/[^\s]*(perl|harness)["']?\s*(.*$)/$2/r;
+
+    print Dumper("cmd", $cmd) if $DEBUG;
+
+    $stderr = 0;
+    $cmd =~ s/2>&1//;
+
+    my $file_index = -1;
+    my @cmd_words = &quotewords('\s+', 0, $cmd);
+    if ($cmd !~ /\-e['" ]+/) {
+        for (my $i = 0; $i < scalar @cmd_words; $i++) {
+            print Dumper("trying word", $cmd_words[$i]) if $DEBUG;
+            if (-e $cmd_words[$i] && ! -d $cmd_words[$i]) {
+                $file = $cmd_words[$i];
+                print Dumper("File", $file) if $DEBUG;
+                $file_index = $i;
+                last;
+            }
+        }
+    }
+
+    if ($file) {
+        @args = splice @cmd_words, $file_index +1, @cmd_words -1;
+        @switches = splice @cmd_words, 0, $file_index;
+    } else {
+        @switches = @cmd_words;
+    }
+
+    splice @args, scalar @args -1, 1 if (!defined $args[scalar @args -1]);
+    splice @switches, scalar @switches -1, 1 if (!defined $switches[scalar @switches -1]);
+
+    my $result = {
+        progfile => $file,
+        pwd => $pwd,
+        switches => \@switches,
+        args => \@args,
+    };
+
+    print Dumper("parse_cli", $result) if $DEBUG;
+    return $result
 }
 
 sub exec_test {
-  my ($pwd, $test) = @_;
-  die ('Could not chdir to $pwd') if ($pwd && ! chdir $pwd);
-  print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
-  my $json = parse_test($pwd, $test);
-  print  Dumper("json", $json) if $DEBUG;
-  my $result;
-  local $@;
+    my ($pwd, $test) = @_;
+    die ('Could not chdir to $pwd') if ($pwd && ! chdir $pwd);
+    print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
+    my $json = parse_test($pwd, $test);
+    print  Dumper("json", $json) if $DEBUG;
+    my $result;
+    local $@;
 
-  if ($capture){
-      eval {
-        ($result) = exec_perl_capture($json);
-      };
-      print  Dumper("code", $result->[0]) if $DEBUG;
-      print  Dumper("output", $result->[1]) if $DEBUG;
-      return ($result->[0], $result->[1] ? $result->[1] : $@);
-  } else {
-      eval {
-        ($result) = exec_perl($json);
-      };
-      return ($result, "");
-  }
+    if ($capture){
+        eval {
+            ($result) = exec_perl_capture($json);
+        };
+        print  Dumper("code", $result->[0]) if $DEBUG;
+        print  Dumper("output", $result->[1]) if $DEBUG;
+        return ($result->[0], $result->[1] ? $result->[1] : $@);
+    } else {
+        eval {
+            ($result) = exec_perl($json);
+        };
+        return ($result, "");
+    }
 }
 
 sub exec_cli {
-  my ($pwd, $test) = @_;
-  die ('Could not chdir to $pwd') if ($pwd && ! chdir $pwd);
-  print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
-  my $json = parse_test($pwd, $test);
-  print  Dumper("json", $json) if $DEBUG;
-  my $result;
-  local $@;
+    my ($pwd, $test) = @_;
+    die ('Could not chdir to $pwd') if ($pwd && ! chdir $pwd);
+    print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
+    my $json = parse_cli($pwd, $test);
+    print  Dumper("json", $json) if $DEBUG;
+    my $result;
+    local $@;
 
-  eval {
-    ($result) = exec_perl_capture($json);
-  };
-  print  Dumper("code", $result->[0]) if $DEBUG;
-  print  Dumper("output", $result->[1]) if $DEBUG;
-  return ($result->[0], $result->[1] ? $result->[1] : $@);
+    eval {
+        ($result) = exec_perl_capture($json);
+    };
+    print  Dumper("code", $result->[0]) if $DEBUG;
+    print  Dumper("output", $result->[1]) if $DEBUG;
+    return ($result->[0], $result->[1] ? $result->[1] : $@);
 }
