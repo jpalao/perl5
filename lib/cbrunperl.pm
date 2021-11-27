@@ -10,7 +10,8 @@ BEGIN {
         eval {
             ($code, $result) = exec_cli(getcwd(), "@_")
         };
-        $? = $code >> 8;
+        $code = $code >> 8 if defined $code;
+        $? = $code;
         return $result;
     };
     *CORE::GLOBAL::system = sub {
@@ -18,8 +19,9 @@ BEGIN {
         eval {
             ($code, $result) = exec_cli(getcwd(), "@_")
         };
-        #print $result if ($result);
-        return $code >> 8;
+        print $result if ($result);
+        $code = $code >> 8 if defined $code;
+        return $code;
     };
 }
 
@@ -42,6 +44,7 @@ our @methods = (
     'exec_perl',
     'exec_test',
     'yield',
+    'cat',
 );
 
 our @EXPORT = @methods;
@@ -129,7 +132,7 @@ sub parse_test {
     print Dumper("parse_test pwd", $pwd) if $DEBUG;
     print Dumper("parse_test t", $t) if $DEBUG;
 
-    my ($cmd) = $t =~ s/.*?perl\s*(.*$)/$1/r;
+    my ($cmd) = $t =~ s/.*?(perl|harness)["']?\s(.*$)/$2/r;
     print Dumper("cmd", $cmd) if $DEBUG;
 
     my ($file) = $cmd =~ s/(.*?)([^\s]*)\s*$/$2/r;
@@ -167,7 +170,7 @@ sub parse_cli {
     print Dumper("parse_test t", $cli) if $DEBUG;
     my ($file, $arg, $switch, $stderr, @args, @switches);
 
-    my ($cmd) = $cli =~ s/[^\s]*(perl|harness)["']?\s*(.*$)/$2/r;
+    my ($cmd) = $cli =~ s/[^\s]*(perl|harness)["']?\s*([^\s]+.*$)/$2/r;
 
     print Dumper("cmd", $cmd) if $DEBUG;
 
@@ -176,7 +179,9 @@ sub parse_cli {
 
     my $file_index = -1;
     my @cmd_words = &quotewords('\s+', 0, $cmd);
-    if ($cmd !~ /\-e['" ]+/) {
+    @cmd_words = grep defined, @cmd_words;
+    print Dumper("\@cmd_words", "@cmd_words") if $DEBUG;
+    if ($cmd !~ /\-[l]?e['" ]+/) {
         for (my $i = 0; $i < scalar @cmd_words; $i++) {
             print Dumper("trying word", $cmd_words[$i]) if $DEBUG;
             if (-f $cmd_words[$i]) {
@@ -190,13 +195,15 @@ sub parse_cli {
 
     if ($file) {
         @args = splice @cmd_words, $file_index +1, @cmd_words -1;
+        print Dumper("\@args", @args) if $DEBUG && @switches;
         @switches = splice @cmd_words, 0, $file_index;
+        print Dumper("\@switches", @switches) if $DEBUG && @switches;
     } else {
         @switches = @cmd_words;
     }
 
-    splice @args, scalar @args -1, 1 if (!defined $args[scalar @args -1]);
-    splice @switches, scalar @switches -1, 1 if (!defined $switches[scalar @switches -1]);
+    @args = grep defined, @args;
+    @switches = grep defined, @switches;
 
     my $result = {
         progfile => $file,
@@ -235,7 +242,6 @@ sub exec_test {
 
 sub exec_cli {
     my ($pwd, $test) = @_;
-    die ('Could not chdir to $pwd') if ($pwd && ! chdir $pwd);
     print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
     my $json = parse_cli($pwd, $test);
     print  Dumper("json", $json) if $DEBUG;
@@ -248,4 +254,16 @@ sub exec_cli {
     print  Dumper("code", $result->[0]) if $DEBUG;
     print  Dumper("output", $result->[1]) if $DEBUG;
     return ($result->[0], $result->[1] ? $result->[1] : $@);
+}
+
+sub cat {
+    my ($file) = @_;
+    open(my $fh, '<:encoding(UTF-8)', $file)
+        or die "Could not open file $file  $!";
+    my $result;
+    while (my $row = <$fh>) {
+        $result .= $row;
+    }
+    close $fh;
+    print $result;
 }
