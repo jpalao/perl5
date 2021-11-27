@@ -156,7 +156,6 @@ my $TEST = 'TEST';
     $ENV{TERM} = 'dumb';
 
 SKIP: {
-    skip('iOS: no backticks', 1) if $Is_Ios;
     is(eval { `$echo 1` }, "1\n");
 
     SKIP: {
