@@ -18,6 +18,9 @@ BEGIN {
             require './t/charset_tools.pl';
         }
     }
+    if ($^O =~ /darwin-ios/) {
+        require 'cbrunperl.pm';
+    }
 }
 
 use Test::More;

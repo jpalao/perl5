@@ -7,6 +7,9 @@ BEGIN {
 		print "1..0 # Skip -- Perl configured without B module\n";
 		exit 0;
 	}
+	if ($^O =~ /darwin-ios/) {
+        require 'cbrunperl.pm';
+    }
 }
 
 use Test::More tests => 16;

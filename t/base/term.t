@@ -2,6 +2,10 @@
 
 BEGIN {
     chdir 't' if -d 't';
+	if ($^O =~ /darwin-ios/) {
+	    use lib '../lib';
+        require 'cbrunperl.pm';
+    }
 }
 
 print "1..7\n";
@@ -16,12 +20,8 @@ elsif ($x eq chr(21)) { print "ok 1 # EBCDIC\n"; }
 else {print "not ok 1\n";}
 
 # check `` processing
-if ($^O =~ /darwin-ios/) {
-  print "ok 2 # iOS: no backticks\n"
-} else {
-  $x = `$^X -le "print 'hi there'"`;
-  if ($x eq "hi there\n") {print "ok 2\n";} else {print "not ok 2\n";}
-}
+$x = `$^X -le "print 'hi there'"`;
+if ($x eq "hi there\n") {print "ok 2\n";} else {print "not ok 2\n";}
 
 # check $#array
 

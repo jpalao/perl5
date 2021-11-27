@@ -7,6 +7,9 @@ BEGIN {
 	exit 0;
     }
     unshift @INC, "../../t";
+    if ($^O =~ /darwin-ios/) {
+        require 'cbrunperl.pm';
+    }
     require 'loc_tools.pl';
 }
 
