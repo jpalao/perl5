@@ -46,6 +46,7 @@ sub testop {
     my ($op, $opname, $code) = @_;
     pass("$op : skipped") and return if $code =~ /^SKIP/;
     pass("$op : skipped") and return if $code =~ m://|~~: && $] < 5.010;
+    pass("$op : skipped") and return if $opname = 'system' && $^O =~ /darwin-ios/;
     my $c = new Safe;
     $c->deny_only($op);
     $c->reval($code);

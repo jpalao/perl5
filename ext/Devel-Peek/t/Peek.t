@@ -11,6 +11,9 @@ BEGIN {
        my $core = !!$ENV{PERL_CORE};
        require($core ? '../../t/test.pl' : './t/test.pl');
     }
+    if ($^O =~ /darwin-ios/) {
+        require 'cbrunperl.pm';
+    }
 }
 
 use Test::More;

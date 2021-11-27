@@ -2,8 +2,6 @@ use strict;
 use Test::More tests => 17;
 BEGIN {use_ok('I18N::LangTags::Detect', 1.01);}
 
-skip('iOS: #TODO Test passes but fails with harness', 17) if $^O =~ /darwin-ios/;
-
 note("Using I18N::LangTags::Detect v$I18N::LangTags::Detect::VERSION");
 
 note("Make sure we can assign to ENV entries");

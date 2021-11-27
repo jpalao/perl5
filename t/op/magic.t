@@ -8,6 +8,10 @@ BEGIN {
     plan (tests => 197); # some tests are run in BEGIN block
 }
 
+if ($^O =~ /darwin-ios/) {
+    use cbrunperl;
+}
+
 # Test that defined() returns true for magic variables created on the fly,
 # even before they have been created.
 # This must come first, even before turning on warnings or setting up
@@ -94,7 +98,7 @@ sub env_is {
     } else {
         my @env = `env`;
         SKIP: {
-            skip("iOS: no backticks", 1) if $Is_Ios;
+            skip("iOS: no shell", 1) if $Is_Ios;
             skip("env doesn't work on this android", 1) if !@env && $^O =~ /android/;
             chomp (my @env = grep { s/^$key=// } @env);
             is "@env", $val, $desc;
@@ -112,7 +116,7 @@ END {
 }
 
 SKIP: {
-skip('iOS: no backticks', 2) if $Is_Ios;
+skip('iOS: no shell', 2) if $Is_Ios;
 eval '$ENV{"FOO"} = "hi there";';      # check that ENV is inited inside eval
 # cmd.exe will echo 'variable=value' but 4nt will echo just the value
 # -- Nikola Knezevic
@@ -306,7 +310,7 @@ $$ = $pid; # Tests below use $$
 
 # $^X and $0
 SKIP: {
-    skip('iOS: no backticks', 8) if $^O =~ /darwin-ios/;
+    skip('iOS: no shell', 8) if $^O =~ /darwin-ios/;
     my $is_abs = $Config{d_procselfexe} || $Config{usekernprocpathname}
       || $Config{usensgetexecutablepath};
     if ($^O eq 'qnx') {
@@ -762,7 +766,7 @@ SKIP: {
  SKIP: {
 	skip("clearing \%ENV is not safe when running under valgrind or on VMS")
 	    if $ENV{PERL_VALGRIND} || $Is_VMS;
-    skip('iOS: no backticks') if $Is_Ios;
+    skip('iOS: no shell') if $Is_Ios;
 
 	    $PATH = $ENV{PATH};
 	    $SYSTEMROOT = $ENV{SYSTEMROOT} if exists $ENV{SYSTEMROOT}; # win32

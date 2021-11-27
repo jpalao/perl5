@@ -4,7 +4,6 @@ BEGIN {
     chdir 't' if -d 't';
     @INC = '../lib';
     require './test.pl';	# for which_perl() etc
-    skip_all("iOS: no backtick operator") if $^O =~ /darwin-ios/;
     plan(3);
 }
 
@@ -26,4 +25,5 @@ is($x, "ok\n", "Got expected output of command from script");
 
 $x = `$Perl <$filename`;
 
+skip('iOS: no shell redirection') if ($^O =~ /darwin-ios/); 
 is($x, "ok\n", "Got expected output of command read from script");
