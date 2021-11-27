@@ -1,5 +1,11 @@
 #!./perl -w
 
+BEGIN {
+    if ($^O =~ /darwin-ios/) {
+        require 'cbrunperl.pm';
+    }
+}
+
 use strict;
 use Test::More;
 use Config;
