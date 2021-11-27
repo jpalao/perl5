@@ -1,4 +1,5 @@
 #!./perl
+
 $|=1;
 use open ":std", ":encoding(UTF-8)";
 use strict;
@@ -17,12 +18,11 @@ $ENV{HOME} = getcwd();
 # $ENV{PERL_TEST_HARNESS_ASAP} = 1;
 # $ENV{PERL_USE_UNSAFE_INC}
 
+# on iOS these tests may either:
+# hang, crash or exit unexpectedly,
+# or may pass, causing havoc afterwards,
+# or they may pass or hang/crash indistinctly
 my @ios_blacklist = (
-    # on iOS these tests may either:
-    # hang, crash or exit unexpectedly,
-    # or may pass, causing havoc afterwards,
-    # or they may pass or hang/crash indistinctly
-
     # TODO
     'io/perlio_leaks.t',
 
@@ -30,16 +30,15 @@ my @ios_blacklist = (
     're/pat_advanced.t',
     're/pat_advanced_thr.t',
     're/regexp_unicode_prop_thr.t',
-
-    # DB_File not built in
-    '../cpan/DB_File/t/db-threads.t',
-    '../cpan/DB_File/t/db-recno.t',
-    '../cpan/DB_File/t/db-hash.t',
-    '../cpan/DB_File/t/db-btree.t',
-
+    
     # TODO
-    '../cpan/File-Temp/t/lock.t',
     '../cpan/autodie/t/exec.t',
+    '../cpan/File-Temp/t/lock.t',
+    '../dist/Time-HiRes/t/ualarm.t',
+    '../ext/Devel-Peek/t/Peek.t',
+    '../ext/POSIX/t/sigaction.t',    
+    '../ext/XS-APItest/t/clone-with-stack.t',
+    '../lib/B/Deparse.t',
 
     # TODO Test-Harness
     '../cpan/Test-Harness/t/compat/env.t',
@@ -80,27 +79,11 @@ my @ios_blacklist = (
     '../cpan/ExtUtils-MakeMaker/t/vstrings.t',
     '../cpan/ExtUtils-MakeMaker/t/writemakefile_args.t',
 
-
-    # no backticks
-    '../cpan/Pod-Usage/t/pod/selectsections.t',
-    '../cpan/Pod-Usage/t/pod/headwithmarkup.t',
-    '../cpan/Pod-Usage/t/pod/selectheaders.t',
-
-    '../dist/Time-HiRes/t/ualarm.t',
-
-    '../ext/Devel-Peek/t/Peek.t',
-
-    '../ext/DynaLoader/t/DynaLoader.t',
-
-    '../ext/Pod-Html/t/htmldir3.t',
-
-    '../ext/POSIX/t/posix.t',
-    '../ext/POSIX/t/sigaction.t',
-    '../ext/POSIX/t/wrappers.t',
-
-    '../ext/XS-APItest/t/clone-with-stack.t',
-
-    '../dist/I18N-LangTags/t/80_all_env.t',
+    # DB_File not built in
+    '../cpan/DB_File/t/db-threads.t',
+    '../cpan/DB_File/t/db-recno.t',
+    '../cpan/DB_File/t/db-hash.t',
+    '../cpan/DB_File/t/db-btree.t',
 );
 
 my @simul_blacklist = (
