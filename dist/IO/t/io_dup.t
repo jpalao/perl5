@@ -44,7 +44,7 @@ my $cmd = sprintf $echo, 4;
 print `$cmd`;
 
 $cmd = sprintf "$echo 1>&2", 5;
-$cmd = sprintf $echo, 5 if ($^O eq 'MacOS');
+$cmd = sprintf $echo, 5 if $^O eq 'MacOS';
 print `$cmd`;
 
 $stderr->close;
