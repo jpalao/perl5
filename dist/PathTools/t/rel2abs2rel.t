@@ -8,6 +8,7 @@ use lib File::Spec->catdir('t', 'lib');
 
 if ($^O =~ /darwin-ios/) {
     use cbrunperl;
+    use Cwd qw(getcwd);
 }
 
 use Test::More (-x $^X
@@ -47,7 +48,11 @@ sub sayok{
     open(STDOUTDUP, '>&STDOUT');
     open(STDOUT, ">rel2abs2rel$$.tmp")
         or die "Can't open scratch file rel2abs2rel$$.tmp -- $!\n";
-    system($perl, "rel2abs2rel$$.pl");
+    if ($^O =~ /darwin-ios/) {
+        exec_perl(parse_test(getcwd(), "perl rel2abs2rel$$.pl"));
+    } else {
+        system($perl, "rel2abs2rel$$.pl");
+    }
     open(STDOUT, '>&STDOUTDUP');
     close(STDOUTDUP);
 
