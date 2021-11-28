@@ -43,7 +43,6 @@ BEGIN {
   }
 }
 
-
 my $Is_VMS      = $^O eq 'VMS';
 my $Is_MSWin32  = $^O eq 'MSWin32';
 my $Is_NetWare  = $^O eq 'NetWare';
@@ -56,7 +55,6 @@ my $Invoke_Perl = $Is_VMS      ? 'MCR Sys$Disk:[]Perl.exe' :
                   $Is_MSWin32  ? '.\perl'               :
                   $Is_NetWare  ? 'perl'                 :
                                  './perl'               ;
-
 my @MoreEnv = qw/IFS CDPATH ENV BASH_ENV/;
 
 if ($Is_VMS) {
@@ -149,7 +147,6 @@ my $TEST = 'TEST';
     $ENV{TERM} = 'dumb';
 
 SKIP: {
-    skip('iOS: no backticks', 1) if $Is_Ios;
     is(eval { `$echo 1` }, "1\n");
 
     skip "Environment tainting tests skipped", 4
@@ -174,8 +171,8 @@ SKIP: {
     }
 
     my $tmp;
-    if ($^O eq 'os2' || $^O eq 'amigaos' || $Is_MSWin32 || $Is_NetWare || $Is_Dos
-        || $Is_Ios) {
+    if ($^O eq 'os2' || $^O eq 'amigaos' || $Is_MSWin32 || $Is_NetWare
+        || $Is_Dos || $Is_Ios) {
 	print "# all directories are writeable\n";
     }
     else {
@@ -1186,7 +1183,6 @@ SKIP: {
 # How about command-line arguments? The problem is that we don't
 # always get some, so we'll run another process with some.
 SKIP: {
-    skip "iOS: no backticks", 1 if $Is_Ios;
     my $arg = tempfile();
     open $fh, '>', $arg or die "Can't create $arg: $!";
     print $fh q{
@@ -1214,8 +1210,7 @@ SKIP: {
 }
 
 # Output of commands should be tainted
-SKIP: {
-    skip "iOS: no backticks", 1 if $Is_Ios;
+{
     my $foo = `$echo abc`;
     is_tainted($foo);
 }
@@ -1326,14 +1321,16 @@ violates_taint(sub { link $TAINT, '' }, 'link');
     my $foo = $TAINT;
 
     SKIP: {
-        skip("iOS: open('|'), exec(), system() not available", 18) if $Is_Ios;
-        skip "open('|') is not available", 8 if $^O eq 'amigaos';
+        skip "open('|') is not available", 8 if $^O eq 'amigaos' || $Is_Ios;
 
         violates_taint(sub { open FOO, "| x$foo" }, 'piped open', 'popen to');
         violates_taint(sub { open FOO, "x$foo |" }, 'piped open', 'popen from');
         violates_taint(sub { open my $fh, '|-', "x$foo" }, 'piped open', 'popen to');
         violates_taint(sub { open my $fh, '-|', "x$foo" }, 'piped open', 'popen from');
+    }
 
+    SKIP: {
+        skip "exec, system, backticks not available", 6 if $Is_Ios;
         violates_taint(sub { exec $TAINT }, 'exec');
         violates_taint(sub { system $TAINT }, 'system');
 
@@ -1342,6 +1339,7 @@ violates_taint(sub { link $TAINT, '' }, 'link');
 
         violates_taint(sub { `$echo 1$foo` }, '``', 'backticks');
     }
+
     SKIP: {
         # wildcard expansion doesn't invoke shell on VMS, so is safe
         skip "This is not VMS", 2 unless $Is_VMS;
@@ -2030,7 +2028,7 @@ SKIP:
 	skip "fork() is not available", 3 unless $Config{'d_fork'};
 	skip "opening |- is not stable on threaded Open/MirBSD with taint", 3
             if $Config{useithreads} and $Is_OpenBSD || $Is_MirBSD;
-	skip "iOS: opening |- not supported", 3 if $Is_Ios;
+	skip "iOS: open |- not supported", 3 if $Is_Ios;
 
 	$ENV{'PATH'} = $TAINT;
 	local $SIG{'PIPE'} = 'IGNORE';

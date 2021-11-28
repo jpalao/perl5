@@ -198,21 +198,13 @@ test_perl_device() {
     check_exit_code
     sleep 2
     
-    # needed for scrolling to keep in sync w/ device's ifuse fs
-    perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
-    REFRESH_PID=$!
+    TEST_SH_PID=$$
+    # keep scrolling in sync w/ device's ifuse fs and exit after PASS|FAIL
+    perl -s -w -e 'while (1) {`ls '"$IOS_MOUNTPOINT"'`; `tail -2 '"$PERL_TEST_LOG"' | grep -E "Result: (PASS|FAIL)" > /dev/null 2>&1`; if (!$?) { `kill '"$TEST_SH_PID"'`; exit 0 }}' > /dev/null 2>&1 &
+    
     sleep 2
     
-    tail -f $IOS_MOUNTPOINT/perl-tests.txt
-    
-    echo "kill $REFRESH_PID"
-    kill $REFRESH_PID
-    check_exit_code
-    
-    umount -f $IOS_MOUNTPOINT
-    
-    rm -Rf $IOS_MOUNTPOINT
-    check_exit_code
+    tail -f "$PERL_TEST_LOG"
 }
 
 build_camelbones_framework() {

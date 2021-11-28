@@ -6,10 +6,7 @@
 use File::Spec;
 use lib File::Spec->catdir('t', 'lib');
 
-my $Is_Ios = 0;
-
 if ($^O =~ /darwin-ios/) {
-    $Is_Ios = 1;
     use cbrunperl;
     use Cwd qw(getcwd);
 }
@@ -48,19 +45,14 @@ sub safe_rel {
 # `$perl -le "print 'ok'"`. And, for portability, we can't use fork().
 sub sayok{
     my $perl = shift;
-
     open(STDOUTDUP, '>&STDOUT');
     open(STDOUT, ">rel2abs2rel$$.tmp")
         or die "Can't open scratch file rel2abs2rel$$.tmp -- $!\n";
-
-    my $result = undef;
-    if ($Is_Ios) {
-        my $json = cbrunperl::parse_test(getcwd(), "perl rel2abs2rel$$.pl");
-        $result = cbrunperl::exec_perl($json);
+    if ($^O =~ /darwin-ios/) {
+        exec_perl(parse_test(getcwd(), "perl rel2abs2rel$$.pl"));
     } else {
         system($perl, "rel2abs2rel$$.pl");
     }
-
     open(STDOUT, '>&STDOUTDUP');
     close(STDOUTDUP);
 

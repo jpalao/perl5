@@ -8,7 +8,6 @@ use constant IS_IOS => ( $^O =~ /darwin-ios/ );
 use TAP::Parser::IteratorFactory       ();
 
 if (IS_IOS) {
-    use cbrunperl;
     use TAP::Parser::Iterator::iOS   ();
 } else {
     use TAP::Parser::Iterator::Process ();

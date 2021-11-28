@@ -17,22 +17,18 @@ my $Tmsg = 'while running with -t switch';
 is( ${^TAINT}, -1, '${^TAINT} == -1' );
 
 my $out = `$Perl -le "print q(Hello)"`;
-SKIP:
-{
-  skip('iOS: no backticks', 1) if $^O =~ /darwin-ios/;
-  is( $out, "Hello\n",                      '`` worked' );
-}
+is( $out, "Hello\n",                      '`` worked' );
+
+SKIP: {
+skip "iOS: TODO", 1 if ($^O =~ /darwin-ios/);
 like( $warning, qr/^Insecure .* $Tmsg/, '    taint warn' );
+}
 
 {
     no warnings 'taint';
     $warning = '';
     my $out = `$Perl -le "print q(Hello)"`;
-    SKIP:
-    {
-      skip('iOS: no backticks', 1) if $^O =~ /darwin-ios/;
-      is( $out, "Hello\n",                      '`` worked' );
-    }
+    is( $out, "Hello\n",                      '`` worked' );
     is( $warning, '',                       '   no warnings "taint"' );
 }
 

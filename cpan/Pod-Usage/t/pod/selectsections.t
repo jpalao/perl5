@@ -1,5 +1,11 @@
 use Test::More tests => 2;
 
+BEGIN {
+    if ($^O =~ /darwin-ios/) {
+        require 'cbrunperl.pm';
+    }
+}
+
 use strict;
 use warnings;
 
