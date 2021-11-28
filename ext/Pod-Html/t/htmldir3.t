@@ -43,7 +43,10 @@ $args = {
     debug => $debug,
 };
 $args->{core} = 1 if $ENV{PERL_CORE};
+SKIP: {
+skip 'iOS: TODO', 1 if $^O =~ /darwin-ios/;
 xconvert($args);
+}
 
 $args = {
     podstub => "htmldir3",
@@ -73,7 +76,10 @@ $args = {
     },
     debug => $debug,
 };
+SKIP: {
+skip 'iOS: TODO', 1 if $^O =~ /darwin-ios/;
 xconvert($args);
+}
 
 __DATA__
 <?xml version="1.0" ?>
