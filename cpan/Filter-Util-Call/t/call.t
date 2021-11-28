@@ -1,9 +1,10 @@
 use Config;
-if ($^O =~ /darwin-ios/) {
-    use cbrunperl;
-}
 
 BEGIN {
+    if ($^O =~ /darwin-ios/) {
+        use lib '../lib';
+        require 'cbrunperl.pm';
+    }
     if ($ENV{PERL_CORE}) {
         if ($Config{'extensions'} !~ m{\bFilter/Util/Call\b}) {
             print "1..0 # Skip: Filter::Util::Call was not built\n";
@@ -62,7 +63,8 @@ sub import { filter_add(bless []) }
 EOM
 
 my $a = `$Perl "-I." $Inc -e "use ${module} ;"  $redir` ;
-ok(1, (($? >>8) != 0 or (($^O eq 'MSWin32' || $^O eq 'MacOS' || $^O eq 'NetWare' || $^O eq 'mpeix') && $? != 0))) ;
+ok(1, (($? >>8) != 0 or (($^O eq 'MSWin32' || $^O eq 'MacOS' || $^O eq 'NetWare' ||
+    $^O eq 'mpeix' || $^O =~ /darwin-ios/) && $? != 0))) ;
 ok(2, $a =~ /^Can't locate object method "filter" via package "MyTest"/m) ;
 
 # no reference parameter in filter_add
@@ -81,8 +83,8 @@ EOM
 $a = `$Perl "-I." $Inc -e "use ${module} ;"  $redir` ;
 #warn "# $a\n";
 ok(3, (($? >>8) != 0
-       or (($^O eq 'MSWin32' || $^O eq 'MacOS' || $^O eq 'NetWare' || $^O eq 'mpeix')
-           && $? != 0))) ;
+       or (($^O eq 'MSWin32' || $^O eq 'MacOS' || $^O eq 'NetWare' || $^O eq 'mpeix' ||
+            $^O =~ /darwin-ios/) && $? != 0))) ;
 #ok(4, $a =~ /^usage: filter_add\(ref\) at ${module}.pm/) ;
 my $errmsg = $Config{usecperl}
   ? qr/^Not enough arguments for subroutine entry Filter::Util::Call::filter_add at ${module}\.pm line/m
@@ -878,7 +880,7 @@ HERE today gone tomorrow\n" ;
 EOM
 
 $a = `$Perl "-I." $Inc $filenamebin  $redir` ;
-ok(33, ($? >>8) != 0) or warn $a;
+ok(33, ($? >>8) != 0 || ($? != 0 && $^O =~ /darwin-ios/)) or warn $a;
 ok(34, $a =~ /^filter_read_exact: size parameter must be > 0 at block.pm/) ;
 
 
