@@ -14,15 +14,6 @@ BEGIN {
         $? = $code;
         return $result;
     };
-    *CORE::GLOBAL::system = sub {
-        my ($code);
-        eval {
-            ($code, $result) = exec_cli(getcwd(), "@_")
-        };
-        print $result if ($result);
-        $code = $code >> 8 if defined $code;
-        return $code;
-    };
 }
 
 # auto-flush on socket
