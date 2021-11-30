@@ -9,7 +9,7 @@ BEGIN {
 }
 
 if ($^O =~ /darwin-ios/) {
-    use cbrunperl;
+    use ios;
 }
 
 # Test that defined() returns true for magic variables created on the fly,

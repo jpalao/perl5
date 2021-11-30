@@ -2,7 +2,7 @@
 
 BEGIN {
     if ($^O =~ /darwin-ios/) {
-        require 'cbrunperl.pm';
+        require 'ios.pm';
     }
 }
 

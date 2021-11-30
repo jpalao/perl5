@@ -330,7 +330,7 @@ where you can also run Instruments.
 
 `runperl` functionality is currently provided through CamelBones. The
 runperl config hash used in t/harness is converted to JSON and passed as
-a simple scalar to the CBRunPerl XS method of CamelBones, which decodes
+a simple scalar to the ios XS method of CamelBones, which decodes
 the string into JSON, and executes and captures the output of the test.
 All perl interpreters are spawned as new threads, i.e. runperl. Perl
 never runs in the main thread.

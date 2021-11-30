@@ -11,7 +11,7 @@ BEGIN {
     }
     if ($^O =~ /darwin-ios/) {
         use Cwd qw(getcwd);
-        require 'cbrunperl.pm';
+        require 'ios.pm';
     }
 }
 
@@ -55,7 +55,7 @@ $stderr->fdopen($duperr,"w");
 
 if ($^O eq 'MSWin32' || $^O eq 'NetWare' || $^O eq 'VMS') { print `type Io.dup` }
 elsif ($^O eq 'MacOS') { system 'Catenate Io.dup' }
-elsif ($^O =~ /darwin-ios/) { cbrunperl::cat(getcwd() . '/Io.dup') }
+elsif ($^O =~ /darwin-ios/) { ios::cat(getcwd() . '/Io.dup') }
 else                   { system 'cat Io.dup' }
 unlink 'Io.dup';
 

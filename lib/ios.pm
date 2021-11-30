@@ -1,7 +1,7 @@
-package cbrunperl;
+package ios;
 
 =head1 NAME
-cbrunperl.pm
+ios.pm
 =cut
 
 BEGIN {
@@ -49,7 +49,7 @@ my $json = JSON::PP->new->convert_blessed(1);
 
 sub check_error {
   my ($error) = @_;
-  warn "CBRunPerl error: $error" if $error;
+  warn "ios error: $error" if $error;
 }
 
 sub yield {
@@ -87,7 +87,7 @@ sub exec_perl {
     };
     my $exec = $json->utf8->canonical->pretty->encode($runPerl);
     print "\$exec: $exec\n" if $DEBUG;
-    my $t = CamelBones::CBRunPerl($exec);
+    my $t = CamelBones::ios($exec);
     print "\$t: $t\n" if $DEBUG;
     return int($t);
 }
@@ -112,7 +112,7 @@ sub exec_perl_capture {
     my ($exit_code, $result);
     local $@;
     eval {
-        ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
+        ($exit_code, $result) = CamelBones::iosCaptureStdout($exec);
     };
     print "exec_perl_capture \$result: $result:\n" if ($result && $DEBUG);
     return ($exit_code, $result ? $result : $@);
