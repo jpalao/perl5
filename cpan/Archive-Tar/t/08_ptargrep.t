@@ -6,7 +6,7 @@ use File::Spec;
 use FindBin '$Bin';
 use Archive::Tar;
 if ($^O =~ /darwin-ios/) {
-    use cbrunperl;
+    use ios;
 }
 
 # filenames

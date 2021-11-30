@@ -25,7 +25,7 @@ my $Orig_Dir = cwd;
 
 if ($^O =~ /darwin-ios/) {
     use Cwd qw/getcwd/;
-    use cbrunperl;
+    use ios;
 };
 
 my $Perl = File::Spec->rel2abs($^X);

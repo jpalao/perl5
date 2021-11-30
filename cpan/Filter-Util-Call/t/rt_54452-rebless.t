@@ -17,7 +17,7 @@ use strict;
 use warnings;
 
 if ($^O =~ /darwin-ios/) {
-    use cbrunperl;
+    use ios;
 }
 
 use FindBin;

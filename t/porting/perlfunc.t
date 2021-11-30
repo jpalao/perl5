@@ -29,7 +29,7 @@ use Config;
 use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 
 if ($^O =~ /darwin-ios/) {
-    use cbrunperl;
+    use ios;
 }
 
 if ( $Config{usecrosscompile} ) {

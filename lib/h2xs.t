@@ -29,7 +29,7 @@ use ExtUtils::Manifest;
 use Config;
 
 if ($^O =~ /darwin-ios/) {
-    use cbrunperl;
+    use ios;
 }
 
 # Don't want its diagnostics getting in the way of ours.

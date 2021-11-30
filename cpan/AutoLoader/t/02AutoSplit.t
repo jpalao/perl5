@@ -29,7 +29,7 @@ use File::Find;
 my $Is_ios = $^O =~ /darwin-ios/;
 if ($Is_ios) {
     use Cwd qw(getcwd);
-    use cbrunperl;
+    use ios;
 }
 
 my $Is_VMS   = $^O eq 'VMS';

@@ -3,7 +3,7 @@ use Config;
 BEGIN {
     if ($^O =~ /darwin-ios/) {
         use lib '../lib';
-        require 'cbrunperl.pm';
+        require 'ios.pm';
     }
     if ($ENV{PERL_CORE}) {
         if ($Config{'extensions'} !~ m{\bFilter/Util/Call\b}) {
