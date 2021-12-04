@@ -4,7 +4,7 @@ BEGIN {
     chdir 't' if -d 't';
 	if ($^O =~ /darwin-ios/) {
 	    use lib '../lib';
-        require 'cbrunperl.pm';
+        require 'ios.pm';
     }
 }
 

@@ -1,19 +1,21 @@
-package cbrunperl;
+package ios;
 
 =head1 NAME
-cbrunperl.pm
+ios.pm
 =cut
 
 BEGIN {
-    *CORE::GLOBAL::readpipe = sub {
-        my ($code, $result);
-        eval {
-            ($code, $result) = exec_cli(getcwd(), "@_")
+    if ($^O =~ /darwin-ios/) {
+        *CORE::GLOBAL::readpipe = sub {
+            my ($code, $result);
+            eval {
+                ($code, $result) = exec_cli(getcwd(), "@_")
+            };
+            $code = $code >> 8 if defined $code;
+            $? = $code;
+            return $result;
         };
-        $code = $code >> 8 if defined $code;
-        $? = $code;
-        return $result;
-    };
+    }
 }
 
 # auto-flush on socket
@@ -49,7 +51,7 @@ my $json = JSON::PP->new->convert_blessed(1);
 
 sub check_error {
   my ($error) = @_;
-  warn "CBRunPerl error: $error" if $error;
+  warn "ios error: $error" if $error;
 }
 
 sub yield {

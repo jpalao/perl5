@@ -15,7 +15,7 @@ use warnings;
 use strict;
 use Config;
 if ($^O =~ /darwin-ios/) {
-    use cbrunperl;
+    use ios;
 }
 use B::Showlex ();
 

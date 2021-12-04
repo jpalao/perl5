@@ -5,7 +5,7 @@ use Devel::SelfStubber;
 use File::Spec::Functions;
 
 if ($^O =~ /darwin-ios/) {
-    use cbrunperl;
+    use ios;
 }
 
 my $runperl = $^X;

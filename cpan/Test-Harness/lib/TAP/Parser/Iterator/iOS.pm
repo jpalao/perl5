@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Cwd qw/getcwd/;
-use cbrunperl;
+use ios;
 
 use base 'TAP::Parser::Iterator';
 
