@@ -5,15 +5,17 @@ ios.pm
 =cut
 
 BEGIN {
-    *CORE::GLOBAL::readpipe = sub {
-        my ($code, $result);
-        eval {
-            ($code, $result) = exec_cli(getcwd(), "@_")
+    if ($^O =~ /darwin-ios/) {
+        *CORE::GLOBAL::readpipe = sub {
+            my ($code, $result);
+            eval {
+                ($code, $result) = exec_cli(getcwd(), "@_")
+            };
+            $code = $code >> 8 if defined $code;
+            $? = $code;
+            return $result;
         };
-        $code = $code >> 8 if defined $code;
-        $? = $code;
-        return $result;
-    };
+    }
 }
 
 # auto-flush on socket
@@ -87,7 +89,7 @@ sub exec_perl {
     };
     my $exec = $json->utf8->canonical->pretty->encode($runPerl);
     print "\$exec: $exec\n" if $DEBUG;
-    my $t = CamelBones::ios($exec);
+    my $t = CamelBones::CBRunPerl($exec);
     print "\$t: $t\n" if $DEBUG;
     return int($t);
 }
@@ -112,7 +114,7 @@ sub exec_perl_capture {
     my ($exit_code, $result);
     local $@;
     eval {
-        ($exit_code, $result) = CamelBones::iosCaptureStdout($exec);
+        ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
     };
     print "exec_perl_capture \$result: $result:\n" if ($result && $DEBUG);
     return ($exit_code, $result ? $result : $@);
