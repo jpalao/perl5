@@ -4,7 +4,9 @@ BEGIN {
     chdir 't' if -d 't';
     require "./test.pl";
     set_up_inc(qw(. ../lib));
-    skip_all('iOS: #TODO') if $^O =~ /darwin-ios/;
+    if ($^O =~ /darwin-ios/) {
+        use ios;
+    }
 }
 
 use Config;
@@ -38,8 +40,15 @@ print `$cmd`;
 $cmd = sprintf "$echo 1>&2", 5;
 print `$cmd`;
 
-system sprintf $echo, 6;
-system sprintf "$echo 1>&2", 7;
+if ($^O =~ /darwin-ios/) {
+    $cmd = sprintf $echo, 6;
+    print `$cmd`;
+    $cmd = sprintf "$echo 1>&2", 7;
+    print `$cmd`;
+} else {
+    system sprintf $echo, 6;
+    system sprintf "$echo 1>&2", 7;
+}
 
 close(STDOUT) or die "Could not close: $!";
 close(STDERR) or die "Could not close: $!";
@@ -49,34 +58,39 @@ open(STDERR,">&DUPERR") or die "Could not open: $!";
 
 if (($^O eq 'MSWin32') || ($^O eq 'NetWare')) { print `type $tempfile` }
 elsif ($^O eq 'VMS')   { system "type $tempfile.;" } # TYPE defaults to .LIS when there is no extension
+elsif ($^O =~ /darwin-ios/) { ios::cat($tempfile) }
 else { system "cat $tempfile" }
 
 print STDOUT "ok 8\n";
 
-open(F,">&",1) or die "Cannot dup to numeric 1: $!";
-print F "ok 9\n";
-close(F);
-
-open(F,">&",'1') or die "Cannot dup to string '1': $!";
-print F "ok 10\n";
-close(F);
-
-open(F,">&=",1) or die "Cannot dup to numeric 1: $!";
-print F "ok 11\n";
-close(F);
-
-if ($Config{useperlio}) {
-    open(F,">&=",'1') or die "Cannot dup to string '1': $!";
-    print F "ok 12\n";
-    close(F);
+if ($^O =~ /darwin-ios/) {
+    for my $i (9..12) { print "ok $i # SKIP iOS TODO\n"; }
 } else {
-    open(F, ">&DUPOUT") or die "Cannot dup stdout back: $!";
-    print F "ok 12\n";
+    open(F,">&",1) or die "Cannot dup to numeric 1: $!";
+    print F "ok 9\n";
     close(F);
-}
 
-# To get STDOUT back.
-open(F, ">&DUPOUT") or die "Cannot dup stdout back: $!";
+    open(F,">&",'1') or die "Cannot dup to string '1': $!";
+    print F "ok 10\n";
+    close(F);
+
+    open(F,">&=",1) or die "Cannot dup to numeric 1: $!";
+    print F "ok 11\n";
+    close(F);
+
+    if ($Config{useperlio}) {
+        open(F,">&=",'1') or die "Cannot dup to string '1': $!";
+        print F "ok 12\n";
+        close(F);
+    } else {
+        open(F, ">&DUPOUT") or die "Cannot dup stdout back: $!";
+        print F "ok 12\n";
+        close(F);
+    }
+
+    # To get STDOUT back.
+    open(F, ">&DUPOUT") or die "Cannot dup stdout back: $!";
+}
 
 curr_test(13);
 
