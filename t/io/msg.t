@@ -11,7 +11,7 @@ BEGIN {
     skip_all('-- IPC::SysV was not built');
   }
   skip_all_if_miniperl();
-  skip_all('iOS: TODO') if $^O =~ /darwin-ios/;
+  skip_all('iOS: IPC::SysV not supported') if $^O =~ /darwin-ios/;
   if ($Config{'d_msg'} ne 'define') {
     skip_all('-- $Config{d_msg} undefined');
   }
