@@ -22,11 +22,8 @@ if ( $::IS_EBCDIC || $::IS_EBCDIC) {
   skip_all( "- We don't regen on EBCDIC." );
 }
 use Config;
-if ( $Config{usecrosscompile} ) {
+if ( $Config{usecrosscompile} || $^O =~ /darwin-ios/) {
   skip_all( "Not all files are available during cross-compilation" );
-}
-if ( $^O =~ /darwin-ios/) {
-  skip_all( "iOS: #TODO" );
 }
 
 my $tests = 24; # I can't see a clean way to calculate this automatically.
