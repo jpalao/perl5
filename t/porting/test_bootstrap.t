@@ -9,7 +9,6 @@ use strict;
 BEGIN {
     chdir 't';
     require './test.pl';
-    skip_all( "iOS: #TODO" ) if $^O =~ /darwin-ios/;
 }
 
 plan('no_plan');
@@ -25,11 +24,15 @@ my %exceptions = (
     proto => 'use strict',
  );
 
+my @iOS_exceptions = qw (base/term.t comp/hints.t comp/parser.t
+    comp/proto.t comp/require.t);
+
 while (my $file = <$fh>) {
     next unless $file =~ s!^t/!!;
     chomp $file;
     $file =~ s/\s+.*//;
     next unless $file =~ m!\.t$!;
+    next if $^O =~ /darwin-ios/ && "@iOS_exceptions" =~ /$file/;
 
     local $/;
     open my $t, '<', $file or die "Can't open $file: $!";
