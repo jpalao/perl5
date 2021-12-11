@@ -37,7 +37,7 @@ my @dl_files = File::Find::Rule->file()
     ->name('*.bundle', '*.dylib', $PRODUCT_NAME) 
     ->in( @search_paths );
     
-push @dl_files, $TARGET_FRAMEWORK_DIR."/CamelBones.framework/CamelBones"; 
+push @dl_files, $TARGET_FRAMEWORK_DIR."/ios.framework/ios"; 
 
 if (!scalar @dl_files) {
     die "No dependencies found. Exiting now";
@@ -52,7 +52,7 @@ for my $file(File::Find::Rule->file()->name('*.bundle')->in( $TARGET_PERLIBDIR_D
 	`/usr/bin/codesign --force --sign $SIGN_ID --preserve-metadata=identifier,entitlements --timestamp=none $file`;
 }
 
-my $cb_framework = $TARGET_FRAMEWORK_DIR."/CamelBones.framework/CamelBones";
+my $cb_framework = $TARGET_FRAMEWORK_DIR."/ios.framework/ios";
 `/usr/bin/codesign --force --sign $SIGN_ID --preserve-metadata=identifier,entitlements --timestamp=none $cb_framework`;
 
 my $libperl_lib = $TARGET_FRAMEWORK_DIR."/libperl.dylib";
