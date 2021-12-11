@@ -1,7 +1,7 @@
 //  OutputViewController.m
 
 #import <QuartzCore/QuartzCore.h>
-#import <CamelBones/CamelBones.h>
+#import <ios/ios.h>
 #import "OutputViewController.h"
 
 #define OUTPUT_VIEW_CAPACITY 104857601
