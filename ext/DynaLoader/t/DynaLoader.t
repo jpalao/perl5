@@ -37,9 +37,7 @@ BEGIN {
 my %ios_modules = (
     # iOS: TODO
     'Data::Dumper' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
-    'CamelBones' => q| ::is( ref Data::Dumper->can('exec_test'),'CODE' ) |,
-    'CamelBones::CoreGraphics' => q| ::is( ref Data::Dumper->can('CGPointMake'),'CODE' ) |,
-    'CamelBones::Foundation' => q| ::is( ref Data::Dumper->can('NSLocationInRange'),'CODE' ) |,
+    'ios' => q| ::is( ref Data::Dumper->can('exec_test'),'CODE' ) |,
     'Storable' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
     'Encode' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
     'Fcntl' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
