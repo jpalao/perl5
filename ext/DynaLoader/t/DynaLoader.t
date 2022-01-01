@@ -47,7 +47,6 @@ my %ios_modules = (
 %modules = (%modules, %ios_modules) if $^O =~ /darwin-ios/;
 
 my $p = 26 + keys(%modules) * 3;
-$p +=4 if $^O =~ /darwin-ios/;
 plan ($p);
 
 # Try to load the module
