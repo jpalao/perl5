@@ -8,7 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <CamelBones/CamelBones.h>
+#import <ios/ios.h>
+// TODO check imports
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 

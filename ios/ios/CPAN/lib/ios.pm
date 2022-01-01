@@ -1,7 +1,9 @@
 package ios;
 
 =head1 NAME
-ios.pm
+
+ios - supporting XS code for iOS and derivatives
+
 =cut
 
 BEGIN {
@@ -18,16 +20,11 @@ BEGIN {
     }
 }
 
-# auto-flush on socket
-$| = 1;
 use strict;
-use open ":std", ":encoding(UTF-8)";
-use CamelBones qw(:All);
-use JSON::PP;
-use Data::Dumper;
-use Cwd qw(abs_path chdir getcwd);
-use Text::ParseWords;
+use warnings;
+use Config;
 
+require Exporter;
 our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
 
@@ -43,6 +40,18 @@ our @methods = (
 our @EXPORT = @methods;
 our @EXPORT_OK = @methods;
 
+require XSLoader;
+XSLoader::load('ios', $VERSION);
+
+# auto-flush on socket
+$| = 1;
+
+use open ":std", ":encoding(UTF-8)";
+use JSON::PP;
+use Data::Dumper;
+use Cwd qw(abs_path chdir getcwd);
+use Text::ParseWords;
+
 our $DEBUG = 0;
 
 our $capture = 1;
@@ -55,7 +64,7 @@ sub check_error {
 }
 
 sub yield {
-  CamelBones::CBYield(shift);
+  CBYield(shift);
 }
 
 # runperl, run_perl - Runs a separate perl interpreter and returns its output.
@@ -89,7 +98,7 @@ sub exec_perl {
     };
     my $exec = $json->utf8->canonical->pretty->encode($runPerl);
     print "\$exec: $exec\n" if $DEBUG;
-    my $t = CamelBones::CBRunPerl($exec);
+    my $t = CBRunPerl($exec);
     print "\$t: $t\n" if $DEBUG;
     return int($t);
 }
@@ -114,7 +123,7 @@ sub exec_perl_capture {
     my ($exit_code, $result);
     local $@;
     eval {
-        ($exit_code, $result) = CamelBones::CBRunPerlCaptureStdout($exec);
+        ($exit_code, $result) = CBRunPerlCaptureStdout($exec);
     };
     print "exec_perl_capture \$result: $result:\n" if ($result && $DEBUG);
     return ($exit_code, $result ? $result : $@);
@@ -260,3 +269,5 @@ sub cat {
     close $fh;
     print $result;
 }
+
+1;
