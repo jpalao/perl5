@@ -4898,6 +4898,7 @@ lib/integer.pm			For "use integer"
 lib/integer.t			For "use integer" testing
 lib/Internals.pod		Document the Internals namespace (implemented by universal.c)
 lib/Internals.t			For Internals::* testing
+lib/ios.pm			iOS specific XS code
 lib/less.pm			For "use less"
 lib/less.t			See if less support works
 lib/locale.pm			For "use locale"
