@@ -39,7 +39,6 @@ our $Tests_Are_Passing = 1;
 if ($^O =~ /darwin-ios/) {
     use Cwd qw/getcwd/;
     use ios;
-    $ios::DEBUG = 0;
 }
 
 # Use this instead of print to avoid interference while testing globals.
@@ -1249,7 +1248,6 @@ sub run_multiple_progs {
 	    $switch = $1;
 	}
 	my ($prog, $expected) = split(/\nEXPECT(?:\n|$)/, $_, 2);
-	utf8::decode($prog) if $is_ios;
 	utf8::decode($expected) if $is_ios;
 
 	my %reason;
