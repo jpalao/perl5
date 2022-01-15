@@ -5,9 +5,7 @@ use Test::More tests => 1;
 use File::Spec;
 use FindBin '$Bin';
 use Archive::Tar;
-if ($^O =~ /darwin-ios/) {
-    use ios;
-}
+if ($^O =~ /darwin-ios/) { use ios }
 
 # filenames
 my $tartest = File::Spec->catfile("t", "ptargrep");
