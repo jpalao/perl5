@@ -311,20 +311,5 @@ check_exit_code() {
   fi
 }
 
-build_artifacts() {
-  if [ $SIMULATOR_BUILD -ne 0 ]; then
-    PLATFORM_TAG="$PLATFORM_TAG-simul"
-  fi
-  cd "$WORKDIR"
-  TIMESTAMP=$(date "+%Y%m%d-%H%M%S")
-  export COPY_EXTENDED_ATTRIBUTES_DISABLE=true
-  export COPYFILE_DISABLE=true
-  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.share.tar.bz2" "./$INSTALL_DIR/share"
-  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.bin.tar.bz2" "./$INSTALL_DIR/bin"
-  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.lib.tar.bz2" "./$INSTALL_DIR/lib/perl5"
-  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.build.tar.bz2" "./perl-$PERL_VERSION"
-}
-
 delete_installed_perl
 build_perl
-build_artifacts
