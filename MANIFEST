@@ -4804,8 +4804,6 @@ ios/test/harness/Info.plist		iOS test app
 ios/test/harness/main.m		iOS test app
 ios/test/harness/OutputViewController.h		iOS test app
 ios/test/harness/OutputViewController.m		iOS test app
-ios/test/harness/SceneDelegate.h		iOS test app
-ios/test/harness/SceneDelegate.m		iOS test app
 ios/test/harness.xcodeproj/project.pbxproj	iOS test app
 ios/test/harness.xcodeproj/project.xcworkspace/contents.xcworkspacedata	iOS test app
 ios/test/harness.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist		iOS test app
