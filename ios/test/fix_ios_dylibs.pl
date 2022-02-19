@@ -13,6 +13,12 @@ my $install_name_tool = "/usr/bin/install_name_tool";
 
 my ($PRODUCT_NAME, $TARGET_BUILD_DIR, $TARGET_NAME, $SOURCE_PREFIX, $SIGN_ID) = @ARGV;
 
+print "\$PRODUCT_NAME: $PRODUCT_NAME\n";
+print "\$TARGET_BUILD_DIR: $TARGET_BUILD_DIR\n";
+print "\$TARGET_NAME: $TARGET_NAME\n";
+print "\$SOURCE_PREFIX: $SOURCE_PREFIX\n";
+print "\$SIGN_ID: $SIGN_ID\n";
+
 my $SOURCE_PREFIX_REGEX = qr|^$SOURCE_PREFIX|;
 my $BINARY_MATCH = qr "|^$SOURCE_PREFIX.*(?:dylib|bundle)$|";
 
