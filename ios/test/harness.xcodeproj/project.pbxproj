@@ -311,7 +311,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\necho \"removing libperl.dylib from default location:\"\necho \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\nrm -f \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\n\nchmod +w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n\nexec \"$MACOS_PERL_PATH\" \"$PROJECT_DIR/fix_ios_dylibs.pl\" \"$PRODUCT_NAME\" \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\" \"$PERL_INSTALL_PREFIX\" \"$PERL_SIGNING_IDENTITY\"\n\nchmod -w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n";
+			shellScript = "#!/bin/bash\necho \"removing libperl.dylib from default location:\"\necho \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\nrm -f \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\n\nchmod +w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n\nexec \"$MACOS_PERL_PATH\" \"$PROJECT_DIR/fix_ios_dylibs.pl\" \"$PRODUCT_NAME\" \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\" \"$PERL_INSTALL_PREFIX\" \"$EXPANDED_CODE_SIGN_IDENTITY\"\n\nchmod -w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -526,7 +526,6 @@
 				PERL_INSTALL_PREFIX = "";
 				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local";
 				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local";
-				PERL_SIGNING_IDENTITY = 5478D81F967655984EB2B7EEAC1036C8851AB879;
 				PERL_VERSION = 5.35.4;
 				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.harness;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -576,7 +575,6 @@
 				PERL_INSTALL_PREFIX = "";
 				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local";
 				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local";
-				PERL_SIGNING_IDENTITY = 5478D81F967655984EB2B7EEAC1036C8851AB879;
 				PERL_VERSION = 5.35.4;
 				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.harness;
 				PRODUCT_NAME = "$(TARGET_NAME)";
