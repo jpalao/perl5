@@ -357,14 +357,14 @@ define?*)
 	$spitshell >>$Makefile <<!GROK!THIS!
 # Macros to invoke a copy of our fully operational perl during the build.
 PERL_EXE = perl\$(EXE_EXT)
-RUN_PERL = \$(LDLIBPTH) \$(RUN) ./miniperl\$(EXE_EXT)
+RUN_PERL = \$(LDLIBPTH) \$(RUN) $perl\$(EXE_EXT)
 !GROK!THIS!
 	;;
 *)
 	$spitshell >>$Makefile <<!GROK!THIS!
 # Macros to invoke a copy of our fully operational perl during the build.
 PERL_EXE = perl\$(EXE_EXT)
-RUN_PERL = \$(LDLIBPTH) \$(RUN) ./miniperl\$(EXE_EXT) -Ilib -I.
+RUN_PERL = \$(LDLIBPTH) \$(RUN) ./perl\$(EXE_EXT) -Ilib -I.
 !GROK!THIS!
 	;;
 esac
@@ -741,8 +741,6 @@ case "$hostgenerate" in
 ''|'undef')
 $spitshell >>$Makefile <<!GROK!THIS!
 bitcount.h: generate_uudmap\$(HOST_EXE_EXT)
-	cp "$PERLBREW_SOURCE/generate_uudmap" .
-	cp "$PERLBREW_SOURCE/generate_uudmap" .
 	$run ./generate_uudmap\$(HOST_EXE_EXT) \$(generated_headers)
 	-@for f in \$(generated_headers); do \\
 	    $from \$\$f; \\
@@ -983,8 +981,6 @@ lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
 	-@rm -f miniperl.xok
 	$(CC) $(CLDFLAGS) -o $(MINIPERL_EXE) \
 	    $(miniperl_objs) $(libs)
-	cp /Users/jose/perl5/perlbrew/build/perl-5.35.4/miniperl .
-	cp /Users/jose/perl5/perlbrew/build/perl-5.35.4/miniperl .
 #	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	$(MINIPERL) -f write_buildcustomize.pl
 !NO!SUBS!
@@ -1023,8 +1019,6 @@ lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
 	-@rm -f miniperl.xok
 	$(CC) $(CLDFLAGS) $(NAMESPACEFLAGS) -o $(MINIPERL_EXE) \
 	    $(miniperl_objs) $(libs)
-	cp /Users/jose/perl5/perlbrew/build/perl-5.35.4/miniperl .
-	cp /Users/jose/perl5/perlbrew/build/perl-5.35.4/miniperl .
 	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	$(MINIPERL) -f write_buildcustomize.pl
 !NO!SUBS!
@@ -1045,8 +1039,6 @@ lib/buildcustomize.pl: $& $(miniperl_dep) write_buildcustomize.pl
 	-@rm -f miniperl.xok
 	$(CC) $(CLDFLAGS) -o $(MINIPERL_EXE) \
 	    $(miniperl_objs) $(libs)
-	cp /Users/jose/perl5/perlbrew/build/perl-5.35.4/miniperl .
-	cp /Users/jose/perl5/perlbrew/build/perl-5.35.4/miniperl .
 	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	$(MINIPERL) -f write_buildcustomize.pl
 !NO!SUBS!

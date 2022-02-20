@@ -1503,7 +1503,7 @@ archname=''
 usereentrant='undef'
 : List of libraries we want.
 : If anyone needs extra -lxxx, put those in a hint file.
-libswanted="cl pthread socket bind inet nsl ndbm dbm malloc dl ld"
+libswanted="cl pthread socket bind inet nsl ndbm gdbm dbm db malloc dl ld"
 libswanted="$libswanted sun m crypt sec util c cposix posix ucb bsd BSD"
 : We probably want to search /usr/shlib before most other libraries.
 : This is only used by the lib/ExtUtils/MakeMaker.pm routine extliblist.
@@ -5657,12 +5657,12 @@ if $sh -c "$cc -o try $optimize $ccflags $ldflags try.c $libs" >>try.msg 2>&1; t
 	else
 		echo "The program compiled OK, but exited with status $?." >>try.msg
 		rp="You have a problem.  Shall I abort Configure"
-		dflt=n
+		dflt=y
 	fi
 else
 	echo "I can't compile the test program." >>try.msg
 	rp="You have a BIG problem.  Shall I abort Configure"
-		dflt=n
+	dflt=y
 fi
 case "$dflt" in
 y)
@@ -24207,8 +24207,7 @@ EOM
 	'')	dflt=none;;
 	esac
 	rp="What extensions do you wish to load dynamically?"
-	avail_ext=$(echo "$avail_ext" | sed "s/ DB_File / /g")
-	ans="$avail_ext"
+	. ./myread
 	case "$ans" in
 	none) dynamic_ext=' ' ;;
 	*) dynamic_ext="$ans" ;;
@@ -25676,6 +25675,7 @@ to configure things, do it as a shell escape now (e.g. !vi config.sh).
 
 EOM
 	rp="Press return or use a shell escape to edit config.sh:"
+	. UU/myread
 	nostick=''
 	case "$ans" in
 	'') ;;
@@ -25708,8 +25708,8 @@ It can take a while, so you might not want to run it right now.
 EOM
 		;;
 	esac
-	ans=n
-	rp="Run  depend now?"
+	rp="Run $make depend now?"
+	. UU/myread
 	case "$ans" in
 	y*)
 		$make depend && echo "Now you must run '$make'."
