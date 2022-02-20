@@ -5,13 +5,13 @@ if [ -e setup_test.sh ];
     then source setup_test.sh;
 fi
 
-if [ -z ${IOS_DEVICE_UUID+x} ]; 
-    then echo "IOS_DEVICE_UUID is unset. Please set it and try again" && exit 0; 
+if [ -z ${IOS_DEVICE_UUID+x} ];
+    then echo "IOS_DEVICE_UUID is unset. Please set it and try again" && exit 0;
     else echo "IOS_DEVICE_UUID is set to '$IOS_DEVICE_UUID'";
 fi
 
-if [ -z ${HARNESS_APP_ID+x} ]; 
-    then echo "HARNESS_APP_ID is unset. Please set it and try again" && exit 0; 
+if [ -z ${HARNESS_APP_ID+x} ];
+    then echo "HARNESS_APP_ID is unset. Please set it and try again" && exit 0;
     else echo "HARNESS_APP_ID is set to '$HARNESS_APP_ID'";
 fi
 
@@ -45,9 +45,11 @@ PERL_TEST_LOG="$IOS_MOUNTPOINT/perl-tests.txt"
 export PERL_IOS_PREFIX="$PERL_IOS_PREFIX"
 export IOS_TARGET=$HARNESS_TARGET
 export IOS_BUILD_CONFIGURATION=$HARNESS_BUILD_CONFIGURATION
-export IOS_CI=1
 export IOS_VERSION='0.0.1'
-export IOS_CPAN_DIR=`pwd`"/perl-$PERL_VERSION/ext/ios-$IOS_VERSION"
+export IOS_FRAMEWORK_DIR="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ios/ios"
+export IOS_MODULE_PATH="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ios/ios"
+export IOS_CPAN_DIR="$IOS_MODULE_PATH/CPAN"
+export IOS_CPAN_EXT_DIR="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ext/ios-$IOS_VERSION"
 export INSTALL_IOS_FRAMEWORK=0
 export OVERWRITE_IOS_FRAMEWORK=0
 
@@ -83,7 +85,7 @@ check_dependencies() {
     deps=( "xcodebuild" "git" "perl" "perlbrew" "ifuse" "ios-deploy" )
     for i in "${deps[@]}"
     do
-        command -v $i >/dev/null 2>&1 || { 
+        command -v $i >/dev/null 2>&1 || {
             echo >&2 "$i is required. Please install it and try again"
             exit 1
         }
@@ -98,11 +100,11 @@ check_exit_code() {
 }
 
 prepare_ios() {
-  rm -Rf ios
-  git clone --single-branch --branch "$IOS_BRANCH" "$IOS_GIT"
+  rm -Rf $1
+  git clone --single-branch --branch "$IOS_BRANCH" "$IOS_GIT" $1
 }
 
-prepare_ios() {
+prepare_perl() {
   rm -Rf "perl-$PERL_VERSION"
   git clone --single-branch --branch "$PERL_5_BRANCH" "$PERL5_GIT" "perl-$PERL_VERSION"
 }
@@ -115,36 +117,44 @@ build_libffi() {
 }
 
 _term() {
-  kill -TERM "$REFRESH_PID" 2 >&1 > /dev/null
+  echo "Killing refresh process..."
+  kill -TERM "$REFRESH_PID" 2>&1 > /dev/null
+  exit 0;
 }
 
 test_perl_device() {
     echo "Mount iOS device under $IOS_MOUNTPOINT"
 
     umount -f $IOS_MOUNTPOINT
-    
+
     mkdir -p $IOS_MOUNTPOINT
     check_exit_code
-                
+
     pushd "perl-$PERL_VERSION/ios/test"
     check_exit_code
-        
+
     xcodebuild ARCHS="$ARCHS" \
         IOS_FRAMEWORK_PATH="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ios/ios/build/Products/$IOS_BUILD_CONFIGURATION-$IOS_TARGET" \
         PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
         LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
-        PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
-        -allowProvisioningUpdates -scheme harness
+        PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO -scheme harness
     check_exit_code
-    
-    # install the app so it can receive files in Documents
-    ios-deploy --bundle "Build/Products/$HARNESS_BUILD_CONFIGURATION-$HARNESS_TARGET/harness.app"
 
-    ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
-    check_exit_code
-    
-    rm -Rf "$IOS_MOUNTPOINT/*"
-    check_exit_code
+    # install the app so it can receive files in Documents
+    simulator_build=`echo "$ARCHS" | grep -c "x86_64"` # x86_64 simulator
+    test_app="Build/Products/$HARNESS_BUILD_CONFIGURATION-$HARNESS_TARGET/harness.app"
+
+    if [ "$simulator_build" -eq "0" ]; then
+        ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$test_app"
+        check_exit_code
+
+        rm -Rf "$IOS_MOUNTPOINT/*"
+        check_exit_code
+    else
+        xcrun simctl uninstall "$IOS_DEVICE_UUID" "$HARNESS_APP_ID"
+        xcrun simctl install "$IOS_DEVICE_UUID" "$test_app"
+        check_exit_code
+    fi
 
     pushd "$WORKDIR/perl-$PERL_VERSION/"
 
@@ -152,13 +162,13 @@ test_perl_device() {
 
     perl -0777 -p -i -e 's/(\@INC\s*=\s*)((?:(?!.*map.*)))/use lib \2/g' TestInit.pm
 
-    find . -name "*.t" -o -name "TEST" -o -name "harness" | \
+    find . -name "*.t" -o -name "TEST" -o -name "harness" -type f | \
         xargs grep -EL 'local\s*@INC\s*=' | \
         xargs grep -EL '\\@INC\s*=' | \
         xargs grep -El '^\s*[^#]*\s*\s*@INC\s*=' | \
         xargs perl -0777 -p -i -e 's|(\s*(?:(?!#))\s*)(?:(?!local))\s*\@INC\s*=(?:(?!>))\s*(?!.*if.*)|\1use lib |g'
 
-    find . | grep -E "\.(pl|pm|t)$" | \
+    find . -type f | grep -E "\.(pl|pm|t)$" | \
         xargs grep -EL 'local\s*@INC\s*=' | \
         xargs grep -EL '\\@INC\s*=' | \
         xargs grep -El "^\s*[^#]*\s*@INC\s*=.*if.*" | \
@@ -176,45 +186,77 @@ test_perl_device() {
     popd
 
     echo "Copy perl build directory to iOS device..."
-    cp -RL "$WORKDIR/perl-$PERL_VERSION/." $IOS_MOUNTPOINT 2>/dev/null
 
-    echo "Delete test Build dir, we are installed already..."
-    rm -Rf "$IOS_MOUNTPOINT/ios/test/Build"
-    
-    echo "Delete unsigned bundle files from harness mountpoint..."
-    find $IOS_MOUNTPOINT -name "*.bundle" -type f -delete
-    check_exit_code
+    build_destination_dir=""
+    if [ "$simulator_build" -eq "0" ]; then
+        build_destination_dir="$IOS_MOUNTPOINT"
+        ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
+    else # ARM device
+        build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
+        build_destination_dir="$build_destination_dir/Documents/"
+    fi
 
-    umount -f $IOS_MOUNTPOINT 
+    echo "App Documents dir is '$build_destination_dir'"
+
+    if [ "$simulator_build" -eq "0" ]; then
+        cp -RL "$WORKDIR/perl-$PERL_VERSION/." "$build_destination_dir" 2>/dev/null
+    else # ARM device
+        cp -RL "$WORKDIR/perl-$PERL_VERSION/." "$build_destination_dir"
+    fi
+
     #check_exit_code
 
-    ios-deploy --justlaunch --debug --bundle "Build/Products/$HARNESS_BUILD_CONFIGURATION-$HARNESS_TARGET/harness.app"
+    echo "Delete Build dir..."
+    rm -Rf "$build_destination_dir/ios/test/Build"
+
+    echo "Delete unsigned bundle files from harness mountpoint..."
+    find $build_destination_dir -name "*.bundle" -type f -delete
     check_exit_code
+
+    if [ "$simulator_build" -eq "0" ]; then
+        umount -f $IOS_MOUNTPOINT
+        #check_exit_code
+        ios-deploy --noinstall --justlaunch --debug --bundle "$test_app"
+        check_exit_code
+    else
+        xcrun simctl launch "$IOS_DEVICE_UUID" "$HARNESS_APP_ID"
+        check_exit_code
+    fi
 
     popd
 
-    ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" --documents "$HARNESS_APP_ID"
-    check_exit_code
-    sleep 2
-    
-    TEST_SH_PID=$$
-    # keep scrolling in sync w/ device's ifuse fs and exit after PASS|FAIL
-    perl -s -w -e 'while (1) {`ls '"$IOS_MOUNTPOINT"'`; `tail -2 '"$PERL_TEST_LOG"' | grep -E "Result: (PASS|FAIL)" > /dev/null 2>&1`; if (!$?) { `kill '"$TEST_SH_PID"'`; exit 0 }}' > /dev/null 2>&1 &
-    
-    sleep 2
-    
-    tail -f "$PERL_TEST_LOG"
+    if [ "$simulator_build" -eq "0" ]; then
+        ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" --documents "$HARNESS_APP_ID"
+        check_exit_code
+        sleep 2
+        # needed for scrolling to keep in sync w/ device's ifuse fs
+        perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
+        REFRESH_PID=$!
+    fi
+
+    sleep 3
+
+    tail -n 3000 -f $build_destination_dir/perl-tests.txt
+
+    if [ "$simulator_build" -eq "0" ]; then
+        echo "kill $REFRESH_PID"
+        kill $REFRESH_PID
+        check_exit_code
+        umount -f $IOS_MOUNTPOINT
+        #rm -Rf $IOS_MOUNTPOINT
+        check_exit_code
+    fi
 }
 
 build_ios_framework() {
 
-    pushd ios
+    pushd $IOS_FRAMEWORK_DIR
     check_exit_code
 
     xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
     LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
-    -allowProvisioningUpdates -scheme "$IOS_TARGET"
+    -scheme "$IOS_TARGET"
     popd
 }
 
@@ -229,16 +271,30 @@ build_macos_perl() {
         -Dcccdlflags='-fPIC -DPERL_USE_SAFE_PUTENV' -Doptimize=-O3 -Duseshrplib \
         -Duse64bitall --thread --multi --64int --clan blead
     perlbrew alias create perl-blead "perl-$PERL_VERSION"
-    
+
     pushd ~/perl5/perlbrew/build
     ln -s blead/perl5-blead "perl-$PERL_VERSION"
     popd
-    
+
     perlbrew use "perl-$PERL_VERSION"
 
     # for test app build to re-link and sign binaries, see fix_ios_dylibs.sh
     cpanm File::Copy::Recursive
     cpanm File::Find::Rule
+}
+
+build_artifacts() {
+  if [ $SIMULATOR_BUILD -ne 0 ]; then
+    PLATFORM_TAG="$PLATFORM_TAG-simul"
+  fi
+  cd "$WORKDIR"
+  TIMESTAMP=$(date "+%Y%m%d-%H%M%S")
+  export COPY_EXTENDED_ATTRIBUTES_DISABLE=true
+  export COPYFILE_DISABLE=true
+  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.share.tar.bz2" "./$INSTALL_DIR/share"
+  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.bin.tar.bz2" "./$INSTALL_DIR/bin"
+  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.lib.tar.bz2" "./$INSTALL_DIR/lib/perl5"
+  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.build.tar.bz2" "./perl-$PERL_VERSION"
 }
 
 ####################################################################
@@ -251,22 +307,21 @@ check_dependencies
 
 use_perlbrew
 
-mkdir -p ext
-rm -f "ext/ios-$IOS_VERSION".tar.gz
-
-prepare_ios
+prepare_perl
 PERL_ARCH="$ARCHS" DEBUG=1 sh -x "perl-$PERL_VERSION/ios/build.sh"
 check_exit_code
 
-prepare_ios
+echo "Cloning ios CPAN module"
+prepare_ios $IOS_MODULE_PATH
+
 build_ios_framework
 check_exit_code
 
-#prepare_ios
-mkdir -p $IOS_CPAN_DIR
-chmod -R +w $IOS_CPAN_DIR
-echo cp -R "$WORKDIR/ios/CPAN/." $IOS_CPAN_DIR/
-cp -R "$WORKDIR/ios/CPAN/." $IOS_CPAN_DIR/
+mkdir -p $IOS_CPAN_EXT_DIR
+chmod -R +w $IOS_CPAN_EXT_DIR
+echo cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
+cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
+
 PERL_ARCH="$ARCHS" DEBUG=1 sh -x "perl-$PERL_VERSION/ios/build.sh"
 check_exit_code
 
