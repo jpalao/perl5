@@ -1474,9 +1474,8 @@ while ($c == 0 && $d) {
   undef $d;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$c in numeric eq \(==\) at - line 5.
-Use of uninitialized value \$c in numeric eq \(==\) at - line \d+.
+Use of uninitialized value $c in numeric eq (==) at - line 5.
+Use of uninitialized value $c in numeric eq (==) at - line 5.
 ########
 # TODO long standing bug - conditions of until loops
 use warnings;
@@ -1491,9 +1490,8 @@ until ($c == 1) {
   $c = 1 if ++$d == 2;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$c in numeric eq \(==\) at - line 5.
-Use of uninitialized value \$c in numeric eq \(==\) at - line \d+.
+Use of uninitialized value $c in numeric eq (==) at - line 5.
+Use of uninitialized value $c in numeric eq (==) at - line 5.
 ########
 # TODO long standing bug - conditions of for loops
 use warnings;
@@ -1517,11 +1515,10 @@ for ($d = 2; $d > 0; $e = !($c == 0)) {
   --$d;
 }
 EXPECT
-OPTION regex
-Use of uninitialized value \$c in numeric eq \(==\) at - line 5.
-Use of uninitialized value \$c in numeric eq \(==\) at - line \d+.
-Use of uninitialized value \$c in numeric eq \(==\) at - line 14.
-Use of uninitialized value \$c in numeric eq \(==\) at - line 14.
+Use of uninitialized value $c in numeric eq (==) at - line 5.
+Use of uninitialized value $c in numeric eq (==) at - line 5.
+Use of uninitialized value $c in numeric eq (==) at - line 14.
+Use of uninitialized value $c in numeric eq (==) at - line 14.
 ########
 # TODO long standing bug - more general variant of the above problem
 use warnings;
@@ -1532,9 +1529,8 @@ my $b
   = $undef
   + 1;
 EXPECT
-OPTION regex
-Use of uninitialized value \$undef in addition \(\+\) at - line 4.
-Use of uninitialized value \$undef in addition \(\+\) at - line \d+.
+Use of uninitialized value $undef in addition (+) at - line 4.
+Use of uninitialized value $undef in addition (+) at - line 7.
 ########
 use warnings 'uninitialized';
 my ($r1, $r2);
