@@ -274,6 +274,20 @@ build_perl() {
   make
   check_exit_code
 
+  echo "Cloning ios CPAN module"
+  #prepare_ios $IOS_MODULE_PATH
+
+  build_ios_framework
+  check_exit_code
+
+  mkdir -p $IOS_CPAN_EXT_DIR
+  chmod -R +w $IOS_CPAN_EXT_DIR
+  echo cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
+  cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
+
+  make
+  check_exit_code
+
   make test_prep
   #make test would fail
 
@@ -309,6 +323,17 @@ check_exit_code() {
     echo "Failed to build perl for iOS"
     exit $?
   fi
+}
+
+build_ios_framework() {
+    pushd $IOS_FRAMEWORK_DIR
+    check_exit_code
+
+    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
+    LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
+    PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
+    -scheme "$IOS_TARGET"
+    popd
 }
 
 delete_installed_perl
