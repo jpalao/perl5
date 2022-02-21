@@ -329,8 +329,8 @@ build_ios_framework() {
     pushd $IOS_FRAMEWORK_DIR
     check_exit_code
 
-    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
-    LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
+    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PREFIX/lib/perl5" \
+    LIBPERL_PATH="$PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
     -scheme "$IOS_TARGET"
     popd
