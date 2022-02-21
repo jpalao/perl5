@@ -285,7 +285,7 @@ build_perl() {
   echo cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
   cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
 
-  make
+  DYLD_LIBRARY_PATH=/Users/jose/Desktop/arm64m/perl-5.35.4 ./miniperl -Ilib make_ext.pl ext/ios-0.0.1/pm_to_blib  MAKE="/Applications/Xcode.app/Contents/Developer/usr/bin/make" LIBPERL_A=libperl.dylib
   check_exit_code
 
   make test_prep
