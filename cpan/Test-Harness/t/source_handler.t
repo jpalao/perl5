@@ -21,6 +21,8 @@ my $IS_WIN32 = ( $^O =~ /^(MS)?Win32$/ );
 my $HAS_SH   = -x '/bin/sh';
 my $HAS_ECHO = -x '/bin/echo';
 
+$HAS_SH = 0 if $^O =~ /darwin-ios/;
+
 my $dir = File::Spec->catdir(
     't',
     'source_tests'
@@ -94,6 +96,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
                     (map { "-I$_" } split /$Config{path_sep}/, $ENV{PERL5LIB} || ''),
                     '-It/lib', '-T', $file{source}
                 ],
+                skip          => $^O =~ /darwin-ios/,
                 iclass        => $iterator_class,
                 output        => [ '1..1', 'ok 1 - source' ],
                 assemble_meta => 1,
@@ -199,11 +202,8 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
         $source->assemble_meta;
         my $iterator = $class->make_iterator($source);
         my @command;
-        if ($^O =~ /darwin-ios/ && !$iterator->{command}) {
-            skip ('iOS: #TODO', 1);
-        } else {
-            @command  = @{ $iterator->{command} };
-        }
+        skip ('#iOS: TODO', 1) if ($^O =~ /darwin-ios/ && !$iterator->{command});
+        @command  = @{ $iterator->{command} };
         ok( grep( $_ =~ /^['"]?-T['"]?$/, @command ),
             '... and it should find the taint switch'
         );
@@ -300,10 +300,6 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
 
 # IO::Handle TAP source tests
 SKIP: {
-    if ($^O =~ /darwin-ios/) {
-        skip ('iOS: #TODO', 21);
-        exit 0;
-    }
     my $class = 'TAP::Parser::SourceHandler::Handle';
     my $tests = {
         default_vote => 0,
@@ -394,8 +390,9 @@ sub test_handler {
             isa_ok $iterator, $test->{iclass}, $name;
             if ( $test->{output} ) {
                 my $i = 1;
+                skip("#iOS: TODO", 3)
+                    if $^O =~ /darwin-ios/ && $test->{name} eq 't/source_tests/source';
                 for my $line ( @{ $test->{output} } ) {
-                    skip ('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
                     is $iterator->next, $line, "... line $i";
                     $i++;
                 }
