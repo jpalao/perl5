@@ -212,7 +212,7 @@ sub process_file_dependencies {
             my ($b, $d, $e) = fileparse($f,'\.[^\.]*');
 
             if ($f =~ /libperl\.dylib/ && $f !~ /$TARGET_FRAMEWORK_DIR/) {
-                print "Dylib not in Frameworks dir, changing dyn path to '\@executable_path/Frameworks/'.$b.$e";
+                print "libperl\.dylib not in Frameworks dir, changing dyn path to '\@executable_path/Frameworks/$b$e'\n";
                 change_dyn_path('@executable_path/Frameworks/'.$b.$e, $d.$b.$e, $file);
             }
 

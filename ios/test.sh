@@ -187,7 +187,6 @@ test_perl_device() {
 
     echo "Copy perl build directory to iOS device..."
 
-    build_destination_dir=""
     if [ "$simulator_build" -eq "0" ]; then
         build_destination_dir="$IOS_MOUNTPOINT"
         ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
@@ -226,7 +225,7 @@ test_perl_device() {
     popd
 
     if [ "$simulator_build" -eq "0" ]; then
-        ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" --documents "$HARNESS_APP_ID"
+        ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
         check_exit_code
         sleep 2
         # needed for scrolling to keep in sync w/ device's ifuse fs
@@ -308,20 +307,6 @@ check_dependencies
 use_perlbrew
 
 prepare_perl
-PERL_ARCH="$ARCHS" DEBUG=1 sh -x "perl-$PERL_VERSION/ios/build.sh"
-check_exit_code
-
-echo "Cloning ios CPAN module"
-prepare_ios $IOS_MODULE_PATH
-
-build_ios_framework
-check_exit_code
-
-mkdir -p $IOS_CPAN_EXT_DIR
-chmod -R +w $IOS_CPAN_EXT_DIR
-echo cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
-cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
-
 PERL_ARCH="$ARCHS" DEBUG=1 sh -x "perl-$PERL_VERSION/ios/build.sh"
 check_exit_code
 
