@@ -1471,7 +1471,6 @@ use File::Glob qw(:case);
                 lib/builtin.{pm,t}
                 lib/bytes.{pm,t}
                 lib/bytes_heavy.pl
-                lib/ios.pm
                 lib/charnames.{pm,t}
                 lib/dbm_filter_util.pl
                 lib/deprecate.pm
