@@ -169,7 +169,7 @@ $XCODE_BUILD_CONFIG .= "-$IOS_TARGET" if $IOS_TARGET !~ /macosx/;
 
 print "\$IOS_CPAN_DIR: $IOS_CPAN_DIR\n";
 
-my $abs_path_to_cpan_dir = "$PERL_IOS_PREFIX/perl-$PERL_VERSION/ext/ios-$IOS_VERSION/";
+my $abs_path_to_cpan_dir = "$PERL_IOS_PREFIX/perl-$PERL_VERSION/ext/ios/";
 print "\$abs_path_to_cpan_dir: $abs_path_to_cpan_dir\n";
 
 our $IOS_FRAMEWORK = 'ios.framework';
