@@ -19,8 +19,8 @@
 #define RD_NODATA -1
 #define EOF_NONBLOCK
 #define PTRSIZE 8		/**/
-#define CPPSTDIN "/usr/bin/clang -arch x86_64 -I/opt/local/include -I/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include -arch x86_64 -miphoneos-version-min=8.0 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk -DPERL_IOS -DPERL_USE_SAFE_PUTENV -fno-common -fPIC -DPERL_DARWIN -DTARGET_OS_IPHONE -pipe -O0 -g -fno-strict-aliasing -fstack-protector-strong -E"
-#define CPPRUN "/usr/bin/clang -arch x86_64 -I/opt/local/include -I/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include -arch x86_64 -miphoneos-version-min=8.0 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk -DPERL_IOS -DPERL_USE_SAFE_PUTENV -fno-common -fPIC -DPERL_DARWIN -DTARGET_OS_IPHONE -pipe -O0 -g -fno-strict-aliasing -fstack-protector-strong -E"
+#define CPPSTDIN "/usr/bin/clang -arch x86_64 -I/opt/local/include -I/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include -arch x86_64 -miphoneos-version-min=8.0 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk -DPERL_IOS -DPERL_USE_SAFE_PUTENV -fno-common -fPIC -DPERL_DARWIN -DPERL_IOS -pipe -O0 -g -fno-strict-aliasing -fstack-protector-strong -E"
+#define CPPRUN "/usr/bin/clang -arch x86_64 -I/opt/local/include -I/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/usr/include -arch x86_64 -miphoneos-version-min=8.0 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk -DPERL_IOS -DPERL_USE_SAFE_PUTENV -fno-common -fPIC -DPERL_DARWIN -DPERL_IOS -pipe -O0 -g -fno-strict-aliasing -fstack-protector-strong -E"
 #define LONG_DOUBLESIZE 16		/**/
 #define LONG_DOUBLEKIND 3		/**/
 #define LONG_DOUBLE_STYLE_IEEE

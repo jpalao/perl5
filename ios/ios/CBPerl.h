@@ -10,13 +10,6 @@
 #import "PerlImports.h"
 #include "perlxsi.h"
 
-#if TARGET_OS_IPHONE
-#import <objc/runtime.h>
-#elif TARGET_OS_MAC
-#import <objc/objc-runtime.h>
-#import <objc/objc-class.h>
-#endif
-
 #define CBPerlErrorException @"CBPerlErrorException"
 
 typedef void (^PerlCompletionBlock)(int perlRunResult);
