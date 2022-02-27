@@ -26,9 +26,8 @@ my $verbose = @ARGV; # set if ANY ARGS
 my $path = join " ", map { qq["-I$_"] } @INC;
 
 my $o = `$^X $path "-MO=Showlex" -e "my \@one" 2>&1`;
-
 like ($o, qr/undef.*: \([^)]*\) \@one.*Nullsv.*AV/s,
-  "canonical usage works");
+      "canonical usage works");
 
 # v1.01 tests
 
