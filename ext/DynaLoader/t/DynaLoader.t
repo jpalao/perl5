@@ -35,7 +35,6 @@ BEGIN {
 );
 
 my %ios_modules = (
-    # iOS: TODO
      'Data::Dumper'     => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
      'Storable'         => q| ::is( ref Storable->can('nstore'),'CODE' ) |,
      'Encode'           => q| ::is( ref Encode->can('decode'),'CODE' ) |,
@@ -144,6 +143,7 @@ SKIP: {
 # Now try to load well known XS modules
 my $extensions = $Config{'dynamic_ext'};
 $extensions =~ s|/|::|g;
+$extensions .= " ios" if $^O =~ /darwin-ios/;
 
 for my $module (sort keys %modules) {
     SKIP: {
