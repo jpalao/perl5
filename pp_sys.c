@@ -4347,7 +4347,7 @@ PP(pp_system)
     PL_statusvalue = -1;
     SP = ORIGMARK;
     XPUSHi(-1);
-#elif TARGET_OS_IPHONE
+#elif PERL_IOS
     PL_statusvalue = -1;
     SP = ORIGMARK;
     XPUSHi(-1);
@@ -4564,7 +4564,7 @@ PP(pp_exec)
     dSP; dMARK; dORIGMARK; dTARGET;
     I32 value;
 
-#if TARGET_OS_IPHONE
+#if PERL_IOS
     value = 1;
     XPUSHi(value);
     RETURN;

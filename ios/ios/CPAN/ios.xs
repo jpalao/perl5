@@ -5,7 +5,7 @@
 #ifdef GNUSTEP
 #include <objc/objc.h>
 #else
-#if TARGET_OS_IPHONE
+#if PERL_IOS
 #import <objc/runtime.h>
 #elif TARGET_OS_MAC
 #import <objc/objc-runtime.h>
