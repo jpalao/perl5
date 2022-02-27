@@ -12,7 +12,7 @@ die "This code only works on macOS, iOS, apple tv and apple watch systems"
 
 =head1 cb_common.pl
 
-This script builds the ios Framework and associated perl XS extension.
+This script builds ios.framework and associated perl XS extension.
 
 The following ENV variables can be set to control its behavior.
 
@@ -22,7 +22,7 @@ The following ENV variables can be set to control its behavior.
 
 =head2 PERL_INCLUDE_DIR
 
-Absolute path to the directory containing the installed libperl.dylib
+Absolute path to the directory containing EXTERN.h and libperl.dylib
 
 =cut
 
@@ -56,7 +56,7 @@ our $ARCHFLAGS = $ENV{'ARCHFLAGS'};
 
 =head2 PERL_VERSION
 
-The perl version that ios should link to
+The perl version that ios should link with. For example 5.35.9 
 
 =cut
 
@@ -68,9 +68,9 @@ our $PERL_VERSION = $ENV{'PERL_VERSION'};
 
 The target of this build. One of:
 
-=item
+=cut
 
-macosx
+=over
 
 =item
 
@@ -96,7 +96,9 @@ watchos
 
 watchsimulator
 
-Default is macosx
+=back
+
+Default is iphoneos
 
 =cut
 
@@ -106,7 +108,7 @@ our $IOS_TARGET = $ENV{'IOS_TARGET'};
 
 =head2 PERL_IOS_PREFIX
 
-TODO
+Absolute path to the parent dir of the perl-5.XX.XX source folder
 
 =cut
 
@@ -116,7 +118,7 @@ our $PERL_IOS_PREFIX = $ENV{'PERL_IOS_PREFIX'};
 
 =head2 IOS_MODULE_PATH
 
-TODO
+Path to the ios.framework project files 
 
 =cut
 
@@ -136,7 +138,7 @@ our $IOS_VERSION = $ENV{'IOS_VERSION'};
 
 =head2 IOS_CPAN_DIR
 
-Absolute path to ios/CPAN
+Absolute path to ios XS module
 
 =cut
 
@@ -146,13 +148,13 @@ our $IOS_CPAN_DIR = $ENV{'IOS_CPAN_DIR'};
 
 =head2 ARCHS
 
-Architectures for this build, defaults to x86_64
+Architectures for this build, defaults to arm64
 
 =cut
 
 our $ARCHS = $ENV{'ARCHS'};
 if (!length $ARCHS) {
-    $ARCHS = 'x86_64';
+    $ARCHS = 'arm64';
 }
 
 =pod
