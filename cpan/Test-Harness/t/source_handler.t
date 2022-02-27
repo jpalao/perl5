@@ -202,7 +202,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
         $source->assemble_meta;
         my $iterator = $class->make_iterator($source);
         my @command;
-        skip ('#iOS: TODO', 1) if ($^O =~ /darwin-ios/ && !$iterator->{command});
+        skip ('iOS: TODO', 1) if ($^O =~ /darwin-ios/ && !$iterator->{command});
         @command  = @{ $iterator->{command} };
         ok( grep( $_ =~ /^['"]?-T['"]?$/, @command ),
             '... and it should find the taint switch'
@@ -390,7 +390,7 @@ sub test_handler {
             isa_ok $iterator, $test->{iclass}, $name;
             if ( $test->{output} ) {
                 my $i = 1;
-                skip("#iOS: TODO", 3)
+                skip("iOS: TODO", 3)
                     if $^O =~ /darwin-ios/ && $test->{name} eq 't/source_tests/source';
                 for my $line ( @{ $test->{output} } ) {
                     is $iterator->next, $line, "... line $i";
