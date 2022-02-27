@@ -183,7 +183,7 @@ if (!defined $ARCHFLAGS || !length $ARCHFLAGS) {
     chomp $ARCHFLAGS;
 }
 
-$ARCHFLAGS .= "$perl_link_flags -ObjC -lobjc -framework ios";
+$ARCHFLAGS .= "$perl_link_flags -framework ios";
 
 $PERL_INCLUDE_DIR = $Config{archlib}. "/CORE"
     if (!defined $PERL_INCLUDE_DIR || !length $PERL_INCLUDE_DIR);
@@ -199,7 +199,7 @@ our %opts = (
     PREREQ_PM         => {},
 
     AUTHOR            => 'Sherm Pendley <sherm.pendley@gmail.com>',
-    XSOPT             => "-typemap $PERL_IOS_PREFIX/perl-$PERL_VERSION/ext/ios-$IOS_VERSION/typemap",
+    XSOPT             => "-typemap $PERL_IOS_PREFIX/perl-$PERL_VERSION/ext/ios/typemap",
 
     LIBS              => [ '-lobjc'],
     INC               => "-F$IOS_MODULE_PATH/Build/Products/$XCODE_BUILD_CONFIG",
