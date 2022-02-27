@@ -1438,7 +1438,6 @@ use File::Glob qw(:case);
                 lib/blib.{pm,t}
                 lib/bytes.{pm,t}
                 lib/bytes_heavy.pl
-                lib/ios.pm
                 lib/charnames.{pm,t}
                 lib/dbm_filter_util.pl
                 lib/deprecate.pm
@@ -1450,6 +1449,7 @@ use File::Glob qw(:case);
                 lib/h2ph.t
                 lib/h2xs.t
                 lib/integer.{pm,t}
+                lib/ios.pm
                 lib/less.{pm,t}
                 lib/locale.{pm,t}
                 lib/locale_threads.t

@@ -209,9 +209,15 @@ sub process_file_dependencies {
         print "->Linked to: " .$f. "\n";
         
         if (($f =~ $BINARY_MATCH) || ($f =~ /$TARGET_FRAMEWORK_DIR/)) {
-            next if ($f !~ /$SOURCE_PREFIX_REGEX/);
             my ($b, $d, $e) = fileparse($f,'\.[^\.]*');
-            
+
+            if ($f =~ /libperl\.dylib/ && $f !~ /$TARGET_FRAMEWORK_DIR/) {
+                print "libperl\.dylib not in Frameworks dir, changing dyn path to '\@executable_path/Frameworks/$b$e'\n";
+                change_dyn_path('@executable_path/Frameworks/'.$b.$e, $d.$b.$e, $file);
+            }
+
+            next if ($f !~ /$SOURCE_PREFIX_REGEX/);
+
             if ($b eq $PRODUCT_NAME && $file eq "$TARGET_BIN_DIR/$PRODUCT_NAME") {
                 print "Main executable: $TARGET_BIN_DIR/$PRODUCT_NAME\n";
                 change_dyn_path('@executable_path/Frameworks/'.$b.$e, $d.$b.$e, $file);

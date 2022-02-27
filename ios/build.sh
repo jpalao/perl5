@@ -12,12 +12,14 @@
 : "${PERL_APPLEWATCH:=0}"
 
 # Xcode
-: "${IOS_DEVICE_SDK_PATH:=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk}"
-: "${IOS_SIMULATOR_SDK_PATH:=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk}"
-: "${APPLETV_DEVICE_SDK_PATH:=/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS.sdk}"
-: "${APPLETV_SIMULATOR_SDK_PATH:=/Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator.sdk}"
-: "${WATCHOS_DEVICE_SDK_PATH:=/Applications/Xcode.app/Contents/Developer/Platforms/WatchOS.platform/Developer/SDKs/WatchOS.sdk}"
-: "${WATCHOS_SIMULATOR_SDK_PATH:=/Applications/Xcode.app/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator.sdk}"
+: "${XCODE_PATH:=/Applications/Xcode.app}"
+: "${XCODE_DEVELOPER_PATH:=$XCODE_PATH/Contents/Developer}"
+: "${IOS_DEVICE_SDK_PATH:=$XCODE_PATH/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk}"
+: "${IOS_SIMULATOR_SDK_PATH:=$XCODE_PATH/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk}"
+: "${APPLETV_DEVICE_SDK_PATH:=$XCODE_PATH/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS.sdk}"
+: "${APPLETV_SIMULATOR_SDK_PATH:=$XCODE_PATH/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator.sdk}"
+: "${WATCHOS_DEVICE_SDK_PATH:=$XCODE_PATH/Contents/Developer/Platforms/WatchOS.platform/Developer/SDKs/WatchOS.sdk}"
+: "${WATCHOS_SIMULATOR_SDK_PATH:=$XCODE_PATH/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator.sdk}"
 
 ############## CONFIG END ##############
 
@@ -274,6 +276,20 @@ build_perl() {
   make
   check_exit_code
 
+  echo "Cloning ios CPAN module"
+  #prepare_ios $IOS_MODULE_PATH
+
+  build_ios_framework
+  check_exit_code
+
+  mkdir -p $IOS_CPAN_EXT_DIR
+  chmod -R +w $IOS_CPAN_EXT_DIR
+  echo cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
+  cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
+
+  DYLD_LIBRARY_PATH=`pwd` ./miniperl -Ilib make_ext.pl ext/ios/pm_to_blib  MAKE="$XCODE_DEVELOPER_PATH/usr/bin/make" LIBPERL_A=libperl.dylib
+  check_exit_code
+
   make test_prep
   #make test would fail
 
@@ -309,6 +325,17 @@ check_exit_code() {
     echo "Failed to build perl for iOS"
     exit $?
   fi
+}
+
+build_ios_framework() {
+    pushd $IOS_FRAMEWORK_DIR
+    check_exit_code
+
+    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$WORKDIR/perl-$PERL_VERSION" \
+    LIBPERL_PATH="$WORKDIR/perl-$PERL_VERSION" \
+    PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
+    -scheme "$IOS_TARGET"
+    popd
 }
 
 delete_installed_perl

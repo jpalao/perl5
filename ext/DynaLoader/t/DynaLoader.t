@@ -35,19 +35,17 @@ BEGIN {
 );
 
 my %ios_modules = (
-    # iOS: TODO
-    'Data::Dumper' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
-    'ios' => q| ::is( ref Data::Dumper->can('exec_test'),'CODE' ) |,
-    'Storable' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
-    'Encode' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
-    'Fcntl' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
-    'PerlIO::encoding' => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
+     'Data::Dumper'     => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
+     'Storable'         => q| ::is( ref Storable->can('nstore'),'CODE' ) |,
+     'Encode'           => q| ::is( ref Encode->can('decode'),'CODE' ) |,
+     'Fcntl'            => q| ::is( ref Fcntl->can('flock'),'CODE' ) |,
+     'PerlIO::encoding' => q| ::is( ref PerlIO::encoding->can('fallback'),'CODE' ) |,
+     'ios'              => q| ::is( ref ios->can('cat'),'CODE' ) |,
 );
 
 %modules = (%modules, %ios_modules) if $^O =~ /darwin-ios/;
 
-my $p = 26 + keys(%modules) * 3;
-plan ($p);
+plan (26 + keys(%modules) * 3);
 
 # Try to load the module
 use_ok( 'DynaLoader' );
@@ -145,6 +143,7 @@ SKIP: {
 # Now try to load well known XS modules
 my $extensions = $Config{'dynamic_ext'};
 $extensions =~ s|/|::|g;
+$extensions .= " ios" if $^O =~ /darwin-ios/;
 
 for my $module (sort keys %modules) {
     SKIP: {
@@ -157,12 +156,9 @@ for my $module (sort keys %modules) {
     }
 }
 
-SKIP: {
 # checking internal consistency
-skip( "iOS: TODO", 2 ) if $^O =~ /darwin-ios/;
 is( scalar @DynaLoader::dl_librefs, scalar keys %modules, "checking number of items in \@dl_librefs" );
 is( scalar @DynaLoader::dl_modules, scalar keys %modules, "checking number of items in \@dl_modules" );
-}
 
 my @loaded_modules = @DynaLoader::dl_modules;
 for my $libref (reverse @DynaLoader::dl_librefs) {

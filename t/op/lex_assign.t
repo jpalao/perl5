@@ -234,7 +234,7 @@ __END__
 ref $xref			# ref
 ref $cstr			# ref nonref
 `$runme -e "print qq[1\\n]"`				# backtick skip(MSWin32)
-`$undefed`			# backtick undef skip(MSWin32)
+`$undefed`			# backtick undef skip(MSWin32) skip(darwin-ios)
 '???'				# glob  (not currently OA_TARGLEX)
 <OP>				# readline
 'faked'				# rcatline
