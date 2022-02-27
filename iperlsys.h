@@ -1117,7 +1117,7 @@ struct IPerlProcInfo
 #define PerlProc_crypt(c,s)	crypt((c), (s))
 #define PerlProc_exit(s)	exit((s))
 #define PerlProc__exit(s)	_exit((s))
-#if !TARGET_OS_IPHONE
+#if !PERL_IOS
 #define PerlProc_execl(c,w,x,y,z)					\
         execl((c), (w), (x), (y), (z))
 #define PerlProc_execv(c, a)	execv((c), (a))

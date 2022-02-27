@@ -1302,7 +1302,7 @@ Use L</UV> to declare variables of the maximum usable size on this platform.
 #define PERL_USES_PL_PIDSTATUS
 #endif
 
-#if !defined(OS2) && !defined(WIN32) && !defined(DJGPP) && !TARGET_OS_IPHONE
+#if !defined(OS2) && !defined(WIN32) && !defined(DJGPP) && !PERL_IOS
 #define PERL_DEFAULT_DO_EXEC3_IMPLEMENTATION
 #endif
 
@@ -4901,7 +4901,7 @@ typedef OP* (*PPADDR_t[]) (pTHX);
 typedef bool (*destroyable_proc_t) (pTHX_ SV *sv);
 typedef void (*despatch_signals_proc_t) (pTHX);
 
-#if defined(__DYNAMIC__) && defined(PERL_DARWIN) && defined(PERL_CORE) && !TARGET_OS_IPHONE
+#if defined(__DYNAMIC__) && defined(PERL_DARWIN) && defined(PERL_CORE) && !PERL_IOS
 #  include <crt_externs.h>	/* for the env array */
 #  define environ (*_NSGetEnviron())
 #elif defined(USE_ENVIRON_ARRAY) && !defined(environ)
