@@ -36,3 +36,17 @@ SV*
 CBYield(ti)
     double ti;
 
+SV*
+CBFork()
+    CODE:
+        RETVAL = CBFork();
+    OUTPUT:
+        RETVAL
+
+SV*
+CBGetPid()
+    CODE:
+        RETVAL = CBGetPid();
+    OUTPUT:
+        RETVAL
+

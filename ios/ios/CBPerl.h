@@ -57,5 +57,10 @@ typedef void (^PerlCompletionBlock)(int perlRunResult);
 // initXS: A version of init suitable for use within XS modules
 - (id) initXS;
 
+// Pseudo fork implementation
++ (Pid_t) perl_fork;
++ (Pid_t) perl_getpid;
+
+
 @end
 

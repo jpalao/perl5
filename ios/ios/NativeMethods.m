@@ -399,3 +399,11 @@ CBRunPerlCaptureStdout (char * json) {
     return (void *) results;
 }
 }
+
+int CBFork() {
+    return [CBPerl perl_fork];
+}
+
+int CBGetPid() {
+    return [CBPerl perl_getpid];
+}

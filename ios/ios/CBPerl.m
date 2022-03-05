@@ -327,4 +327,177 @@ static Boolean perlInitialized = false;
     }
 }
 
+
++ (Pid_t) perl_getpid
+{
+    dTHX;
+    uint64_t tid;
+    pthread_threadid_np(NULL, &tid);
+    return (int)tid;
+}
+
+int start_child (void* arg)
+{
+    dTHX;
+    PerlInterpreter *new_perl;
+    int status;
+
+     PERL_SET_CONTEXT(arg);
+    new_perl = (PerlInterpreter*)arg;
+//    [self ios_checkTLS: new_perl];
+
+#ifdef PERL_USES_PL_PIDSTATUS
+    hv_clear(PL_pidstatus);
+#endif
+
+    /* push a zero on the stack (we are the child) */
+    {
+  dSP;
+  dTARGET;
+  PUSHi(0);
+  PUTBACK;
+    }
+
+    /* continue from next op */
+    PL_op = PL_op->op_next;
+
+    {
+  dJMPENV;
+  volatile int oldscope = 1; /* We are responsible for all scopes */
+
+restart:
+  JMPENV_PUSH(status);
+  switch (status) {
+  case 0:
+      CALLRUNOPS(aTHX);
+            /* We may have additional unclosed scopes if fork() was called
+             * from within a BEGIN block.  See perlfork.pod for more details.
+             * We cannot clean up these other scopes because they belong to a
+             * different interpreter, but we also cannot leave PL_scopestack_ix
+             * dangling because that can trigger an assertion in perl_destruct().
+             */
+            if (PL_scopestack_ix > oldscope) {
+                PL_scopestack[oldscope-1] = PL_scopestack[PL_scopestack_ix-1];
+                PL_scopestack_ix = oldscope;
+            }
+      status = 0;
+      break;
+  case 2:
+      while (PL_scopestack_ix > oldscope)
+    LEAVE;
+      FREETMPS;
+      PL_curstash = PL_defstash;
+      if (PL_curstash != PL_defstash) {
+    SvREFCNT_dec(PL_curstash);
+    PL_curstash = (HV *)SvREFCNT_inc(PL_defstash);
+      }
+      if (PL_endav && !PL_minus_c) {
+    PERL_SET_PHASE(PERL_PHASE_END);
+    call_list(oldscope, PL_endav);
+      }
+      status = STATUS_EXIT;
+      break;
+  case 3:
+      if (PL_restartop) {
+    POPSTACK_TO(PL_mainstack);
+    PL_op = PL_restartop;
+    PL_restartop = (OP*)NULL;
+    goto restart;
+      }
+      PerlIO_printf(Perl_error_log, "panic: restartop\n");
+      FREETMPS;
+      status = 1;
+      break;
+  }
+  JMPENV_POP;
+
+  /* XXX hack to avoid perl_destruct() freeing optree */
+//        [self ios_checkTLS: new_perl];
+  PL_main_root = (OP*)NULL;
+    }
+
+//    [self ios_checkTLS: new_perl];
+    /* close the std handles to avoid fd leaks */
+    {
+  do_close(PL_stdingv, FALSE);
+  do_close(gv_fetchpv("STDOUT", TRUE, SVt_PVIO), FALSE); /* PL_stdoutgv - ISAGN */
+  do_close(PL_stderrgv, FALSE);
+    }
+
+    @synchronized(perlInstanceDict) {
+        PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+        PL_perl_destruct_level = 1;
+        [[CBPerl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) new_perl]];
+        /* destroy everything (waits for any pseudo-forked children) */
+        // [self ios_checkTLS: new_perl];
+        perl_destruct(new_perl);
+        // [self ios_checkTLS: new_perl];
+        perl_free(new_perl);
+    }
+
+    return status;
+}
+
++ (Pid_t) perl_fork
+{
+    // Pid_t pid;
+    pthread_t thread;
+    PerlInterpreter *interp;
+    PerlInterpreter *interp_dup;    /* The duplicate interpreter */
+    int thread_created = -1;
+    uint64_t tid;
+
+    /* atfork_lock() and atfork_unlock() are installed as pthread_atfork()
+     * handlers elsewhere in the code */
+
+/*
+     Upon successful completion, fork() returns a value of 0 to the child
+     process and returns the process ID of the child process to the parent
+     process.  Otherwise, a value of -1 is returned to the parent process, no
+     child process is created, and the global variable errno is set to indi-
+     cate the error.
+*/
+
+    interp = PERL_GET_CONTEXT; /* The original interpreter */
+    interp_dup = perl_clone(interp, CLONEf_COPY_STACKS);
+
+    /* pid = fork(); */
+
+    thread_created = pthread_create(
+      &thread,
+      NULL,
+      (void *)&start_child,
+      (void *)interp_dup
+    );
+    if (0 == thread_created) {
+     pthread_threadid_np(NULL, &tid);
+     return tid;
+    }
+    else {
+      errno = EAGAIN;
+      return -1;
+    }
+}
+
+void
+Perl_atfork_lock(void)
+  PERL_TSA_ACQUIRE(PL_perlio_mutex)
+  PERL_TSA_ACQUIRE(PL_op_mutex)
+{
+    /* locks must be held in locking order (if any) */
+    MUTEX_LOCK(&PL_perlio_mutex);
+    OP_REFCNT_LOCK;
+}
+
+/* this is called in both parent and child after the fork() */
+void
+Perl_atfork_unlock(void)
+  PERL_TSA_RELEASE(PL_perlio_mutex)
+  PERL_TSA_RELEASE(PL_op_mutex)
+{
+    /* locks must be released in same order as in atfork_lock() */
+    MUTEX_UNLOCK(&PL_perlio_mutex);
+    OP_REFCNT_UNLOCK;
+}
+
 @end
