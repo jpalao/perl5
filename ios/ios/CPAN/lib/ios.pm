@@ -17,6 +17,12 @@ BEGIN {
             $? = $code;
             return $result;
         };
+        *CORE::GLOBAL::fork = sub {
+            return CBFork();
+        };
+        *CORE::GLOBAL::getpid = sub {
+            return CBGetPid();
+        };
     }
 }
 
