@@ -18,10 +18,10 @@ BEGIN {
             return $result;
         };
         *CORE::GLOBAL::fork = sub {
-            return CBFork();
+            return ios_fork();
         };
         *CORE::GLOBAL::getpid = sub {
-            return CBGetPid();
+            return ios_getpid();
         };
     }
 }
@@ -41,6 +41,8 @@ our @methods = (
     'exec_test',
     'yield',
     'cat',
+    'fork',
+    'getpid',
 );
 
 our @EXPORT = @methods;
@@ -275,5 +277,14 @@ sub cat {
     close $fh;
     print $result;
 }
+
+sub ios_fork {
+    return CBFork();
+}
+
+sub ios_getpid {
+    return CBGetPid();
+}
+
 
 1;
