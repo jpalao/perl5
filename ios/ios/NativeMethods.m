@@ -400,10 +400,20 @@ CBRunPerlCaptureStdout (char * json) {
 }
 }
 
-int CBFork() {
-    return [CBPerl perl_fork];
+void * CBFork() {
+    @autoreleasepool {
+        PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+        dTHX;
+        SV *result =  [CBPerl perl_fork];
+        return (void *)result;
+    }
 }
 
-int CBGetPid() {
-    return [CBPerl perl_getpid];
+void * CBGetPid() {
+    @autoreleasepool {
+        PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+        dTHX;
+        SV *result = [CBPerl perl_getpid];
+        return (void *)result;
+    }
 }
