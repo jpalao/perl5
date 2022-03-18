@@ -109,7 +109,7 @@ static Boolean perlInitialized = false;
     NSArray * perl5Dirs = [self getDirsInPerl5Dir];
 
     if (!perl5Dirs.count) return [NSMutableArray arrayWithCapacity:0].mutableCopy;
-    
+
     for (id input in perl5Dirs) {
         NSString * exp = @"^(5\\.\\d+\\.\\d+)$";
         NSError * error = nil;
@@ -327,24 +327,29 @@ static Boolean perlInitialized = false;
     }
 }
 
-
-+ (Pid_t) perl_getpid
++ (void *) perl_getpid
 {
+    PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
     dTHX;
-    uint64_t tid;
-    pthread_threadid_np(NULL, &tid);
-    return (int)tid;
+    uint64_t tid = 0;
+    SV * result = newSViv((U64)tid);
+
+    if (0 == pthread_threadid_np(NULL, &tid)) {
+        sv_setiv(result, (int)tid);
+    } else {
+        sv_setiv(result, (int)-1);
+    }
+
+    return (void *)result;
 }
 
-int start_child (void* arg)
+void start_child (void* arg)
 {
+    PERL_SET_CONTEXT(arg);
     dTHX;
-    PerlInterpreter *new_perl;
-    int status;
 
-     PERL_SET_CONTEXT(arg);
-    new_perl = (PerlInterpreter*)arg;
-//    [self ios_checkTLS: new_perl];
+    int status;
+    PerlInterpreter *new_perl = (PerlInterpreter*)arg;
 
 #ifdef PERL_USES_PL_PIDSTATUS
     hv_clear(PL_pidstatus);
@@ -425,7 +430,6 @@ restart:
     }
 
     @synchronized(perlInstanceDict) {
-        PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
         PL_perl_destruct_level = 1;
         [[CBPerl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) new_perl]];
         /* destroy everything (waits for any pseudo-forked children) */
@@ -435,17 +439,22 @@ restart:
         perl_free(new_perl);
     }
 
-    return status;
+    return;
 }
 
-+ (Pid_t) perl_fork
++ (void*) perl_fork
 {
     // Pid_t pid;
+
+    PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+    dTHX;
+
     pthread_t thread;
     PerlInterpreter *interp;
     PerlInterpreter *interp_dup;    /* The duplicate interpreter */
     int thread_created = -1;
     uint64_t tid;
+    SV * result = Perl_newSViv(PERL_GET_CONTEXT, -1);
 
     /* atfork_lock() and atfork_unlock() are installed as pthread_atfork()
      * handlers elsewhere in the code */
@@ -461,6 +470,9 @@ restart:
     interp = PERL_GET_CONTEXT; /* The original interpreter */
     interp_dup = perl_clone(interp, CLONEf_COPY_STACKS);
 
+    CBPerl * newCBPerl = [[super alloc] init];
+    [CBPerl setCBPerl:newCBPerl forPerlInterpreter:interp_dup];
+
     /* pid = fork(); */
 
     thread_created = pthread_create(
@@ -469,14 +481,14 @@ restart:
       (void *)&start_child,
       (void *)interp_dup
     );
-    if (0 == thread_created) {
-     pthread_threadid_np(NULL, &tid);
-     return tid;
+    if (0 == thread_created && 0 == pthread_threadid_np(NULL, &tid)) {
+        sv_setiv(result, (int)tid);
+    } else {
+        sv_setiv(result, (int)-1);
     }
-    else {
-      errno = EAGAIN;
-      return -1;
-    }
+
+    pthread_join(thread, NULL);
+    return result;
 }
 
 void
