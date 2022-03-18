@@ -62,7 +62,7 @@ use Text::ParseWords;
 
 our $DEBUG = 0;
 
-our $capture = 0;
+our $capture = 1;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
