@@ -18,10 +18,12 @@ BEGIN {
             return $result;
         };
         *CORE::GLOBAL::fork = sub {
-            return ios_fork();
+            my ($code) = ios_fork();
+            return $code;
         };
-        *CORE::GLOBAL::getpid = sub {
-            return ios_getpid();
+        *CORE::GLOBAL::getppid = sub {
+            my ($code) = ios_getpid();
+            return $code;
         };
     }
 }
@@ -41,8 +43,6 @@ our @methods = (
     'exec_test',
     'yield',
     'cat',
-    'fork',
-    'getpid',
 );
 
 our @EXPORT = @methods;
@@ -62,7 +62,7 @@ use Text::ParseWords;
 
 our $DEBUG = 0;
 
-our $capture = 1;
+our $capture = 0;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -279,11 +279,13 @@ sub cat {
 }
 
 sub ios_fork {
-    return CBFork();
+    my $f = CBFork();
+    return int($f);
 }
 
 sub ios_getpid {
-    return CBGetPid();
+    my $pid = CBGetPid();
+    return int($pid);
 }
 
 
