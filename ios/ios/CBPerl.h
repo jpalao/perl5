@@ -58,8 +58,8 @@ typedef void (^PerlCompletionBlock)(int perlRunResult);
 - (id) initXS;
 
 // Pseudo fork implementation
-+ (Pid_t) perl_fork;
-+ (Pid_t) perl_getpid;
++ (void *) perl_fork;
++ (void *) perl_getpid;
 
 
 @end

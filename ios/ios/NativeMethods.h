@@ -13,4 +13,7 @@ extern void* CBCallNativeMethod(void* target, SEL sel, void*args, BOOL isSuper);
 extern void* CBYield(double ti);
 extern void* CBRunPerl(char * json);
 extern void* CBRunPerlCaptureStdout (char * json);
+extern void* CBFork(void);
+extern void* CBGetPid(void);
+
 extern id CBDerefSVtoID(void* sv);
