@@ -5,7 +5,6 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
-    skip_all('iOS: fork not supported') if $^O =~ /darwin-ios/;
     set_up_inc('../lib');
     require Config;
     skip_all('no fork')
@@ -43,6 +42,7 @@ SKIP: {
 done_testing();
 
 __END__
+# SKIP ? $^O =~ /darwin-ios/
 $| = 1;
 if ($cid = fork) {
     sleep 1;
@@ -63,6 +63,7 @@ OPTION random
 ok 1
 ok 2
 ########
+# SKIP ? $^O =~ /darwin-ios/
 $| = 1;
 if ($cid = fork) {
     sleep 1;
@@ -179,6 +180,7 @@ child 3
 [1] -2- -3-
 -1- -2- -3-
 ########
+# SKIP ? $^O =~ /darwin-ios/
 $| = 1;
 foreach my $c (1,2,3) {
     if (fork) {
@@ -213,6 +215,7 @@ OPTION random
 1
 1
 ########
+# SKIP ? $^O =~ /darwin-ios/
 $| = 1;
 $\ = "\n";
 fork()
@@ -223,6 +226,7 @@ OPTION random
 1
 1
 ########
+# SKIP ? $^O =~ /darwin-ios/
 $| = 1;
 use Cwd;
 my $cwd = cwd(); # Make sure we load Win32.pm while "../lib" still works.
@@ -250,6 +254,7 @@ OPTION random
 ok 1 parent
 ok 1 child
 ########
+# SKIP ? $^O =~ /darwin-ios/
 $| = 1;
 $\ = "\n";
 my $getenv;
@@ -278,6 +283,7 @@ child after: baz
 parent before: foo
 parent after: bar
 ########
+# SKIP ? $^O =~ /darwin-ios/
 $| = 1;
 $\ = "\n";
 if ($pid = fork) {
@@ -291,6 +297,7 @@ EXPECT
 OPTION random
 parent got 10752
 ########
+# SKIP ? $^O =~ /darwin-ios/
 $| = 1;
 $\ = "\n";
 my $echo = 'echo';
@@ -309,6 +316,7 @@ OPTION random
 foo
 parent got 0
 ########
+# SKIP ? $^O =~ /darwin-ios/
 if (fork) {
     die "parent died";
 }
@@ -320,6 +328,7 @@ OPTION random
 parent died at - line 2.
 child died at - line 5.
 ########
+# SKIP ? $^O =~ /darwin-ios/
 if ($pid = fork) {
     eval { die "parent died" };
     print $@;
@@ -333,6 +342,7 @@ OPTION random
 parent died at - line 2.
 child died at - line 6.
 ########
+# SKIP ? $^O =~ /darwin-ios/
 if (eval q{$pid = fork}) {
     eval q{ die "parent died" };
     print $@;
@@ -408,6 +418,7 @@ OPTION random
 pipe_from_fork
 pipe_to_fork
 ########
+# SKIP ? $^O =~ /darwin-ios/
 $|=1;
 if ($pid = fork()) {
     print "forked first kid\n";
@@ -458,6 +469,7 @@ OPTION random
 1
 1
 ########
+# SKIP ? $^O =~ /darwin-ios/
 # [perl #72604] @DB::args stops working across Win32 fork
 $|=1;
 sub f {
@@ -477,18 +489,21 @@ OPTION random
 child: called as [main::f(foo,bar)]
 waitpid() returned ok
 ########
+# SKIP ? $^O =~ /darwin-ios/
 # Windows 2000: https://rt.cpan.org/Ticket/Display.html?id=66016#txn-908976
 system $^X,  "-e", "if (\$pid=fork){sleep 1;kill(9, \$pid)} else {sleep 5}";
 print $?>>8, "\n";
 EXPECT
 0
 ########
+# SKIP ? $^O =~ /darwin-ios/
 # Windows 7: https://rt.cpan.org/Ticket/Display.html?id=66016#txn-908976
 system $^X,  "-e", "if (\$pid=fork){kill(9, \$pid)} else {sleep 5}";
 print $?>>8, "\n";
 EXPECT
 0
 ########
+# SKIP ? $^O =~ /darwin-ios/
 # Windows fork() emulation: can we still waitpid() after signalling SIGTERM?
 $|=1;
 if (my $pid = fork) {
