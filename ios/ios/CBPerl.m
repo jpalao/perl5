@@ -331,7 +331,7 @@ static Boolean perlInitialized = false;
 {
     PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
     dTHX;
-    uint64_t tid = 0;
+    unsigned long long tid = 0;
     SV * result = newSViv((U64)tid);
 
     if (0 == pthread_threadid_np(NULL, &tid)) {
@@ -417,11 +417,9 @@ restart:
   JMPENV_POP;
 
   /* XXX hack to avoid perl_destruct() freeing optree */
-//        [self ios_checkTLS: new_perl];
   PL_main_root = (OP*)NULL;
     }
 
-//    [self ios_checkTLS: new_perl];
     /* close the std handles to avoid fd leaks */
     {
   do_close(PL_stdingv, FALSE);
@@ -430,12 +428,8 @@ restart:
     }
 
     @synchronized(perlInstanceDict) {
-        PL_perl_destruct_level = 1;
-        [[CBPerl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) new_perl]];
         /* destroy everything (waits for any pseudo-forked children) */
-        // [self ios_checkTLS: new_perl];
         perl_destruct(new_perl);
-        // [self ios_checkTLS: new_perl];
         perl_free(new_perl);
     }
 
@@ -454,7 +448,7 @@ restart:
     PerlInterpreter *interp_dup;    /* The duplicate interpreter */
     int thread_created = -1;
     uint64_t tid;
-    SV * result = Perl_newSViv(PERL_GET_CONTEXT, -1);
+    SV * result = newSViv(0);
 
     /* atfork_lock() and atfork_unlock() are installed as pthread_atfork()
      * handlers elsewhere in the code */
@@ -470,9 +464,6 @@ restart:
     interp = PERL_GET_CONTEXT; /* The original interpreter */
     interp_dup = perl_clone(interp, CLONEf_COPY_STACKS);
 
-    CBPerl * newCBPerl = [[super alloc] init];
-    [CBPerl setCBPerl:newCBPerl forPerlInterpreter:interp_dup];
-
     /* pid = fork(); */
 
     thread_created = pthread_create(
@@ -487,29 +478,8 @@ restart:
         sv_setiv(result, (int)-1);
     }
 
-    pthread_join(thread, NULL);
+    PERL_SET_CONTEXT(interp);
     return result;
-}
-
-void
-Perl_atfork_lock(void)
-  PERL_TSA_ACQUIRE(PL_perlio_mutex)
-  PERL_TSA_ACQUIRE(PL_op_mutex)
-{
-    /* locks must be held in locking order (if any) */
-    MUTEX_LOCK(&PL_perlio_mutex);
-    OP_REFCNT_LOCK;
-}
-
-/* this is called in both parent and child after the fork() */
-void
-Perl_atfork_unlock(void)
-  PERL_TSA_RELEASE(PL_perlio_mutex)
-  PERL_TSA_RELEASE(PL_op_mutex)
-{
-    /* locks must be released in same order as in atfork_lock() */
-    MUTEX_UNLOCK(&PL_perlio_mutex);
-    OP_REFCNT_UNLOCK;
 }
 
 @end
