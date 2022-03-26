@@ -13,6 +13,7 @@ BEGIN {
 
 use strict;
 use Config;
+if ($^O =~ /darwin-ios/) { use ios }
 
 {
     skip_all_without_config(qw(useithreads d_getppid));
@@ -46,6 +47,9 @@ if ($^O =~ /^(?:gnukfreebsd|linux)$/ and
     diag "We're running under $^O with linuxthreads <$thread_version>";
     isnt($pid,  $pid2, "getpid() in a thread is different from the parent on this non-POSIX system");
     isnt($ppid, $ppid2, "getppid() in a thread is different from the parent on this non-POSIX system");
+} elsif ($^O =~ /darwin-ios/) {
+    is($pid,  $pid2, "getpid() in a thread is the same as the parent on iOS");
+    isnt($ppid, $ppid2, "getppid() in a thread is different from the parent on iOS");
 } else {
     is($pid,  $pid2, 'getpid() in a thread is the same as in the parent');
     is($ppid, $ppid2, 'getppid() in a thread is the same as in the parent');
