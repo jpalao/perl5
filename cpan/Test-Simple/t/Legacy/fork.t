@@ -3,8 +3,10 @@ use strict;
 use warnings;
 
 use Test2::Util qw/CAN_FORK/;
+if ($^O =~ /darwin-ios/) { use ios }
+
 BEGIN {
-    unless(CAN_FORK && $^O !~ /darwin-ios/) {
+    unless(CAN_FORK) {
         require Test::More;
         Test::More->import(skip_all => "fork is not supported");
     }

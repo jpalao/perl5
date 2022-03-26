@@ -5,7 +5,7 @@ use warnings;
 use Test2::Util qw/CAN_FORK/;
 
 BEGIN {
-    unless (CAN_FORK && $^O !~ /darwin-ios/) {
+    unless (CAN_FORK) {
         require Test::More;
         Test::More->import(skip_all => "fork is not supported");
     }
@@ -14,6 +14,7 @@ BEGIN {
 use IO::Pipe;
 use Test::Builder;
 use Config;
+if ($^O =~ /darwin-ios/) { use ios }
 
 my $b = Test::Builder->new;
 $b->reset;

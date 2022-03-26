@@ -7,7 +7,8 @@ use strict;
 
 BEGIN {
   require Config;
-  my $can_fork = ($Config::Config{d_fork} and $^O !~ /darwin-ios/) ||
+  if ($^O =~ /darwin-ios/) { use ios }
+  my $can_fork = $Config::Config{d_fork} ||
     (($^O eq 'MSWin32' || $^O eq 'NetWare') and
      $Config::Config{useithreads} and
      $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/
