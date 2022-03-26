@@ -1313,14 +1313,10 @@ sub run_multiple_progs {
 	print $fh "\n#line 1\n";  # So the line numbers don't get messed up.
 	print $fh $prog,"\n";
 	close $fh or die "Cannot close $tmpfile: $!";
-	my @switches = $up ? ("-I$up/lib", $switch)
-	                   : ($switch);
-	push @switches, "-Mios" if $^O =~ /darwin-ios/;
-
 	my $results = runperl( stderr => 1, progfile => $tmpfile,
 			       stdin => undef, $up
-			       ? (switches => \@switches, nolib => 1)
-			       : (switches => \@switches)
+			       ? (switches => ["-I$up/lib", $switch], nolib => 1)
+			       : (switches => [$switch])
 			        );
 	my $status = $?;
 	$results =~ s/\n+$//;
