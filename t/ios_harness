@@ -5,12 +5,17 @@ use open ":std", ":encoding(UTF-8)";
 use strict;
 use warnings;
 use Config;
-use Cwd qw/getcwd/;
+use Cwd qw/getcwd abs_path/;
 
 $ENV{LC_ALL} = 'C';
 $ENV{LC_CTYPE} = 'C';
 $ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 0;
-$ENV{HOME} = getcwd();
+$ENV{HOME} = abs_path (getcwd() . '/..');
+$ENV{T2_TEMPDIR} = $ENV{HOME} . "/tmp/test2";
+
+mkdir $ENV{HOME} . "/tmp";
+mkdir $ENV{HOME} . "/tmp/test2";
+
 # $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
 # $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
 # $ENV{PERL_BENCHMARK} = 1;
