@@ -193,7 +193,6 @@ sub exclude_tests {
 	@tests = grep(/^(?:(?!\.\.\/dist\/ExtUtils-ParseXS))/, @tests);
 
 	# most likely will never pass on iOS
-	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-Cmd))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-SysV))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/ext\/IPC-Open3))/, @tests);
 };
