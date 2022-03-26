@@ -22,6 +22,7 @@ mkdir $ENV{HOME} . "/tmp/test2";
 # $ENV{PERL_TEST_MEMORY} = 1;
 # $ENV{PERL_TEST_HARNESS_ASAP} = 1;
 # $ENV{PERL_USE_UNSAFE_INC}
+# $ENV{AUTHOR_TESTING} = 1;
 
 # on iOS these tests may either:
 # hang, crash or exit unexpectedly,
@@ -89,6 +90,18 @@ my @ios_blacklist = (
     '../cpan/DB_File/t/db-recno.t',
     '../cpan/DB_File/t/db-hash.t',
     '../cpan/DB_File/t/db-btree.t',
+
+    # fork pending
+
+    '../cpan/Test-Simple/t/Legacy/subtest/fork.t', # fails
+    '../cpan/Test-Simple/t/regression/fork_first.t', # quits
+    '../cpan/Test-Simple/t/regression/skip_reason_object_ipc.t', # quits
+    '../cpan/Test-Simple/t/Test2/acceptance/try_it_fork.t', # quits
+    '../cpan/Test-Simple/t/Test2/regression/746-forking-subtest.t', # quits   
+
+    '../cpan/File-Temp/t/fork.t', # fails rmtree follows
+
+    '../cpan/IPC-Cmd/t/01_IPC-Cmd', # fails
 );
 
 my @simul_blacklist = (
