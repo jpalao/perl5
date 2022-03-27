@@ -42,3 +42,15 @@ CBFork()
 SV*
 CBGetPid()
 
+SV*
+CBKill(sig, pid)
+    int sig;
+    int pid;
+
+SV*
+CBWait()
+
+SV*
+CBWaitPid(pid, flags)
+    int pid;
+    int flags;

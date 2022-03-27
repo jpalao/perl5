@@ -60,7 +60,8 @@ typedef void (^PerlCompletionBlock)(int perlRunResult);
 // Pseudo fork implementation
 + (void *) perl_fork;
 + (void *) perl_getpid;
-
-
++ (void *) perl_wait;
++ (void *) perl_kill: (int) pid with_signal: (int) signal;
++ (void *) perl_waitpid: (int) pid with_flags: (int) flags;
 @end
 

@@ -482,4 +482,40 @@ restart:
     return result;
 }
 
++ (void *) perl_kill: (int) pid with_signal: (int) signal;
+{
+    PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+    dTHX;
+    unsigned long long tid = 0;
+    SV * result = newSViv((U64)tid);
+
+    return (void *)result;
+}
+
++ (void *) perl_wait
+{
+    PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+    dTHX;
+    unsigned long long tid = 0;
+    SV * result = newSViv((U64)tid);
+
+    if (0 == pthread_threadid_np(NULL, &tid)) {
+        sv_setiv(result, (int)tid);
+    } else {
+        sv_setiv(result, (int)-1);
+    }
+
+    return (void *)result;
+}
+
++ (void *) perl_waitpid: (int) pid with_flags: (int) flags;
+{
+    PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+    dTHX;
+    unsigned long long tid = 0;
+    SV * result = newSViv((U64)tid);
+
+    return (void *)result;
+}
+
 @end

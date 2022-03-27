@@ -417,3 +417,30 @@ void * CBGetPid() {
         return (void *)result;
     }
 }
+
+void * CBKill(int sig, int pid) {
+    @autoreleasepool {
+        PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+        dTHX;
+        SV *result =  [CBPerl perl_kill: pid with_signal: sig];
+        return (void *)result;
+    }
+}
+
+void * CBWait() {
+    @autoreleasepool {
+        PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+        dTHX;
+        SV *result = [CBPerl perl_wait];
+        return (void *)result;
+    }
+}
+
+void * CBWaitPid(int pid, int flags) {
+    @autoreleasepool {
+        PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+        dTHX;
+        SV *result =  [CBPerl perl_waitpid: pid with_flags: flags];
+        return (void *)result;
+    }
+}
