@@ -76,6 +76,27 @@ static Boolean perlInitialized = false;
     }
 }
 
++ (NSThread *) threadFromPid: (unsigned long long) tid  {
+    @synchronized(perlInstanceDict) {
+        NSThread * result = (NSThread *)[[CBPerl getPerlInstanceDictionary] valueForKey:[NSString stringWithFormat:@"P%llu", tid]];
+        return result;
+    }
+}
+
++ (void) setThread: (NSThread*) thread forPid: (unsigned long long) tid  {
+        @synchronized(perlInstanceDict) {
+            NSAssert ([CBPerl getPerlInstanceDictionary] != NULL, @"perl2CBPerlDict is NULL");
+            [[CBPerl getPerlInstanceDictionary] setObject:thread forKey:[NSString stringWithFormat:@"P%llu", tid]];
+        }
+}
+
++ (void) removeThreadForPid: (unsigned long long) tid  {
+        @synchronized(perlInstanceDict) {
+            NSAssert ([CBPerl getPerlInstanceDictionary] != NULL, @"perl2CBPerlDict is NULL");
+            [[CBPerl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"P%llu", tid]];
+        }
+}
+
 + (PerlInterpreter *) getPerlInterpreter {
     @synchronized(perlInstanceDict) {
 #if DEBUG
@@ -294,10 +315,30 @@ static Boolean perlInitialized = false;
     @synchronized(perlInstanceDict) {
         PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
         PL_perl_destruct_level = 1;
-        [[CBPerl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) _CBPerlInterpreter]];
+        int children = 0;
+        BOOL readyToClean = FALSE;
+        NSMutableDictionary * dict = nil;
+        while (!readyToClean) {
+            dict = [CBPerl getPerlInstanceDictionary];
+            children = 0;
+            for(id key in dict) {
+                if ([(NSString *)key hasPrefix:@"P"]) { // PID
+                    NSThread * thread = (NSThread *)[dict valueForKey:(NSString *)key];
+                    if (thread != nil) {
+                        children++;
+                    }
+                }
+            }
+            if(!children) {
+                readyToClean = TRUE;
+            }
+            [NSThread sleepForTimeInterval: 0.01];
+        }
+
         perl_destruct(_CBPerlInterpreter);
         perl_free(_CBPerlInterpreter);
-        // NSInteger rc = [self retainCount];
+        [dict removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) _CBPerlInterpreter]];
+
         NSArray *syms = [NSThread callStackSymbols];
         BOOL checkCBRunPerl = NO;
         for (NSString * sym in syms) {
@@ -331,15 +372,9 @@ static Boolean perlInitialized = false;
 {
     PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
     dTHX;
-    unsigned long long tid = 0;
+
+    mach_port_t tid = pthread_mach_thread_np(pthread_self());
     SV * result = newSViv((U64)tid);
-
-    if (0 == pthread_threadid_np(NULL, &tid)) {
-        sv_setiv(result, (int)tid);
-    } else {
-        sv_setiv(result, (int)-1);
-    }
-
     return (void *)result;
 }
 
@@ -431,6 +466,7 @@ restart:
         /* destroy everything (waits for any pseudo-forked children) */
         perl_destruct(new_perl);
         perl_free(new_perl);
+        // [[CBPerl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) new_perl]];
     }
 
     return;
@@ -443,12 +479,10 @@ restart:
     PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
     dTHX;
 
-    pthread_t thread;
+    __block mach_port_t tid = 0;
     PerlInterpreter *interp;
     PerlInterpreter *interp_dup;    /* The duplicate interpreter */
-    int thread_created = -1;
-    uint64_t tid;
-    SV * result = newSViv(0);
+    SV * result = newSViv(-1);
 
     /* atfork_lock() and atfork_unlock() are installed as pthread_atfork()
      * handlers elsewhere in the code */
@@ -466,19 +500,23 @@ restart:
 
     /* pid = fork(); */
 
-    thread_created = pthread_create(
-      &thread,
-      NULL,
-      (void *)&start_child,
-      (void *)interp_dup
-    );
-    if (0 == thread_created && 0 == pthread_threadid_np(NULL, &tid)) {
-        sv_setiv(result, (int)tid);
-    } else {
-        sv_setiv(result, (int)-1);
-    }
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, (unsigned long)NULL), ^(void){
+        @autoreleasepool {
+            NSThread * thread = [NSThread currentThread];
+            [CBPerl setThread:thread forPid:pthread_mach_thread_np(pthread_self())];
+            tid = pthread_mach_thread_np(pthread_self());
+            //[[CBPerl alloc] initWithPerlInterpreter:interp_dup];
+            start_child(interp_dup);
+            [thread cancel];
+        }
+    });
 
+    while (!tid) {
+        [NSThread sleepForTimeInterval: 0.005];
+    }
     PERL_SET_CONTEXT(interp);
+    sv_setiv(result, (int)tid);
+
     return result;
 }
 
@@ -486,8 +524,16 @@ restart:
 {
     PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
     dTHX;
-    unsigned long long tid = 0;
-    SV * result = newSViv((U64)tid);
+
+    NSThread * thread = [CBPerl threadFromPid: (unsigned long long) pid];
+    SV * result = nil;
+
+    if (thread) {
+        [thread cancel];
+        result = newSViv(1);
+    } else {
+        result = newSViv(0);
+    }
 
     return (void *)result;
 }
@@ -496,15 +542,11 @@ restart:
 {
     PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
     dTHX;
-    unsigned long long tid = 0;
+
+    mach_port_t tid = pthread_mach_thread_np(pthread_self());
     SV * result = newSViv((U64)tid);
 
-    if (0 == pthread_threadid_np(NULL, &tid)) {
-        sv_setiv(result, (int)tid);
-    } else {
-        sv_setiv(result, (int)-1);
-    }
-
+    sv_setiv(result, (int)tid);
     return (void *)result;
 }
 
@@ -512,8 +554,17 @@ restart:
 {
     PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
     dTHX;
-    unsigned long long tid = 0;
-    SV * result = newSViv((U64)tid);
+
+    NSThread * thread = nil;
+    SV * result = newSViv(pid);
+
+    while ((thread = (NSThread *)[CBPerl threadFromPid:(unsigned long long) pid])) {
+        if ([thread isCancelled]) {
+            [CBPerl removeThreadForPid: pid];
+            break;
+        }
+        [NSThread sleepForTimeInterval: 0.001];
+    }
 
     return (void *)result;
 }
