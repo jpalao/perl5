@@ -21,6 +21,15 @@ BEGIN {
             my ($code) = ios_fork();
             return $code;
         };
+        *CORE::GLOBAL::waitpid = sub {
+            my ($pid, $flags) = @_;
+            my ($code) = ios_waitpid($pid, $flags);
+            return $code;
+        };
+        *CORE::GLOBAL::wait = sub {
+            my ($code) = ios_wait();
+            return $code;
+        };
         *CORE::GLOBAL::getppid = sub {
             my ($code) = ios_getpid();
             return $code;
@@ -288,5 +297,15 @@ sub ios_getpid {
     return int($pid);
 }
 
+sub ios_waitpid {
+    my ($pid, $flags) = @_;
+    my $result = CBWaitPid($pid, $flags);
+    return int($result);
+}
+
+sub ios_wait {
+    my $pid = CBWait();
+    return int($pid);
+}
 
 1;
