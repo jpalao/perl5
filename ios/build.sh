@@ -205,6 +205,7 @@ build_perl() {
 
   # Binaries not executable in host arch. Do not abort on try tests
   perl -0777 -i.bak.2 -pe 's/Shall I abort Configure"\n\t\t*dflt=y/Shall I abort Configure"\n\t\tdflt=n/g' Configure
+  perl -0777 -i.bak.2 -pe "s/Do you really want to continue\?'\n\s*dflt='n'/Do you really want to continue?'\n\t\tdflt='y'/g" Configure
 
   # do not wait for press after Configure
   perl -0777 -i.bak.3 -pe 's/rp="Press return or use a shell escape to edit config.sh:"\n\t. UU\/myread/rp="Press return or use a shell escape to edit config.sh:"/' Configure
