@@ -189,7 +189,7 @@ SKIP: {
 
 
 SKIP: {
-    if ($^O =~ /^(MSWin32|os2)$/) {
+    if ($^O =~ /^(MSWin32|os2)$/ || $^O =~ /darwin-ios/) {
         skip "non_UNIX plafforms and PERL_EXIT_DESTRUCT_END (RT #132863)", 6;
     }
 

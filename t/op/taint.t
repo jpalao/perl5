@@ -158,7 +158,7 @@ SKIP: {
 
     SKIP: {
         skip "Environment tainting tests skipped", 11
-          if $Is_MSWin32 || $Is_VMS;
+          if $Is_MSWin32 || $Is_VMS || $Is_Ios;
 
 	my @vars = ('PATH', @MoreEnv);
 	while (my $v = $vars[0]) {
@@ -189,7 +189,7 @@ SKIP: {
     }
 
     my $tmp;
-    if ($^O eq 'os2' || $^O eq 'amigaos' || $Is_MSWin32) {
+    if ($^O eq 'os2' || $^O eq 'amigaos' || $Is_MSWin32 || $Is_Ios) {
 	print "# all directories are writeable\n";
     }
     else {
@@ -240,6 +240,7 @@ SKIP: {
 	    like($@, qr/^Insecure directory in \$ENV\{DCL\$PATH\}/);
 	}
 	$ENV{'DCL$PATH'} = '';
+    }
     }
 }
 
@@ -2422,7 +2423,7 @@ SKIP: {
 {
     SKIP: {
         skip "Environment tainting tests skipped", 1
-          if $Is_MSWin32 || $Is_VMS;
+          if $Is_MSWin32 || $Is_VMS || $Is_Ios;
 
         local $ENV{XX} = '\p{IsB}';   # Making it an environment variable taints it
 

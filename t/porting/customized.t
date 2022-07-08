@@ -112,7 +112,9 @@ foreach my $module ( sort keys %Modules ) {
 
     SKIP: {
         skip('iOS: file modified for testing', 1)
-            if $file eq 'cpan/ExtUtils-Constant/t/Constant.t' && $^O =~ /darwin-ios/;
+            if $^O =~ /darwin-ios/ &&
+                ($file eq 'cpan/ExtUtils-Constant/t/Constant.t' ||
+                $file eq 'cpan/libnet/lib/Net/Domain.pm');
 
         is( $id, $should_be, "SHA for $file matches stashed SHA" );
     }

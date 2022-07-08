@@ -371,6 +371,7 @@ Bareword filehandle "CHILD" not allowed under 'no feature "bareword_filehandles"
 Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
 Execution of - aborted due to compilation errors.
 ########
+# SKIP ? $^O =~ /darwin-ios/ && "iOS: TODO"
 # NAME accept some more
 accept FOO, CHILD ;
 accept $fh, CHILD ;

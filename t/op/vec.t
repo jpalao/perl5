@@ -10,9 +10,7 @@ use warnings;
 use strict;
 use Config;
 
-my $test_count = is_darwin_ios() ? 71 : 78;
-
-plan(tests => $test_count);
+plan(tests => 78);
 
 my $exception_134139 = "Use of strings with code points over 0xFF as arguments to vec is forbidden";
 
