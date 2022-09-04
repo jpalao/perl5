@@ -25,11 +25,8 @@ my $debug = 0; # Net::NNTP->new( Debug => .. )
 my $inet6class = Net::NNTP->can_inet6;
 plan skip_all => "no IPv6 support found in Net::NNTP" if ! $inet6class;
 
-plan skip_all => "fork not supported on this platform" 
-  if $^O =~ /darwin-ios/;
-
 plan skip_all => "fork not supported on this platform"
-  unless $Config::Config{d_fork} || $Config::Config{d_pseudofork} ||
+  unless $^O !~ /darwin-ios/ && $Config::Config{d_fork} || $Config::Config{d_pseudofork} ||
     (($^O eq 'MSWin32' || $^O eq 'NetWare') and
      $Config::Config{useithreads} and
      $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/);

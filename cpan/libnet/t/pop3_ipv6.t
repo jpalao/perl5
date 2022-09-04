@@ -25,11 +25,8 @@ my $debug = 0; # Net::POP3->new( Debug => .. )
 my $inet6class = Net::POP3->can_inet6;
 plan skip_all => "no IPv6 support found in Net::POP3" if ! $inet6class;
 
-plan skip_all => "fork not supported on this platform" 
-  if $^O =~ /darwin-ios/;
-
 plan skip_all => "fork not supported on this platform"
-  unless $Config::Config{d_fork} || $Config::Config{d_pseudofork} ||
+  unless $^O !~ /darwin-ios/ && $Config::Config{d_fork} || $Config::Config{d_pseudofork} ||
     (($^O eq 'MSWin32' || $^O eq 'NetWare') and
      $Config::Config{useithreads} and
      $Config::Config{ccflags} =~ /-DPERL_IMPLICIT_SYS/);
