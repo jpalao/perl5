@@ -16,9 +16,7 @@ BEGIN {
 use strict;
 use warnings;
 
-if ($^O =~ /darwin-ios/) {
-    use ios;
-}
+if ($^O =~ /darwin-ios/) { use ios }
 
 use FindBin;
 use lib "$FindBin::Bin"; # required to load filter-util.pl

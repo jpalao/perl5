@@ -8,10 +8,6 @@ BEGIN {
     plan (tests => 208); # some tests are run in BEGIN block
 }
 
-if ($^O =~ /darwin-ios/) {
-    use ios;
-}
-
 # Test that defined() returns true for magic variables created on the fly,
 # even before they have been created.
 # This must come first, even before turning on warnings or setting up

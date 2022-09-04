@@ -35,7 +35,7 @@ if ( $Config{usecrosscompile} ) {
 
 if ($^O =~ /darwin-ios/) {
     exec_perl({
-        pwd => getcwd(), 
+        pwd => Cwd::getcwd(),
         switches => ["-Ilib"], 
         progfile => "Porting/checkcfgvar.pl",
         args => ["--tap"]

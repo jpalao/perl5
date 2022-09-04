@@ -23,10 +23,7 @@ use File::Spec;
 
 my $Orig_Dir = cwd;
 
-if ($^O =~ /darwin-ios/) {
-    use Cwd qw/getcwd/;
-    use ios;
-};
+if ($^O =~ /darwin-ios/) { use ios }
 
 my $Perl = File::Spec->rel2abs($^X);
 if( $^O eq 'VMS' ) {
@@ -106,14 +103,13 @@ while( my($test_name, $exit_code) = each %Tests ) {
     my ($wait_stat);
     if ($^O =~ /darwin-ios/) {
         if ($test_name eq 'pre_plan_death.plx') {
-            $TB->skip('iOS: #TODO', 1) ;
-            next;    
+            $TB->skip('iOS: #TODO', 1);
+            next;
         }
         `"$Perl -I../blib/lib -I../lib -I../t/lib $file"`;
         $wait_stat = $?;
     } else {
         $wait_stat = system(qq{$Perl -"I../blib/lib" -"I../lib" -"I../t/lib" $file});
-        
     }
     my $actual_exit = exitstatus($wait_stat);
 

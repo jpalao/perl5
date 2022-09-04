@@ -6,10 +6,6 @@
 BEGIN {
     chdir 't' if -d 't';
     @INC = qw(. ../lib);
-    if ($^O =~ /darwin-ios/) {
-        use Cwd qw/getcwd/;
-        use ios;
-    };
 }
 
 
@@ -21,7 +17,7 @@ sub run {
     if ($^O =~ /darwin-ios/) {
         my $result = exec_perl ({
             switches => ['-e', $code],
-            pwd => getcwd(),
+            pwd => Cwd::getcwd(),
             stderr => 1,
         });
         $? = $result;

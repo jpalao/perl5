@@ -36,10 +36,7 @@ our $TODO = 0;
 our $NO_ENDING = 0;
 our $Tests_Are_Passing = 1;
 
-if ($^O =~ /darwin-ios/) {
-    use Cwd qw/getcwd/;
-    use ios;
-}
+if ($^O =~ /darwin-ios/) { use ios }
 
 # Use this instead of print to avoid interference while testing globals.
 sub _print {
