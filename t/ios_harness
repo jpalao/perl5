@@ -60,6 +60,7 @@ my @ios_blacklist = (
 
     #  TODO ExtUtils-MakeMaker
     '../cpan/ExtUtils-MakeMaker/t/02-xsdynamic.t',
+    '../cpan/ExtUtils-MakeMaker/t/03-xsstatic.t',
     '../cpan/ExtUtils-MakeMaker/t/basic.t',
     '../cpan/ExtUtils-MakeMaker/t/echo.t',
     '../cpan/ExtUtils-MakeMaker/t/FIRST_MAKEFILE.t',
