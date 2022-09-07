@@ -251,6 +251,19 @@ sub _scan_test {
 	    $testswitch = '-I.. -MTestInit';  # -T will remove . from @INC
 	}
     }
+    if ($^O =~ /darwin-ios/) {
+        my @exclude = qw (
+            t/Test2/modules/Formatter/TAP.t
+            t/autouse.t
+            t/heavy.t
+            t/croak.t
+            t/fallback.t
+            lib/vars_carp.t
+        );
+        if ("@exclude" =~ qx|".*$test.*|) {
+            $testswitch = $testswitch . ' -Mios ' unless $no_ios;
+        }
+    }
 
     my $utf8 = ($::with_utf8 || $::with_utf16) ? "-I$lib -Mutf8" : '';
 
