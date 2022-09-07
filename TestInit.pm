@@ -37,10 +37,6 @@
 
 package TestInit;
 
-use Config;
-
-my $is_ios = $^O =~ /darwin-ios/;
-
 $VERSION = 1.04;
 
 # Let tests know they're running in the perl core.  Useful for modules
