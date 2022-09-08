@@ -96,7 +96,7 @@ sub import {
 	    } else {
 		$chdir = 't';
 		@INC = '../lib';
-		if ($^O =~ /darwin-ios/) { use lib '../../lib'; use ios }
+		if ($^O =~ /darwin-ios/) { use lib '../../lib' }
 		$setopt = $0 =~ m!^lib/!;
 	    }
 	} else {
