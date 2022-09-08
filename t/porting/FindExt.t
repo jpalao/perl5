@@ -1,7 +1,7 @@
 #!../miniperl -w
 
 BEGIN {
-    use lib qw(../win32 ../lib);
+    @INC = qw(../win32 ../lib);
     require './test.pl';
     skip_all('FindExt not portable')
 	if $^O eq 'VMS';
