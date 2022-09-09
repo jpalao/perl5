@@ -201,9 +201,8 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
         my $source = TAP::Parser::Source->new->raw( \$file{source} );
         $source->assemble_meta;
         my $iterator = $class->make_iterator($source);
-        my @command;
         skip ('iOS: TODO', 1) if ($^O =~ /darwin-ios/ && !$iterator->{command});
-        @command  = @{ $iterator->{command} };
+        my @command = @{ $iterator->{command} };
         ok( grep( $_ =~ /^['"]?-T['"]?$/, @command ),
             '... and it should find the taint switch'
         );
