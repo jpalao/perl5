@@ -6,9 +6,6 @@ BEGIN {
         require Test::More;
         Test::More::plan(skip_all => "no ualarm()");
     }
-    if ($^O =~ /darwin-ios/) {
-        require 'ios.pm';
-    }
 }
 
 use Test::More tests => 12;
