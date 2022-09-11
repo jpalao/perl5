@@ -1,10 +1,6 @@
 use Test::More tests => 2;
 
-BEGIN {
-    if ($^O =~ /darwin-ios/) {
-        require 'ios.pm';
-    }
-}
+if ($^O =~ /darwin-ios/) { use ios }
 
 use strict;
 use warnings;

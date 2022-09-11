@@ -7,10 +7,9 @@ BEGIN {
 		print "1..0 # Skip -- Perl configured without B module\n";
 		exit 0;
 	}
-	if ($^O =~ /darwin-ios/) {
-        require 'ios.pm';
-    }
 }
+
+if ($^O =~ /darwin-ios/) { use ios }
 
 use Test::More tests => 16;
 
@@ -102,7 +101,6 @@ sub bar {
     } else {
         like( $items, qr/IV $hex \\42/, 'RV (but now stored in an IV)' );
     }
-   
 }
 
 package TieOut;

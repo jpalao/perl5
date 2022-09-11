@@ -1,10 +1,6 @@
 use Config;
 
 BEGIN {
-    if ($^O =~ /darwin-ios/) {
-        use lib '../lib';
-        require 'ios.pm';
-    }
     if ($ENV{PERL_CORE}) {
         if ($Config{'extensions'} !~ m{\bFilter/Util/Call\b}) {
             print "1..0 # Skip: Filter::Util::Call was not built\n";
@@ -20,6 +16,8 @@ use warnings;
 
 use FindBin;
 use lib "$FindBin::Bin"; # required to load filter-util.pl
+
+if ($^O =~ /darwin-ios/) { use ios }
 
 require 'filter-util.pl';
 

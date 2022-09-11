@@ -1,13 +1,9 @@
 use Test::More tests => 2;
 
-BEGIN {
-    if ($^O =~ /darwin-ios/) {
-        require 'ios.pm';
-    }
-}
-
 use strict;
 use warnings;
+
+if ($^O =~ /darwin-ios/) { use ios }
 
 my $blib = $ENV{PERL_CORE} ? '-I../../lib' : '-Mblib';
 
