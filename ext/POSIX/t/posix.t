@@ -7,9 +7,6 @@ BEGIN {
 	exit 0;
     }
     unshift @INC, "../../t";
-    if ($^O =~ /darwin-ios/) {
-        require 'ios.pm';
-    }
     require 'loc_tools.pl';
 }
 
