@@ -17,7 +17,7 @@ $ENV{HOME} = getcwd();
 # $ENV{PERL_TEST_MEMORY} = 1;
 # $ENV{PERL_TEST_HARNESS_ASAP} = 1;
 # $ENV{PERL_USE_UNSAFE_INC}
-
+# $ENV{PERL_DEBUG_FULL_TEST}
 # on iOS these tests may either:
 # hang, crash or exit unexpectedly,
 # or may pass, causing havoc afterwards,
@@ -25,20 +25,12 @@ $ENV{HOME} = getcwd();
 my @ios_blacklist = (
     # TODO
     'io/perlio_leaks.t',
-
-    # TODO race cond?
-    're/pat_advanced.t',
-    're/pat_advanced_thr.t',
     're/regexp_unicode_prop_thr.t',
-    
-    # TODO
     '../cpan/autodie/t/exec.t',
     '../cpan/File-Temp/t/lock.t',
     '../dist/Time-HiRes/t/ualarm.t',
-    '../ext/Devel-Peek/t/Peek.t',
     '../ext/POSIX/t/sigaction.t',    
     '../ext/XS-APItest/t/clone-with-stack.t',
-    '../lib/B/Deparse.t',
 
     # TODO Test-Harness
     '../cpan/Test-Harness/t/compat/env.t',
@@ -78,12 +70,6 @@ my @ios_blacklist = (
     '../cpan/ExtUtils-MakeMaker/t/unicode.t',
     '../cpan/ExtUtils-MakeMaker/t/vstrings.t',
     '../cpan/ExtUtils-MakeMaker/t/writemakefile_args.t',
-
-    # DB_File not built in
-    '../cpan/DB_File/t/db-threads.t',
-    '../cpan/DB_File/t/db-recno.t',
-    '../cpan/DB_File/t/db-hash.t',
-    '../cpan/DB_File/t/db-btree.t',
 );
 
 my @simul_blacklist = (
@@ -191,6 +177,9 @@ sub exclude_tests {
 	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-Cmd))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-SysV))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/ext\/IPC-Open3))/, @tests);
+	
+	# DB_File not built in
+	@tests = grep(/^(?:(?!\.\.\/cpan\/DB_File))/, @tests);
 };
 
 do './harness';
