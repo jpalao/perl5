@@ -8,33 +8,21 @@ use strict;
 
 require './test.pl';
 
-my $orig_path;
-if ($^O =~ /darwin-ios/) {
-    use Cwd qw/getcwd/;
-    $orig_path = getcwd;
-}
-
 # Test '-x'
 print runperl( switches => ['-x'],
                progfile => 'run/switchx.aux' );
 
 # Test '-xdir'
-if (!$^O =~ /darwin-ios/) {
 print runperl( switches => ['-x./run'],
                progfile => 'run/switchx2.aux',
                args     => [ 4 ] );
-} else {
-print runperl( switches => ['-x./run'],
-               progfile => 'run/switchx2.aux',
-               args     => [ '4' ] );
-}
 
 curr_test(6);
 
 # Test the error message for not found
 SKIP: {
 skip('iOS: #TODO') if $^O =~ /darwin-ios/;
-like(runperl(switches => ['-x', '-I.'], progfile => 'run/switchx3.aux', stderr => 1),
+like(runperl(switches => ['-x'], progfile => 'run/switchx3.aux', stderr => 1),
      qr/^No Perl script found in input\r?\n\z/,
      "Test the error message when -x can't find a #!perl line");
 }
@@ -48,8 +36,4 @@ SKIP: {
     is(runperl(progs => \@progs, stderr => 1, non_portable => 1,
 	       switches => ['-x']),
        "No Perl script found in input\n", '-x and -e gives expected error');
-}
-
-if ($^O =~ /darwin-ios/) {
-    chdir $orig_path;
 }
