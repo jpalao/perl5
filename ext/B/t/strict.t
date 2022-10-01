@@ -11,14 +11,12 @@ BEGIN {
         plan skip_all => "Perl was not compiled with B";
         exit 0;
     }
-    if ( ( $^O =~ /darwin-ios/ ) ) {
-        plan skip_all => "iOS: no backticks";
-        exit 0;
-    }
 }
 
 use strict;
 use warnings;
+
+if ($^O =~ /darwin-ios/) { use ios }
 
 use B ();
 use O ();
