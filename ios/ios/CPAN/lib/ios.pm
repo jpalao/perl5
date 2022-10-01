@@ -105,6 +105,12 @@ sub exec_perl {
 
 sub exec_perl_capture {
     my ($req) = @_;
+
+    # prevent NSNumber encoding
+    foreach (@{$req->{args}}) {
+        $_ .= "" if $_ =~ /\d*/;
+    }
+
     my $runPerl = {
         switches => $req->{switches},
         nolib => $req->{nolib},
@@ -149,7 +155,7 @@ sub parse_test {
 
     my ($arg) = $t =~ s/(.*?$file)(.*)/$2/r;
     print Dumper("Args", $arg) if $DEBUG;
-    my @args = split " ", $arg;
+    my @args = &quotewords('\s+', 0, $arg);
 
     my ($switch) = $cmd =~ s/(.*?)([^\s]*)\s*$/$1/r;
     my @switches = split " ", $switch;
