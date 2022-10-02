@@ -10,9 +10,7 @@ BEGIN {
     require 'test.pl';
 }
 
-if (!$^O =~ /darwin-ios/) {
-    use warnings;
-}
+use warnings;
 use strict;
 
 my $tests = 52; # not counting those in the __DATA__ section
@@ -132,13 +130,8 @@ is(ref($val), 'ARRAY', 'constant array references deparse');
 is($val->[0], 'hello', 'and return the correct value');
 
 my $path = join " ", map { qq["-I$_"] } @INC;
-my @path = map { "-I$_" } @INC;
-
-SKIP: {
-skip ('iOS: no backquotes', 5) if $^O =~ /darwin-ios/;
 
 $a = `$^X $path "-MO=Deparse" -anlwi.bak -e 1 2>&1`;
-
 $a =~ s/-e syntax OK\n//g;
 $a =~ s/.*possible typo.*\n//;	   # Remove warning line
 $a =~ s/.*-i used with no filenames.*\n//;	# Remove warning line
@@ -175,14 +168,12 @@ like($a, qr/sub F::f \(\) \{\s*0;?\s*}/,
    "Constant is dumped in package in which other subs are dumped");
 unlike($a, qr/sub g/,
    "Constant is not dumped in package in which other subs are not dumped");
-}
 
 #Re: perlbug #35857, patch #24505
 #handle warnings::register-ed packages properly.
 package B::Deparse::Wrapper;
 use strict;
 use warnings;
-
 use warnings::register;
 sub getcode {
    my $deparser = B::Deparse->new();
@@ -219,8 +210,6 @@ eval <<EOFCODE and test($x);
    1
 EOFCODE
 
-SKIP: {
-skip ('iOS: no backquotes', 1) if $^O =~ /darwin-ios/;
 # Exotic sub declarations
 $a = `$^X $path "-MO=Deparse" -e "sub ::::{}sub ::::::{}" 2>&1`;
 $a =~ s/-e syntax OK\n//g;
@@ -232,11 +221,8 @@ sub :::::: {
     
 }
 EOCODG
-}
 
 # [perl #117311]
-SKIP: {
-skip ('iOS: no backquotes', 1) if $^O =~ /darwin-ios/;
 $a = `$^X $path "-MO=Deparse,-l" -e "map{ eval(0) }()" 2>&1`;
 $a =~ s/-e syntax OK\n//g;
 is($a, <<'EOCODH', "[perl #117311] [PATCH] -l option ('#line ...') does not emit ^Ls in the output");
@@ -245,11 +231,8 @@ map {
 #line 1 "-e"
 eval 0;} ();
 EOCODH
-}
 
 # [perl #33752]
-SKIP: {
-skip ('iOS: # TODO', 1) if $^O =~ /darwin-ios/;
 {
   my $code = <<"EOCODE";
 {
@@ -261,10 +244,7 @@ EOCODE
   s/$ \n//x for $deparsed, $code;
   is $deparsed, $code, 'our $funny_Unicode_chars';
 }
-}
 
-SKIP: {
-skip ('iOS: no backquotes', 1) if $^O =~ /darwin-ios/;
 # [perl #62500]
 $a =
   `$^X $path "-MO=Deparse" -e "BEGIN{*CORE::GLOBAL::require=sub{1}}" 2>&1`;
@@ -277,11 +257,8 @@ sub BEGIN {
     ;
 }
 EOCODF
-}
 
 # [perl #91384]
-SKIP: {
-skip ('iOS: no backquotes', 4) if $^O =~ /darwin-ios/;
 $a =
   `$^X $path "-MO=Deparse" -e "BEGIN{*Acme::Acme:: = *Acme::}" 2>&1`;
 like($a, qr/-e syntax OK/,
@@ -303,7 +280,6 @@ $a =
   `$^X $path "-MO=Deparse" -e "use strict; print;" 2>&1`;
 unlike($a, qr/BEGIN/,
     "Deparse does not emit strict hh hints");
-}
 
 # ambient_pragmas should not mess with strict settings.
 SKIP: {
@@ -322,8 +298,6 @@ SKIP: {
 }
 
 # multiple statements on format lines
-SKIP: {
-skip ('iOS: no backquotes', 1) if $^O =~ /darwin-ios/;
 $a = `$^X $path "-MO=Deparse" -e "format =" -e "\@" -e "x();z()" -e. 2>&1`;
 $a =~ s/-e syntax OK\n//g;
 is($a, <<'EOCODH', 'multiple statements on format lines');
@@ -332,9 +306,8 @@ format STDOUT =
 x(); z()
 .
 EOCODH
-}
 
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path, '-T' ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path, '-T' ],
            prog => "format =\n\@\n\$;\n.\n"),
    <<'EOCODM', '$; on format line';
 format STDOUT =
@@ -343,7 +316,7 @@ $;
 .
 EOCODM
 
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse,-l', $^O =~ /darwin-ios/ ? @path : $path ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse,-l', $path ],
            prog => "format =\n\@\n\$foo\n.\n"),
    <<'EOCODM', 'formats with -l';
 format STDOUT =
@@ -352,7 +325,7 @@ $foo
 .
 EOCODM
 
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
            prog => "{ my \$x; format =\n\@\n\$x\n.\n}"),
    <<'EOCODN', 'formats nested inside blocks';
 {
@@ -365,34 +338,27 @@ $x
 EOCODN
 
 # CORE::format
-SKIP: {
-    skip ('iOS: no backquotes', 2) if $^O =~ /darwin-ios/;
-    $a = readpipe qq`$^X $path "-MO=Deparse" -e "use feature q|:all|;`
-                 .qq` my sub format; CORE::format =" -e. 2>&1`;
-    like($a, qr/CORE::format/, 'CORE::format when lex format sub is in scope');
+$a = readpipe qq`$^X $path "-MO=Deparse" -e "use feature q|:all|;`
+             .qq` my sub format; CORE::format =" -e. 2>&1`;
+like($a, qr/CORE::format/, 'CORE::format when lex format sub is in scope');
 
-    # literal big chars under 'use utf8'
-    is($deparse->coderef2text(sub{ use utf8; /€/; }),
-    '{
-        /\x{20ac}/;
-    }',
-    "qr/euro/");
-}
-
+# literal big chars under 'use utf8'
+is($deparse->coderef2text(sub{ use utf8; /€/; }),
+'{
+    /\x{20ac}/;
+}',
+"qr/euro/");
 
 # STDERR when deparsing sub calls
 # For a short while the output included 'While deparsing'
-SKIP: {
-skip ('iOS: no backquotes', 1) if $^O =~ /darwin-ios/;
 $a = `$^X $path "-MO=Deparse" -e "foo()" 2>&1`;
 $a =~ s/-e syntax OK\n//g;
 is($a, <<'EOCODI', 'no extra output when deparsing foo()');
 foo();
 EOCODI
-}
 
 # Sub calls compiled before importation
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
              prog => 'BEGIN {
                        require Test::More;
                        Test::More::->import;
@@ -402,7 +368,7 @@ like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ?
     'sub calls compiled before importation of prototype subs';
 
 # [perl #121050] Prototypes with whitespace
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
            prog => <<'EOCODO'),
 sub _121050(\$ \$) { }
 _121050($a,$b);
@@ -421,8 +387,6 @@ sub _121050empty ( ) {
 EOCODP
 
 # CORE::no
-SKIP: {
-skip ('iOS: no backquotes', 7) if $^O =~ /darwin-ios/;
 $a = readpipe qq`$^X $path "-MO=Deparse" -Xe `
              .qq`"use feature q|:all|; my sub no; CORE::no less" 2>&1`;
 like($a, qr/my sub no;\n.*CORE::no less;/s,
@@ -444,7 +408,7 @@ like($a, qr/my sub __DATA__;\n.*CORE::__DATA__/s,
 # sub declarations
 $a = readpipe qq`$^X $path "-MO=Deparse" -e "sub foo{}" 2>&1`;
 like($a, qr/sub foo\s*\{\s+\}/, 'sub declarations');
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
            prog => 'sub f($); sub f($){}'),
      qr/sub f\s*\(\$\)\s*\{\s*\}/,
     'predeclared prototyped subs';
@@ -453,15 +417,13 @@ like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
                     BEGIN { use builtin q-weaken-; weaken($_=\$::{f}) }'),
      qr/sub f\s*\(\$\)\s*;/,
     'prototyped stub with weak reference to the stash entry';
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
            prog => 'sub f () { 42 }'),
      qr/sub f\s*\(\)\s*\{\s*42;\s*\}/,
     'constant perl sub declaration';
-}
 
 # BEGIN blocks
 SKIP : {
-    skip "iOS: no backquotes", 1 if $^O =~ /darwin-ios/;
     skip "BEGIN output is wrong on old perls", 1 if $] < 5.021006;
     my $prog = '
       BEGIN { pop }
@@ -498,7 +460,7 @@ sub BEGIN {
 }
 EOCODJ
 }
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ], prog => '
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ], prog => '
       {
         {
           die;
@@ -525,13 +487,11 @@ sub BEGIN {
 EOCODL
 
 # BEGIN blocks should not be called __ANON__
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
              prog => 'sub BEGIN { } CHECK { delete $::{BEGIN} }'),
      qr/sub BEGIN/, 'anonymised BEGIN';
 
 # [perl #115066]
-SKIP: {
-skip ('iOS: no backquotes', 1) if $^O =~ /darwin-ios/;
 my $prog = 'use constant FOO => do { 1 }; no overloading; die';
 $a = readpipe qq`$^X $path "-MO=-qq,Deparse" -e "$prog" 2>&1`;
 is($a, <<'EOCODK', '[perl #115066] use statements accidentally nested');
@@ -541,10 +501,9 @@ use constant ('FOO', do {
 no overloading;
 die;
 EOCODK
-}
 
 # BEGIN blocks inside predeclared subs
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
              prog => '
                  sub run_tests;
                  run_tests();
@@ -552,53 +511,53 @@ like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ?
      qr/sub run_tests \{\s*sub BEGIN/,
     'BEGIN block inside predeclared sub';
 
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
              prog => 'package foo; use overload qr=>sub{}'),
      qr/package foo;\s*use overload/,
     'package, then use';
 
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
              prog => 'use feature lexical_subs=>; my sub f;sub main::f{}'),
      qr/^sub main::f \{/m,
     'sub decl when lex sub is in scope';
 
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
              prog => 'sub foo{foo()}'),
      qr/^sub foo \{\s+foo\(\)/m,
     'recursive sub';
 
-like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+like runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
              prog => 'use feature lexical_subs=>state=>;
                       state sub sb5; sub { sub sb5 { } }'),
      qr/sub \{\s*\(\);\s*sub sb5 \{/m,
     'state sub in anon sub but declared outside';
 
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
              prog => 'BEGIN { $::{f}=\!0 }'),
    "sub BEGIN {\n    \$main::{'f'} = \\!0;\n}\n",
    '&PL_sv_yes constant (used to croak)';
 
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path, '-T' ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path, '-T' ],
            prog => '$x =~ (1?/$a/:0)'),
   '$x =~ ($_ =~ /$a/);'."\n",
   '$foo =~ <branch-folded match> under taint mode';
 
-unlike runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path, '-w' ],
+unlike runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path, '-w' ],
                prog => 'BEGIN { undef &foo }'),
        qr'Use of uninitialized value',
       'no warnings for undefined sub';
 
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
     prog => 'sub f { 1; } BEGIN { *g = \&f; }'),
     "sub f {\n    1;\n}\nsub BEGIN {\n    *g = \\&f;\n}\n",
     "sub glob alias shouldn't impede emitting original sub";
 
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
     prog => 'package Foo; sub f { 1; } BEGIN { *g = \&f; }'),
     "package Foo;\nsub f {\n    1;\n}\nsub BEGIN {\n    *g = \\&f;\n}\n",
     "sub glob alias outside main shouldn't impede emitting original sub";
 
-is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $^O =~ /darwin-ios/ ? @path : $path ],
+is runperl(stderr => 1, switches => [ '-MO=-qq,Deparse', $path ],
     prog => 'package Foo; sub f { 1; } BEGIN { *Bar::f = \&f; }'),
     "package Foo;\nsub f {\n    1;\n}\nsub BEGIN {\n    *Bar::f = \\&f;\n}\n",
     "sub glob alias in separate package shouldn't impede emitting original sub";
@@ -1648,6 +1607,7 @@ keys $~;
 values $!;
 ####
 # readpipe with complex expression
+# SKIP ? $^O =~ /darwin-ios/ && "readpipe not supported"
 readpipe $a + $b;
 ####
 # aelemfast
@@ -1736,7 +1696,7 @@ CORE::given ($x) {
 CORE::evalbytes '';
 () = CORE::__SUB__;
 ####
-# SKIP ?$] < 5.017004 && "lexical subs not implemented on this Perl version"
+# SKIP (?$] < 5.017004 || $^O =~ /darwin-ios/) && "lexical subs not implemented on this Perl version"
 # lexical subroutines and keywords of the same name
 # CONTEXT use feature 'lexical_subs', 'switch'; no warnings 'experimental';
 my sub default;
@@ -2135,8 +2095,7 @@ $a x= $b;
 # @_ with padrange
 my($a, $b, $c) = @_;
 ####
-# SKIP ? $^O =~ /darwin-ios/ && "iOS: TODO"
-# SKIP ?$] < 5.017004 && "lexical subs not implemented on this Perl version"
+# SKIP (?$] < 5.017004 || $^O =~ /darwin-ios/) && "lexical subs not implemented on this Perl version"
 # lexical subroutine
 # CONTEXT use feature 'lexical_subs';
 no warnings "experimental::lexical_subs";
@@ -2149,8 +2108,7 @@ my sub f {
 }
 print f();
 ####
-# SKIP ? $^O =~ /darwin-ios/ && "iOS: TODO"
-# SKIP ?$] < 5.017004 && "lexical subs not implemented on this Perl version"
+# SKIP (?$] < 5.017004 || $^O =~ /darwin-ios/) && "lexical subs not implemented on this Perl version"
 # lexical "state" subroutine
 # CONTEXT use feature 'state', 'lexical_subs';
 no warnings 'experimental::lexical_subs';
@@ -3004,6 +2962,7 @@ my($a, $b);
 my $x = CORE::sprintf('%s%s', $a, $b);
 ####
 # multiconcat with backticks
+# SKIP ? $^O =~ /darwin-ios/ && "multiconcat with backticks: TODO"
 my($a, $b);
 our $x;
 $x = `$a-$b`;
