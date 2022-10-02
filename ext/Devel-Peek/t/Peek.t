@@ -1473,8 +1473,8 @@ sub test_DumpProg {
 
 my $threads = $Config{'useithreads'};
 
-# this test is crashing on iOS: TODO
-if ($^O !~ /darwin-ios/)
+# these 2 tests are crashing on iOS: TODO
+if ($^O !~ /darwin-ios/)    {
 for my $test (
 [
     "package test;",
@@ -1551,6 +1551,7 @@ EODUMP
     $out =~ s/\(0x[0-9a-f]{3,}\)/(0xNNN)/g;
     is $out, $e, "DumpProg() has no 'Attempt to free X prematurely' warning";
 }
+                            } # darwin-ios
 
 {
     my $epsilon_p = 1.0;
