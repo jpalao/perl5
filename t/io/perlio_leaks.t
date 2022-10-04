@@ -22,7 +22,7 @@ TODO: {
 
         for(1 .. 3){
 	    local $::TODO;
-	    if ($^O !~ /darwin-ios/ && $_ == 1) {
+	    if ($^O !~ /darwin-ios/ && $_ == 1 && $layer =~ /(stdio|perlio)/) {
 		$::TODO = "iOS: STDIN not accessible";
 	    }
 	    if ($_ > 1 && $layer =~ /^:(unix|stdio)$/) {
