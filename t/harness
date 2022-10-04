@@ -305,6 +305,10 @@ my $h = TAP::Harness->new({
     },
 });
 
+if ($^O =~ /darwin-ios/) {
+    $h->callback(after_test => sub {ios::yield(.5)});
+}
+
 # Print valgrind output after test completes
 if ($ENV{PERL_VALGRIND}) {
     $h->callback(
