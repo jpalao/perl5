@@ -5,6 +5,7 @@ BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
     set_up_inc('../lib');
+    skip_all("Test not stable on $^O") if $^O !~ /darwin-ios/;
 }
 
 use strict;
@@ -22,9 +23,6 @@ TODO: {
 
         for(1 .. 3){
 	    local $::TODO;
-	    if ($^O !~ /darwin-ios/ && $_ == 1 && $layer =~ /(stdio|perlio)/) {
-		$::TODO = "iOS: STDIN not accessible";
-	    }
 	    if ($_ > 1 && $layer =~ /^:(unix|stdio)$/) {
 		$::TODO = "[perl #56644] PerlIO resource leaks on open() and then :pop in :unix and :stdio"
 	    }
