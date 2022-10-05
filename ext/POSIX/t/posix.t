@@ -111,9 +111,9 @@ SKIP: {
     }
     sleep 1;
 
-    $todo = 1 if ($^O eq 'freebsd' && $Config{osvers} < 8)
-              || ($^O eq 'darwin' && $Config{osvers} < '6.6'
-              || $Is_iOS);
+    my ($major, $minor) = $Config{osvers} =~ / (\d+) \. (\d+) .* /x;
+    $todo = 1 if ($^O eq 'freebsd' && $major < 8)
+              || ($^O eq 'darwin' && "${major}.${minor}" < '6.6');
     printf "%s 11 - masked SIGINT received %s\n",
         $sigint_called ? "ok" : "not ok",
         $todo ? $why_todo : '';
@@ -411,38 +411,27 @@ SKIP: {
 
 my $fd1 = open("Makefile.PL", O_RDONLY, 0);
 like($fd1, qr/\A\d+\z/, 'O_RDONLY with open');
-SKIP: {
-    skip('iOS: #TODO', 1) if $Is_iOS;
-    cmp_ok($fd1, '>', $testfd);
-}
+cmp_ok($fd1, '>', $testfd);
 my $fd2 = dup($fd1);
 like($fd2, qr/\A\d+\z/, 'dup');
-SKIP: {
-    skip('iOS: #TODO', 1) if $Is_iOS;
-    cmp_ok($fd2, '>', $fd1);
-}
+cmp_ok($fd2, '>', $fd1);
 is(POSIX::close($fd1), '0 but true', 'close');
-
+is(POSIX::close($testfd), '0 but true', 'close');
+$! = 0;
 undef $buffer;
-SKIP: {
-    skip('iOS: #TODO', 3) if $Is_iOS;
-    is(POSIX::close($testfd), '0 but true', 'close');
-    $! = 0;
-    is(read($fd1, $buffer, 4), undef, 'read on closed file handle fails');
-    cmp_ok($!, '==', POSIX::EBADF);
-}
-
+is(read($fd1, $buffer, 4), undef, 'read on closed file handle fails');
+cmp_ok($!, '==', POSIX::EBADF);
 undef $buffer;
 read($fd2, $buffer, 4) if $fd2 > 2;
 is($buffer, "# Ex", 'read');
 # The descriptor $testfd was using is now free, and is lower than that which
 # $fd1 was using. Hence if dup2() behaves as dup(), we'll know :-)
 SKIP: {
+    skip 'test unstable on iOS', 4 if ($^O =~ /darwin-ios/);
     $testfd = dup2($fd2, $fd1);
     is($testfd, $fd1, 'dup2');
     undef $buffer;
     read($testfd, $buffer, 4) if $testfd > 2;
-    skip("iOS: TODO", 3) if $Is_iOS;
     is($buffer, 'pect', 'read');
     is(lseek($testfd, 0, 0), 0, 'lseek back');
     # The two should share file position:
@@ -451,15 +440,11 @@ SKIP: {
     is($buffer, "# Ex", 'read');
 }
 
-SKIP: {
-    skip("$^O is insufficiently POSIX", 2) if $Is_iOS;
-    # The FreeBSD man page warns:
-    # The access() system call is a potential security hole due to race
-    # conditions and should never be used.
-    is(access('Makefile.PL', POSIX::F_OK), '0 but true', 'access');
-    is(access('Makefile.PL', POSIX::R_OK), '0 but true', 'access');
-}
-
+# The FreeBSD man page warns:
+# The access() system call is a potential security hole due to race
+# conditions and should never be used.
+is(access('Makefile.PL', POSIX::F_OK), '0 but true', 'access');
+is(access('Makefile.PL', POSIX::R_OK), '0 but true', 'access');
 $! = 0;
 is(access('no such file', POSIX::F_OK), undef, 'access on missing file');
 cmp_ok($!, '==', POSIX::ENOENT);
