@@ -18,113 +18,110 @@ $ENV{HOME} = getcwd();
 # $ENV{PERL_TEST_HARNESS_ASAP} = 1;
 # $ENV{PERL_USE_UNSAFE_INC}
 # $ENV{PERL_DEBUG_FULL_TEST}
-# on iOS these tests may either:
+# TODO: on iOS these tests may 
 # hang, crash or exit unexpectedly,
 # or may pass, causing havoc afterwards,
-# or they may pass or hang/crash indistinctly
-my @ios_blacklist = (
-    # TODO
-    '../cpan/autodie/t/exec.t',
-    '../cpan/File-Temp/t/lock.t',
-    '../dist/Time-HiRes/t/ualarm.t',
-    '../ext/POSIX/t/sigaction.t',    
-    '../ext/XS-APItest/t/clone-with-stack.t',
+# or they may pass or fail randomly
+my @ios_blacklist = qw (
+    ../cpan/autodie/t/exec.t
+    ../cpan/File-Temp/t/lock.t
+    ../dist/Time-HiRes/t/ualarm.t
+    ../ext/POSIX/t/sigaction.t
+    ../ext/XS-APItest/t/clone-with-stack.t
 
-    # TODO Test-Harness
-    '../cpan/Test-Harness/t/compat/env.t',
-    '../cpan/Test-Harness/t/compat/failure.t',
-    '../cpan/Test-Harness/t/compat/inc_taint.t',
-    '../cpan/Test-Harness/t/compat/inc-propagation.t',
-    '../cpan/Test-Harness/t/compat/regression.t',
-    '../cpan/Test-Harness/t/compat/test-harness-compat.t',
-    '../cpan/Test-Harness/t/file.t',
-    '../cpan/Test-Harness/t/harness-bailout.t',
-    '../cpan/Test-Harness/t/harness.t',
-    '../cpan/Test-Harness/t/iterators.t',
-    '../cpan/Test-Harness/t/parser-subclass.t',
-    '../cpan/Test-Harness/t/perl5lib.t',
-    '../cpan/Test-Harness/t/proverun.t',
-    '../cpan/Test-Harness/t/regression.t',
-    '../cpan/Test-Harness/t/taint.t',
-    '../cpan/Test-Harness/t/testargs.t',
+    ../cpan/Test-Harness/t/compat/env.t
+    ../cpan/Test-Harness/t/compat/failure.t
+    ../cpan/Test-Harness/t/compat/inc_taint.t
+    ../cpan/Test-Harness/t/compat/inc-propagation.t
+    ../cpan/Test-Harness/t/compat/regression.t
+    ../cpan/Test-Harness/t/compat/test-harness-compat.t
+    ../cpan/Test-Harness/t/file.t
+    ../cpan/Test-Harness/t/harness-bailout.t
+    ../cpan/Test-Harness/t/harness.t
+    ../cpan/Test-Harness/t/iterators.t
+    ../cpan/Test-Harness/t/parser-subclass.t
+    ../cpan/Test-Harness/t/perl5lib.t
+    ../cpan/Test-Harness/t/proverun.t
+    ../cpan/Test-Harness/t/regression.t
+    ../cpan/Test-Harness/t/taint.t
+    ../cpan/Test-Harness/t/testargs.t
 
-    #  TODO ExtUtils-MakeMaker
-    '../cpan/ExtUtils-MakeMaker/t/02-xsdynamic.t',
-    '../cpan/ExtUtils-MakeMaker/t/basic.t',
-    '../cpan/ExtUtils-MakeMaker/t/echo.t',
-    '../cpan/ExtUtils-MakeMaker/t/FIRST_MAKEFILE.t',
-    '../cpan/ExtUtils-MakeMaker/t/INSTALL_BASE.t',
-    '../cpan/ExtUtils-MakeMaker/t/min_perl_version.t',
-    '../cpan/ExtUtils-MakeMaker/t/miniperl.t',
-    '../cpan/ExtUtils-MakeMaker/t/oneliner.t',
-    '../cpan/ExtUtils-MakeMaker/t/PL_FILES.t',
-    '../cpan/ExtUtils-MakeMaker/t/pm_to_blib.t',
-    '../cpan/ExtUtils-MakeMaker/t/postamble.t',
-    '../cpan/ExtUtils-MakeMaker/t/prereq.t',
-    '../cpan/ExtUtils-MakeMaker/t/prereq_print.t',
-    '../cpan/ExtUtils-MakeMaker/t/recurs.t',
-    '../cpan/ExtUtils-MakeMaker/t/several_authors.t',
-    '../cpan/ExtUtils-MakeMaker/t/split_command.t',
-    '../cpan/ExtUtils-MakeMaker/t/unicode.t',
-    '../cpan/ExtUtils-MakeMaker/t/vstrings.t',
-    '../cpan/ExtUtils-MakeMaker/t/writemakefile_args.t',
+    ../cpan/ExtUtils-MakeMaker/t/02-xsdynamic.t
+    ../cpan/ExtUtils-MakeMaker/t/basic.t
+    ../cpan/ExtUtils-MakeMaker/t/echo.t
+    ../cpan/ExtUtils-MakeMaker/t/FIRST_MAKEFILE.t
+    ../cpan/ExtUtils-MakeMaker/t/INSTALL_BASE.t
+    ../cpan/ExtUtils-MakeMaker/t/min_perl_version.t
+    ../cpan/ExtUtils-MakeMaker/t/miniperl.t
+    ../cpan/ExtUtils-MakeMaker/t/oneliner.t
+    ../cpan/ExtUtils-MakeMaker/t/PL_FILES.t
+    ../cpan/ExtUtils-MakeMaker/t/pm_to_blib.t
+    ../cpan/ExtUtils-MakeMaker/t/postamble.t
+    ../cpan/ExtUtils-MakeMaker/t/prereq.t
+    ../cpan/ExtUtils-MakeMaker/t/prereq_print.t
+    ../cpan/ExtUtils-MakeMaker/t/recurs.t
+    ../cpan/ExtUtils-MakeMaker/t/several_authors.t
+    ../cpan/ExtUtils-MakeMaker/t/split_command.t
+    ../cpan/ExtUtils-MakeMaker/t/unicode.t
+    ../cpan/ExtUtils-MakeMaker/t/vstrings.t
+    ../cpan/ExtUtils-MakeMaker/t/writemakefile_args.t
 );
 
-my @simul_blacklist = (
-    'run/switches.t',
-    'run/switchd.t',
-    'run/switchM.t',
+my @simul_blacklist = qw(
+    run/switches.t
+    run/switchd.t
+    run/switchM.t
 
-    'cmd/switch.t',
+    cmd/switch.t
 
-    'io/argv.t',
+    io/argv.t
 
-    'op/64bitint.t',
-    'op/blocks.t',
-    'op/coreamp.t',
-    'op/pack.t',
-    'op/sprintf2.t',
-    'op/stat.t',
-    'op/vec.t',
+    op/64bitint.t
+    op/blocks.t
+    op/coreamp.t
+    op/pack.t
+    op/sprintf2.t
+    op/stat.t
+    op/vec.t
 
-    'porting/checkcase.t',
-    'porting/checkcfgvar.t',
-    'porting/checkcfgvar.t',
-    'porting/cmp_version.t',
-    'porting/diag.t',
+    porting/checkcase.t
+    porting/checkcfgvar.t
+    porting/checkcfgvar.t
+    porting/cmp_version.t
+    porting/diag.t
 
-    'porting/manifest.t',
-    'porting/pending-author.t',
-    'porting/perlfunc.t',
-    'porting/podcheck.t',
+    porting/manifest.t
+    porting/pending-author.t
+    porting/perlfunc.t
+    porting/podcheck.t
 
-    'porting/readme.t',
-    'porting/regen.t',
-    'porting/utils.t',
+    porting/readme.t
+    porting/regen.t
+    porting/utils.t
 
-    '../cpan/Archive-Tar/t/02_methods.t',
-    '../cpan/Archive-Tar/t/04_resolved_issues.t',
+    ../cpan/Archive-Tar/t/02_methods.t
+    ../cpan/Archive-Tar/t/04_resolved_issues.t
 
-    '../cpan/Filter-Util-Call/t/call.t',
+    ../cpan/Filter-Util-Call/t/call.t
 
-    '../cpan/Scalar-List-Utils/t/uniqnum.t',
+    ../cpan/Scalar-List-Utils/t/uniqnum.t
 
-    '../dist/PathTools/t/cwd.t',
-    '../dist/PathTools/t/abs2rel.t',
-    '../dist/PathTools/t/taint.t',
+    ../dist/PathTools/t/cwd.t
+    ../dist/PathTools/t/abs2rel.t
+    ../dist/PathTools/t/taint.t
 
-    '../dist/Carp/t/stack_after_err.t',
+    ../dist/Carp/t/stack_after_err.t
 
-    '../dist/Storable/t/file_magic.t',
-    '../dist/Storable/t/malice.t',
+    ../dist/Storable/t/file_magic.t
+    ../dist/Storable/t/malice.t
 
-    '../dist/threads/t/kill3.t',
+    ../dist/threads/t/kill3.t
 
-    '../ext/File-Find/t/taint.t',
-    '../ext/File-Glob/t/basic.t',
-    '../ext/File-Glob/t/threads.t',
+    ../ext/File-Find/t/taint.t
+    ../ext/File-Glob/t/basic.t
+    ../ext/File-Glob/t/threads.t
 
-    '../lib/perl5db.t',
+    ../lib/perl5db.t
 );
 
 sub dump_list {
