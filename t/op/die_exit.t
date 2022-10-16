@@ -8,7 +8,6 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
-    skip_all('iOS: exec not supported') if $^O =~ /darwin-ios/;
     set_up_inc('../lib');
 }
 
@@ -64,7 +63,11 @@ open STDERR, '>', $tempfile or die "Can't open temp error file $tempfile:  $!";
 foreach my $test (@tests) {
     my($bang, $query, $code) = @$test;
     $code ||= 'die;';
-    if ($^O eq 'MSWin32' || $^O eq 'VMS') {
+    if ($^O =~ /darwin-ios/) {
+        my @cmd = qq{$^X -e "\$! = $bang; \$? = $query; $code"};
+        my $cmd = "@cmd";
+        print `$cmd`;
+    } elsif ($^O eq 'MSWin32' || $^O eq 'VMS') {
         system(qq{$^X -e "\$! = $bang; \$? = $query; $code"});
     }
     else {
@@ -76,7 +79,7 @@ foreach my $test (@tests) {
     # We only get the severity bits, which boils down to 4.  See L<perlvms/$?>.
     $bang = 4 if $vms_exit_mode;
 
-    is($exit, (($bang || ($query >> 8) || 255) << 8),
+    is($exit, (($bang || ($query >> 8) || 255) << ($^O !~ /darwin-ios/ ? 8 : 0)),
        sprintf "exit = 0x%04x bang = 0x%04x query = 0x%04x", $exit, $bang, $query);
 }
 
