@@ -63,31 +63,33 @@ print STDOUT "ok 8\n";
 if ($^O =~ /darwin-ios/) {
     for my $i (9..12) { print "ok $i # SKIP iOS TODO\n"; }
 } else {
-    open(F,">&",1) or die "Cannot dup to numeric 1: $!";
-    print F "ok 9\n";
+
+open(F,">&",1) or die "Cannot dup to numeric 1: $!";
+print F "ok 9\n";
+close(F);
+
+open(F,">&",'1') or die "Cannot dup to string '1': $!";
+print F "ok 10\n";
+close(F);
+
+open(F,">&=",1) or die "Cannot dup to numeric 1: $!";
+print F "ok 11\n";
+close(F);
+
+if ($Config{useperlio}) {
+    open(F,">&=",'1') or die "Cannot dup to string '1': $!";
+    print F "ok 12\n";
     close(F);
-
-    open(F,">&",'1') or die "Cannot dup to string '1': $!";
-    print F "ok 10\n";
-    close(F);
-
-    open(F,">&=",1) or die "Cannot dup to numeric 1: $!";
-    print F "ok 11\n";
-    close(F);
-
-    if ($Config{useperlio}) {
-        open(F,">&=",'1') or die "Cannot dup to string '1': $!";
-        print F "ok 12\n";
-        close(F);
-    } else {
-        open(F, ">&DUPOUT") or die "Cannot dup stdout back: $!";
-        print F "ok 12\n";
-        close(F);
-    }
-
-    # To get STDOUT back.
+} else {
     open(F, ">&DUPOUT") or die "Cannot dup stdout back: $!";
+    print F "ok 12\n";
+    close(F);
 }
+
+} # darwin-ios
+
+# To get STDOUT back.
+open(F, ">&DUPOUT") or die "Cannot dup stdout back: $!";
 
 curr_test(13);
 
