@@ -20,7 +20,6 @@ EXPECT
 201
 ########
 # Standard feature bundle, 5.11
-# SKIP ? $^O =~ /darwin-ios/
 use feature ":5.11";
 use utf8;
 say utf8::native_to_unicode(ord "\ué"); # this is utf8
