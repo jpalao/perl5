@@ -1,6 +1,10 @@
 #!/usr/bin/env sh
 
-source $HOME/perl5/perlbrew/etc/bashrc
+if [ -e $HOME/perl5/perlbrew/etc/bashrc ];
+    then source $HOME/perl5/perlbrew/etc/bashrc;
+    else echo "$HOME/perl5/perlbrew/etc/bashrc not found" && exit 0;
+fi
+
 if [ -e setup_test.sh ];
     then source setup_test.sh;
 fi
@@ -18,8 +22,8 @@ fi
 # Tested on macOS Catalina 10.15.7 w/ XCode 12.4
 # check README.ios for details
 
-: "${PERL_MAJOR_VERSION:=35}"
-: "${PERL_MINOR_VERSION:=4}"
+: "${PERL_MAJOR_VERSION:=37}"
+: "${PERL_MINOR_VERSION:=2}"
 
 export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 
@@ -266,6 +270,7 @@ build_macos_perl() {
 
     echo "Installing perl-blead"
     # macOS generate_uudmap and miniperl are used in cross builds
+    # -DPERL_USE_SAFE_PUTENV warns redefined, 5.37.1, maybe before
     MACOSX_DEPLOYMENT_TARGET=10.5 perlbrew install -Dusedevel -Duselargefiles \
         -Dcccdlflags='-fPIC -DPERL_USE_SAFE_PUTENV' -Doptimize=-O3 -Duseshrplib \
         -Duse64bitall --thread --multi --64int --clan blead
