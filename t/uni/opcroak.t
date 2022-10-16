@@ -34,7 +34,7 @@ like $@, qr/Type of arg 1 to main::\x{30cd} must be/u, "bad type croak is UTF-8 
     }
 END_FIELDS
 
-warn $@ if $@;
+die $@ if $@;
 
 for (
         [ element => 'my ＦŌŌ $bàr = ＦŌŌ->new; $bàr->{クラス};' ],
