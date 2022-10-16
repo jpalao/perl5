@@ -96,9 +96,9 @@ __EOH__
 	my $n = scalar @$expected;
 	if ($^O =~ /darwin-ios/) {
 	    ok("iOS: STDIN not accessible");
-    } else {
+	} else {
 	    is(scalar @$result, $n, "$id - layers == $n");
-    }
+	}
 
 	for (my $i = 0; $i < $n; $i++) {
 	    my $j = $expected->[$i];
