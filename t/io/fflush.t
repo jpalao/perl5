@@ -103,7 +103,6 @@ my %subs = (
                 close PIPE;
             },
             );
-delete @subs{qw/system popoen/} if $^O =~ /darwin-ios/;
 my $t = 2;
 for (qw(system qx popen)) {
     next if $^O =~ /darwin-ios/ && $_ ne 'qx';
