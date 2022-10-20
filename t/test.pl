@@ -804,6 +804,7 @@ sub runperl {
             ($result) = exec_perl_capture(\%args);
         };
         $? = $result->[0];
+        utf8::encode($result->[1]) if defined $result->[1];
         return $result->[1] ? $result->[1] : $@;
     }
 
@@ -1332,7 +1333,6 @@ sub run_multiple_progs {
 	    $switch = $1;
 	}
 	my ($prog, $expected) = split(/\nEXPECT(?:\n|$)/, $_, 2);
-	utf8::decode($expected) if $is_ios;
 
 	my %reason;
 	foreach my $what (qw(skip todo)) {
