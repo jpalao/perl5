@@ -5904,6 +5904,7 @@ t/mro/vulcan_c3.t		mro tests
 t/mro/vulcan_c3_utf8.t		utf8 mro tests
 t/mro/vulcan_dfs.t		mro tests
 t/mro/vulcan_dfs_utf8.t		utf8 mro tests
+t/op/00_ios_wait.t		ios wait test
 t/op/64bitint.t			See if 64 bit integers work
 t/op/aassign.t			test list assign
 t/op/alarm.t			See if alarm works
