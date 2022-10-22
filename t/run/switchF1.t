@@ -3,6 +3,8 @@
 # This test file does not use test.pl because of the involved way in which it
 # generates its TAP output.
 
+if ($^O =~ /darwin-ios/) { use ios }
+
 print "1..5\n";
 
 my $file = "Run_switchF1.pl";
@@ -35,9 +37,8 @@ $result = "ok $count - complete test of alternate delimiters in -F\n";
 if ($^O !~ /darwin-ios/) {
     print system ($^X, $file) ? "not $result" : $result;
 } else {
-    for my $i (1..5) {
-       print "ok $i # iOS: system call not supported\n";
-    }
+    print `$^X $file`;
+    print $? ? "not $result" : $result;
 }
 
 unlink $file or die "Unlink $file: $!";
