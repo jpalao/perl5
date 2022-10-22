@@ -67,7 +67,8 @@ TODO:
 my $test = next_test();
 write(1,"ok $test\nnot ok $test\n", 5);
 
-{
+SKIP: {
+    skip 1, "iOS: fd check not reliable" if $Is_Ios;
     @fds = POSIX::pipe();
     cmp_ok($fds[0], '>', $testfd, 'POSIX::pipe');
 
@@ -412,13 +413,13 @@ SKIP: {
 my $fd1 = open("Makefile.PL", O_RDONLY, 0);
 like($fd1, qr/\A\d+\z/, 'O_RDONLY with open');
 SKIP: {
-    skip 1, "iOS: TODO" if $Is_Ios;
+    skip 1, "iOS: fd check not reliable" if $Is_Ios;
     cmp_ok($fd1, '>', $testfd);
 }
 my $fd2 = dup($fd1);
 like($fd2, qr/\A\d+\z/, 'dup');
 SKIP: {
-    skip 1, "iOS: TODO" if $Is_Ios;
+    skip 1, "iOS: fd check not reliable" if $Is_Ios;
     cmp_ok($fd2, '>', $fd1);
 }
 is(POSIX::close($fd1), '0 but true', 'close');
