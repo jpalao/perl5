@@ -412,18 +412,15 @@ SKIP: {
 
 my $fd1 = open("Makefile.PL", O_RDONLY, 0);
 like($fd1, qr/\A\d+\z/, 'O_RDONLY with open');
-SKIP: {
-    skip "iOS: fd check not reliable", 1 if $Is_Ios;
-    cmp_ok($fd1, '>', $testfd);
-}
+cmp_ok($fd1, '>', $testfd);
 my $fd2 = dup($fd1);
 SKIP: {
-    skip "iOS: fd check not reliable", 2 if $Is_Ios;
+    skip 'iOS: fd check not reliable', 4 if $Is_Ios;
     like($fd2, qr/\A\d+\z/, 'dup');
     cmp_ok($fd2, '>', $fd1);
+    is(POSIX::close($fd1), '0 but true', 'close');
+    is(POSIX::close($testfd), '0 but true', 'close');
 }
-is(POSIX::close($fd1), '0 but true', 'close');
-is(POSIX::close($testfd), '0 but true', 'close');
 $! = 0;
 undef $buffer;
 is(read($fd1, $buffer, 4), undef, 'read on closed file handle fails');
@@ -434,7 +431,7 @@ is($buffer, "# Ex", 'read');
 # The descriptor $testfd was using is now free, and is lower than that which
 # $fd1 was using. Hence if dup2() behaves as dup(), we'll know :-)
 SKIP: {
-    skip 'test unstable on iOS', 4 if ($^O =~ /darwin-ios/);
+    skip 'iOS: fd check not reliable', 4 if $^O =~ /darwin-ios/;
     $testfd = dup2($fd2, $fd1);
     is($testfd, $fd1, 'dup2');
     undef $buffer;
