@@ -34,6 +34,11 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 
 WORKDIR=`pwd`
 
+: "${CAMELBONES_GIT:=https://github.com/jpalao/camelbones.git}"
+: "${CAMELBONES_BRANCH:=original}"
+: "${CAMELBONES_PREFIX:=$WORKDIR}"
+: "${BUILD_CAMELBONES:=1}"
+
 : "${IOS_GIT:=https://github.com/jpalao/ios.git}"
 : "${IOS_BRANCH:=master}"
 : "${PERL_IOS_PREFIX:=$WORKDIR}"
@@ -44,6 +49,18 @@ WORKDIR=`pwd`
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 PERL_TEST_LOG="$IOS_MOUNTPOINT/perl-tests.txt"
+
+# CAMELBONES #
+export CAMELBONES_PREFIX="$CAMELBONES_PREFIX"
+export CAMELBONES_TARGET=$HARNESS_TARGET
+export CAMELBONES_BUILD_CONFIGURATION=$HARNESS_BUILD_CONFIGURATION
+export CAMELBONES_CI=1
+export CAMELBONES_VERSION='1.3.0'
+export CAMELBONES_CPAN_DIR=`pwd`"/perl-$PERL_VERSION/ext/CamelBones-$CAMELBONES_VERSION"
+export CAMELBONES_FRAMEWORK_DIR="$PERL_IOS_PREFIX/camelbones/CamelBones"
+export BUILD_CAMELBONES="$BUILD_CAMELBONES"
+export INSTALL_CAMELBONES_FRAMEWORK=0
+export OVERWRITE_CAMELBONES_FRAMEWORK=0
 
 # IOS #
 export PERL_IOS_PREFIX="$PERL_IOS_PREFIX"
@@ -103,6 +120,11 @@ check_exit_code() {
   fi
 }
 
+prepare_camelbones() {
+  rm -Rf camelbones
+  git clone --single-branch --branch "$CAMELBONES_BRANCH" "$CAMELBONES_GIT"
+}
+
 prepare_ios() {
   rm -Rf $1
   git clone --single-branch --branch "$IOS_BRANCH" "$IOS_GIT" $1
@@ -111,13 +133,6 @@ prepare_ios() {
 prepare_perl() {
   rm -Rf "perl-$PERL_VERSION"
   git clone --single-branch --branch "$PERL_5_BRANCH" "$PERL5_GIT" "perl-$PERL_VERSION"
-}
-
-build_libffi() {
-    pushd ./libffi-3.2.1
-    xcodebuild -scheme libffi-"$IOS_TARGET"
-    check_exit_code
-    popd
 }
 
 _term() {
@@ -137,7 +152,14 @@ test_perl_device() {
     pushd "perl-$PERL_VERSION/ios/test"
     check_exit_code
 
+    BUILD_CAMELBONES_BOOLEAN="NO"
+    if [ $BUILD_CAMELBONES -eq 1 ]; then
+        BUILD_CAMELBONES_BOOLEAN="YES"
+    fi
+
     xcodebuild ARCHS="$ARCHS" \
+        EMBED_CAMELBONES_FRAMEWORK="$BUILD_CAMELBONES_BOOLEAN" \
+        CAMELBONES_FRAMEWORK_PATH="$CAMELBONES_PREFIX/camelbones/CamelBones/build/Products/$CAMELBONES_BUILD_CONFIGURATION-$CAMELBONES_TARGET" \
         IOS_FRAMEWORK_PATH="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ios/ios/build/Products/$IOS_BUILD_CONFIGURATION-$IOS_TARGET" \
         PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
         LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
@@ -251,18 +273,6 @@ test_perl_device() {
     fi
 }
 
-build_ios_framework() {
-
-    pushd $IOS_FRAMEWORK_DIR
-    check_exit_code
-
-    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
-    LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
-    PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
-    -scheme "$IOS_TARGET"
-    popd
-}
-
 build_macos_perl() {
     # uninstall perl-blead
     echo "Uninstalling perl-blead"
@@ -311,7 +321,15 @@ check_dependencies
 
 use_perlbrew
 
+mkdir -p ext
+rm -f "ext/CamelBones-$CAMELBONES_VERSION".tar.gz
+
 prepare_perl
+check_exit_code
+
+prepare_camelbones
+check_exit_code
+
 PERL_ARCH="$ARCHS" DEBUG=1 sh -x "perl-$PERL_VERSION/ios/build.sh"
 check_exit_code
 

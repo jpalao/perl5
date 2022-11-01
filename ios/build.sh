@@ -21,6 +21,9 @@
 : "${WATCHOS_DEVICE_SDK_PATH:=$XCODE_PATH/Contents/Developer/Platforms/WatchOS.platform/Developer/SDKs/WatchOS.sdk}"
 : "${WATCHOS_SIMULATOR_SDK_PATH:=$XCODE_PATH/Contents/Developer/Platforms/WatchSimulator.platform/Developer/SDKs/WatchSimulator.sdk}"
 
+# CamelBones
+: "${BUILD_CAMELBONES:=0}"
+
 ############## CONFIG END ##############
 
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
@@ -277,19 +280,29 @@ build_perl() {
   make
   check_exit_code
 
-  echo "Cloning ios CPAN module"
-  #prepare_ios $IOS_MODULE_PATH
-
   build_ios_framework
-  check_exit_code
 
   mkdir -p $IOS_CPAN_EXT_DIR
   chmod -R +w $IOS_CPAN_EXT_DIR
   echo cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
   cp -Rv "$IOS_CPAN_DIR/." $IOS_CPAN_EXT_DIR/
 
+  if [ $BUILD_CAMELBONES -eq 1 ]; then
+      build_camelbones_framework
+  fi
+
+  mkdir -p $CAMELBONES_CPAN_DIR
+  chmod -R +w $CAMELBONES_CPAN_DIR
+  echo cp -R "$CAMELBONES_FRAMEWORK_DIR/CPAN/." $CAMELBONES_CPAN_DIR/
+  cp -R "$CAMELBONES_FRAMEWORK_DIR/CPAN/." $CAMELBONES_CPAN_DIR/
+
   DYLD_LIBRARY_PATH=`pwd` ./miniperl -Ilib make_ext.pl ext/ios/pm_to_blib  MAKE="$XCODE_DEVELOPER_PATH/usr/bin/make" LIBPERL_A=libperl.dylib
   check_exit_code
+
+  if [ $BUILD_CAMELBONES -eq 1 ]; then
+    DYLD_LIBRARY_PATH=`pwd` ./miniperl -Ilib make_ext.pl "ext/CamelBones-$CAMELBONES_VERSION/pm_to_blib"  MAKE="$XCODE_DEVELOPER_PATH/usr/bin/make" LIBPERL_A=libperl.dylib
+    check_exit_code
+  fi
 
   make test_prep
   #make test would fail
@@ -336,6 +349,27 @@ build_ios_framework() {
     LIBPERL_PATH="$WORKDIR/perl-$PERL_VERSION" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
     -scheme "$IOS_TARGET"
+    check_exit_code
+    popd
+}
+
+build_libffi() {
+    pushd ./libffi-3.2.1
+    xcodebuild -scheme libffi-"$IOS_TARGET"
+    check_exit_code
+    popd
+}
+
+build_camelbones_framework() {
+    pushd $CAMELBONES_FRAMEWORK_DIR
+    build_libffi
+    check_exit_code
+
+    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$WORKDIR/perl-$PERL_VERSION" \
+    LIBPERL_PATH="$WORKDIR/perl-$PERL_VERSION" \
+    PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
+    -scheme "$CAMELBONES_TARGET"
+    check_exit_code
     popd
 }
 

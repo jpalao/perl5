@@ -167,12 +167,14 @@ Either 'Debug' or 'Release'
 
 our $XCODE_BUILD_CONFIG = $ENV{'IOS_BUILD_CONFIGURATION'};
 
-$XCODE_BUILD_CONFIG .= "-$IOS_TARGET" if $IOS_TARGET !~ /macosx/;
+print "\$IOS_BUILD_CONFIGURATION: $IOS_BUILD_CONFIGURATION\n";
+print "\$IOS_TARGET: $IOS_TARGET\n";
 
+$XCODE_BUILD_CONFIG .= "-$IOS_TARGET";
+
+print "\$XCODE_BUILD_CONFIG: $XCODE_BUILD_CONFIG\n";
 print "\$IOS_CPAN_DIR: $IOS_CPAN_DIR\n";
-
-my $abs_path_to_cpan_dir = "$PERL_IOS_PREFIX/perl-$PERL_VERSION/ext/ios/";
-print "\$abs_path_to_cpan_dir: $abs_path_to_cpan_dir\n";
+###################################################################################
 
 our $IOS_FRAMEWORK = 'ios.framework';
 
@@ -185,12 +187,14 @@ if (!defined $ARCHFLAGS || !length $ARCHFLAGS) {
     chomp $ARCHFLAGS;
 }
 
-$ARCHFLAGS .= "$perl_link_flags -framework ios";
+$ARCHFLAGS .= " $perl_link_flags -framework ios ";
 
 $PERL_INCLUDE_DIR = $Config{archlib}. "/CORE"
     if (!defined $PERL_INCLUDE_DIR || !length $PERL_INCLUDE_DIR);
 
-$XCODE_BUILD_CONFIG = "Release"
+$ARCHFLAGS .= " -L$PERL_INCLUDE_DIR -I$PERL_INCLUDE_DIR -ObjC -lobjc ";
+
+$XCODE_BUILD_CONFIG = "Release-iphoneos"
     if (!defined $XCODE_BUILD_CONFIG || !length $XCODE_BUILD_CONFIG);
 
 my $iosPath = "$PERL_IOS_PREFIX/ios/Build/Products/$XCODE_BUILD_CONFIG";

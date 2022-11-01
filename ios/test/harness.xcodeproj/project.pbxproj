@@ -294,7 +294,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/sh\nrm -Rf \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/*\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks\"\ncp -R \"$PERL_DIST_PATH/$PERL_VERSION\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/\"\ncp -R \"$PERL_DIST_PATH/site_perl\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/\"\nmv \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\n\nif ls \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib.DSYM\"\nthen\n    rm -Rf \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib.DSYM\"\nfi\n\nif ls \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib.DSYM\"\nthen\n    mv \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib.DSYM\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\nfi\n\ncp -R \"$IOS_FRAMEWORK_PATH/ios.framework\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\n\nif ls \"$IOS_FRAMEWORK_PATH/ios.framework.DSYM\"\nthen\n    cp -R \"$IOS_FRAMEWORK_PATH/ios.framework.DSYM\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\nfi\n\n";
+			shellScript = "#!/bin/bash\nrm -Rf \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/*\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks\"\ncp -R \"$PERL_DIST_PATH/$PERL_VERSION\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/\"\ncp -R \"$PERL_DIST_PATH/site_perl\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/\"\nmv \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\n\nif test -e \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib.DSYM\"; then\n    rm -Rf \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib.DSYM\"\nfi\n\nif test -e \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib.DSYM\"; then\n    mv \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib.DSYM\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\nfi\n\ncp -R \"$IOS_FRAMEWORK_PATH/ios.framework\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\n\nif test -e \"$IOS_FRAMEWORK_PATH/ios.framework.DSYM\"; then\n    cp -R \"$IOS_FRAMEWORK_PATH/ios.framework.DSYM\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\nfi\n\n";
 		};
 		8227C41925DABF2100A353EC /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -311,7 +311,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\necho \"removing libperl.dylib from default location:\"\necho \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\nrm -f \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\n\nchmod +w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n\nexec \"$MACOS_PERL_PATH\" \"$PROJECT_DIR/fix_ios_dylibs.pl\" \"$PRODUCT_NAME\" \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\" \"$PERL_INSTALL_PREFIX\" \"$EXPANDED_CODE_SIGN_IDENTITY\"\n\nchmod -w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n";
+			shellScript = "#!/bin/bash\necho \"removing libperl.dylib from default location:\"\necho \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\nrm -f \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\n\nchmod +w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n\nif [ \"$EMBED_CAMELBONES_FRAMEWORK\" == \"YES\" ]; then\n    echo \"YEESSS\"\n    export \"LIBRARY_SEARCH_PATHS=$LIBRARY_SEARCH_PATHS $CAMELBONES_FRAMEWORK_PATH\"\n    cp -Rv \"$CAMELBONES_FRAMEWORK_PATH/CamelBones.framework\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\nfi\n\nexec \"$MACOS_PERL_PATH\" \"$PROJECT_DIR/fix_ios_dylibs.pl\" \"$PRODUCT_NAME\" \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\" \"$PERL_INSTALL_PREFIX\" \"$EXPANDED_CODE_SIGN_IDENTITY\"\n\nchmod -w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -492,9 +492,11 @@
 				"ARCHS[sdk=iphonesimulator*]" = x86_64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CAMELBONES_FRAMEWORK_PATH = "$(PROJECT_DIR)/../../../camelbones/CamelBones/build/Products/$(CONFIGURATION)-$(PLATFORM_NAME)";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6555P83K4D;
+				EMBED_CAMELBONES_FRAMEWORK = NO;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
 				"FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]" = "$(IOS_FRAMEWORK_PATH)";
@@ -542,9 +544,11 @@
 				"ARCHS[sdk=iphonesimulator*]" = x86_64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CAMELBONES_FRAMEWORK_PATH = "$(PROJECT_DIR)/../../../camelbones/CamelBones/build/Products/$(CONFIGURATION)-$(PLATFORM_NAME)";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6555P83K4D;
+				EMBED_CAMELBONES_FRAMEWORK = NO;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				"FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]" = "$(IOS_FRAMEWORK_PATH)";
