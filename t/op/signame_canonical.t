@@ -15,8 +15,8 @@ use Config;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
-# Windows doesn't seem to be able to test signals.
-skip_all("Signals lock up tests on $^O") if $^O =~ /MSWin32/;
+# Windows and iOS don't seem to be able to test signals.
+skip_all("Signals lock up tests on $^O") if $^O =~ /MSWin32/ || $^O =~ /darwin-ios/;
 
 $| = 1;
 

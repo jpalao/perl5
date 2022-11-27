@@ -16,6 +16,8 @@ BEGIN {
 use strict;
 use warnings;
 
+if ($^O =~ /darwin-ios/) { use ios }
+
 use B ();
 use O ();
 

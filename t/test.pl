@@ -36,6 +36,8 @@ our $TODO = 0;
 our $NO_ENDING = 0;
 our $Tests_Are_Passing = 1;
 
+if ($^O =~ /darwin-ios/) { use ios }
+
 # Use this instead of print to avoid interference while testing globals.
 sub _print {
     local($\, $", $,) = (undef, ' ', '');
@@ -111,7 +113,7 @@ sub is_miniperl {
 
 sub set_up_inc {
     # Don’t clobber @INC under miniperl
-    @INC = () unless is_miniperl;
+    @INC = () unless (is_miniperl || $^O =~ /darwin-ios/);
     unshift @INC, @_;
 }
 
@@ -631,6 +633,7 @@ USE_OK
 my $is_mswin    = $^O eq 'MSWin32';
 my $is_vms      = $^O eq 'VMS';
 my $is_cygwin   = $^O eq 'cygwin';
+my $is_ios      = $^O =~ /darwin-ios/;
 
 sub _quote_args {
     my ($runperl, $args) = @_;
@@ -792,6 +795,19 @@ sub untaint_path {
 sub runperl {
     die "test.pl:runperl() does not take a hashref"
 	if ref $_[0] and ref $_[0] eq 'HASH';
+
+    if ($is_ios) {
+        my %args = @_;
+        my ($exit_status, $result);
+        local $@;
+        eval {
+            ($result) = exec_perl_capture(\%args);
+        };
+        $? = $result->[0];
+        utf8::encode($result->[1]) if defined $result->[1];
+        return $result->[1] ? $result->[1] : $@;
+    }
+
     my $runperl = &_create_runperl;
     my $result;
 
@@ -1716,6 +1732,7 @@ sub warning_like {
 #        _AFTER_ the 'threads' module is loaded.
 sub watchdog ($;$)
 {
+    return if $is_ios;
     my $timeout = shift;
     my $method  = shift || "";
     my $timeout_msg = 'Test process timed out - terminating';

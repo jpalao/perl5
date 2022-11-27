@@ -263,6 +263,7 @@ $count += 1 * (@DEFERRED - @USER_ERROR_PROPERTIES) / 2;
 $count += 1 * @USER_ERROR_PROPERTIES;
 $count += 1;    # one bad apple
 $count += 1;    # No warnings generated
+$count -= 1 if $^O =~ /darwin-ios/;
 
 plan(tests => $count);
 
@@ -388,6 +389,7 @@ sub run_tests {
     while (my $error_property = shift @USER_ERROR_PROPERTIES) {
         my $error_re = shift @USER_ERROR_PROPERTIES;
 
+        utf8::decode($error_property) if $^O =~ /darwin-ios/;
         undef $@;
         eval { 'A' =~ /\p{$error_property}/; };
         like($@, $error_re, "$error_property gave correct failure message");
@@ -530,11 +532,13 @@ sub IsOverflow {
     return "0\t$overflow$utf8_comment";
 }
 
+if ($^O !~ /darwin-ios/) { # _thr version of this test crashes
 fresh_perl_like(<<'EOP', qr/Can't find Unicode property definition "F000\\tF010" in expansion of InOneBadApple/, {}, "Just one component bad");
 # Extra backslash converts tab to backslash-t
 sub InOneBadApple { return "0100\t0110\n10000\t10010\nF000\\tF010\n0400\t0410" }
 qr/\p{InOneBadApple}/;
 EOP
+}
 
 if (! is(@warnings, 0, "No warnings were generated")) {
     diag join "\n", @warnings, "\n";

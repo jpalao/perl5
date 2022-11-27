@@ -7,4 +7,14 @@ use strict;
 chdir '..' if -f 'test.pl' && -f 'thread_it.pl';
 require './t/test.pl';
 
-system "$^X -I. -MTestInit Porting/bench.pl --action=selftest";
+if ($^O =~ /darwin-ios/) {
+    exec_perl({
+        pwd => Cwd::getcwd(),
+        switches => ["-I.", "-MTestInit"], 
+        progfile => "Porting/bench.pl",
+        args => ["--action=selftest"]
+    });
+} else {
+    system "$^X -I. -MTestInit Porting/bench.pl --action=selftest";
+}
+

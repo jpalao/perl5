@@ -83,6 +83,19 @@ $out = ($^O eq 'MSWin32') ? `type $filename`
     : ($^O eq 'VMS') ? `type $filename.;0`   # otherwise .LIS is assumed
     : `cat $filename`;
 
+use Config;
+if ($^O =~ /darwin-ios/) {
+  $out = '';
+  open(FH, '<', $filename) or die $!;
+  while(<FH>){
+    $out .= $_;
+  }
+} else {
+  $out = (($^O eq 'MSWin32') || $^O eq 'NetWare') ? `type $filename`
+  : ($^O eq 'VMS') ? `type $filename.;0`   # otherwise .LIS is assumed
+  : `cat $filename`;
+}
+
 like($out, qr/.*\n.*\n.*\n$/);
 
 close(TRY) || (die "Can't close $filename: $!");

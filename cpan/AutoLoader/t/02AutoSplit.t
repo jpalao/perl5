@@ -26,6 +26,8 @@ use Test::More tests => 58;
 use File::Spec;
 use File::Find;
 
+if ($^O =~ /darwin-ios/) { use ios }
+
 my $Is_VMS   = $^O eq 'VMS';
 my $Is_VMS_mode = 0;
 my $Is_VMS_lc = 0;
@@ -82,6 +84,15 @@ sub split_a_file {
     open FILE, ">$file" or die "Can't open $file: $!";
     print FILE $contents;
     close FILE or die "Can't close $file: $!";
+  }
+
+  if ($^O =~ /darwin-ios/) {
+      my ($result) = exec_perl_capture ({
+        prog => "use AutoSplit; autosplit (qw(@_))",
+        pwd => Cwd::getcwd(),
+        stderr => 1,
+      });
+      return $result->[1] ? $result->[1] : $@;
   }
 
   # Assumption: no characters in arguments need escaping from the shell or perl

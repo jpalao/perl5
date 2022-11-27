@@ -10,6 +10,12 @@ use File::Path ();
 use File::Spec ();
 plan(tests => 10);
 
+my $return_dir;
+if ($^O =~ /darwin-ios/) {
+    use Cwd qw(getcwd);
+    $return_dir = getcwd();
+}
+
 my $test_dir = File::Spec->catdir(qw(lib deprecate));
 chdir $test_dir or die "Can't chdir $test_dir";
 @INC = ( File::Spec->catdir( (File::Spec->updir)x3, qw(lib)) );
@@ -87,4 +93,7 @@ for my $lib (sort keys %tests) {
     unlink_all $pm;
 }
 
-END { File::Path::remove_tree('lib') }
+END {
+    File::Path::remove_tree('lib');
+    chdir $return_dir if $^O =~ /darwin-ios/;
+}

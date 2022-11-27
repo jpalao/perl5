@@ -28,6 +28,7 @@ $Is_W32     = $^O eq 'MSWin32';
 $Is_VMS     = $^O eq 'VMS';
 $Is_OS2     = $^O eq 'os2';
 $Is_OS390   = $^O eq 'os390';
+$Is_iOS     = $^O =~ /darwin-ios/;
 
 my $vms_unix_rpt = 0;
 my $vms_efs = 0;
@@ -66,7 +67,8 @@ TODO:
 my $test = next_test();
 write(1,"ok $test\nnot ok $test\n", 5);
 
-{
+SKIP: {
+    skip "iOS: pipe not supported", 1 if $Is_Ios;
     @fds = POSIX::pipe();
     cmp_ok($fds[0], '>', $testfd, 'POSIX::pipe');
 
@@ -100,7 +102,7 @@ SKIP: {
     # finish the test.
     # For others (darwin & freebsd), let the test fail without crashing.
     # the test passes at least from freebsd 8.1
-    my $todo = $^O eq 'netbsd' && $Config{osvers}=~/^1\.6/;
+    my $todo = $^O eq 'netbsd' && $Config{osvers}=~/^1\.6/ || $Is_iOS;
     my $why_todo = "# TODO $^O $Config{osvers} seems to lose blocked signals";
     if (!$todo) {
       kill 'HUP', $$;
@@ -412,10 +414,13 @@ my $fd1 = open("Makefile.PL", O_RDONLY, 0);
 like($fd1, qr/\A\d+\z/, 'O_RDONLY with open');
 cmp_ok($fd1, '>', $testfd);
 my $fd2 = dup($fd1);
-like($fd2, qr/\A\d+\z/, 'dup');
-cmp_ok($fd2, '>', $fd1);
-is(POSIX::close($fd1), '0 but true', 'close');
-is(POSIX::close($testfd), '0 but true', 'close');
+SKIP: {
+    skip 'iOS: fd check not reliable', 4 if $Is_Ios;
+    like($fd2, qr/\A\d+\z/, 'dup');
+    cmp_ok($fd2, '>', $fd1);
+    is(POSIX::close($fd1), '0 but true', 'close');
+    is(POSIX::close($testfd), '0 but true', 'close');
+}
 $! = 0;
 undef $buffer;
 is(read($fd1, $buffer, 4), undef, 'read on closed file handle fails');
@@ -425,7 +430,8 @@ read($fd2, $buffer, 4) if $fd2 > 2;
 is($buffer, "# Ex", 'read');
 # The descriptor $testfd was using is now free, and is lower than that which
 # $fd1 was using. Hence if dup2() behaves as dup(), we'll know :-)
-{
+SKIP: {
+    skip 'iOS: fd check not reliable', 4 if $^O =~ /darwin-ios/;
     $testfd = dup2($fd2, $fd1);
     is($testfd, $fd1, 'dup2');
     undef $buffer;
@@ -472,5 +478,5 @@ if ($^O eq 'vos') {
 			    (defined $ENV{PERLIO} &&
 			     $ENV{PERLIO} eq 'unix' &&
 			     $Config::Config{useperlio}));
- _exit(0);
+ $Is_iOS ? exit(0) : _exit(0);
 }

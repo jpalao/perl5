@@ -33,4 +33,15 @@ if ( $Config{usecrosscompile} ) {
   skip_all( "Not all files are available during cross-compilation" );
 }
 
-system "$^X -Ilib Porting/checkcfgvar.pl --tap";
+if ($^O =~ /darwin-ios/) {
+    exec_perl({
+        pwd => Cwd::getcwd(),
+        switches => ["-Ilib"], 
+        progfile => "Porting/checkcfgvar.pl",
+        args => ["--tap"]
+    });
+    chdir 't' if -d 't';
+} else {
+    system "$^X -Ilib Porting/checkcfgvar.pl --tap";
+}
+

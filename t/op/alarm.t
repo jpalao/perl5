@@ -3,6 +3,7 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
+    skip_all('iOS: $SIG{ALRM} not supported') if $^O =~ /darwin-ios/;
     set_up_inc('../lib');
 }
 

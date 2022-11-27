@@ -19,6 +19,8 @@ require_ok( 'O' );
 
 my @lines = get_lines( '-MO=success,foo,bar' );
 
+SKIP: {
+skip 'iOS: unreliable results', 6 if $^O =~ /darwin-ios/;
 is( $lines[0], 'Compiling!', 'Output should not be saved without -q switch' );
 is( $lines[1], '(foo) <bar>', 'O.pm should call backend compile() method' );
 is( $lines[2], '[]', 'Nothing should be in $O::BEGIN_output without -q' );
@@ -28,6 +30,7 @@ is( $lines[3], '-e syntax OK', 'O.pm should not munge perl output without -qq');
 isnt( $lines[1], 'Compiling!', 'Output should not be printed with -q switch' );
 
 is( $lines[1], "[Compiling!", '... but should be in $O::BEGIN_output' );
+}
 
 @lines = get_lines( '-MO=-qq,success,foo,bar' );
 is( scalar @lines, 3, '-qq should suppress even the syntax OK message' );

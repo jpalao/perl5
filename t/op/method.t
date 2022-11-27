@@ -437,7 +437,8 @@ is $kalled, 1, 'calling a class method via a magic variable';
 }
 
 
-{
+SKIP: {
+    skip ("iOS: #TODO DESTROY creating a new reference crashes", 1) if ($^O =~ /darwin-ios/);
     fresh_perl_is(
     q! sub T::DESTROY { $x = $_[0]; } bless [], "T";!,
     "DESTROY created new reference to dead object 'T' during global destruction.",
@@ -473,7 +474,9 @@ is $kalled, 1, 'calling a class method via a magic variable';
       'foo->lv(local($foo,$bar)) is not called in lvalue context';
 }
 
-{
+SKIP: {
+   skip ("AUTOLOAD and DESTROY can be declared without a leading sub not working on iOS", 4) if ($^O =~ /darwin-ios/);
+
    # AUTOLOAD and DESTROY can be declared without a leading sub,
    # like BEGIN and friends.
    package NoSub;

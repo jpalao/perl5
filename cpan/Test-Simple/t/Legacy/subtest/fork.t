@@ -6,7 +6,7 @@ use warnings;
 
 use Test2::Util qw/CAN_FORK/;
 BEGIN {
-    unless(CAN_FORK) {
+    unless(CAN_FORK && $^O !~ /darwin-ios/) {
         require Test::More;
         Test::More->import(skip_all => "fork is not supported");
     }

@@ -15,7 +15,7 @@ my $has_perlio = $Config{useperlio};
 
 unless (is_miniperl()) {
     if ($Config{d_fork} && eval 'require POSIX; 1') {
-	$can_fork = 1;
+	$can_fork = 1 && $^O !~ /darwin-ios/;
     }
 }
 

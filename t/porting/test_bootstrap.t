@@ -24,11 +24,15 @@ my %exceptions = (
     proto => 'use strict',
  );
 
+my @iOS_exceptions = qw (base/term.t comp/hints.t comp/parser.t
+    comp/proto.t comp/require.t);
+
 while (my $file = <$fh>) {
     next unless $file =~ s!^t/!!;
     chomp $file;
     $file =~ s/\s+.*//;
     next unless $file =~ m!\.t$!;
+    next if $^O =~ /darwin-ios/ && "@iOS_exceptions" =~ /$file/;
 
     local $/;
     open my $t, '<', $file or die "Can't open $file: $!";
@@ -52,7 +56,9 @@ while (my $file = <$fh>) {
 
     # All uses of use are allowed in t/comp/use.t
     unlike($contents, qr/^\s*use\s+/m, "$file doesn't use use")
-	unless $file eq 'comp/use.t';
+	unless $file eq 'comp/use.t' ||
+           ($^O =~ /darwin-ios/ && $file eq 'comp/multiline.t');
+
     # All uses of require are allowed in t/comp/require.t
     unlike($contents, qr/^\s*require\s+/m, "$file doesn't use require")
 	unless $file eq 'comp/require.t'
