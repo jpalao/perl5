@@ -1,5 +1,5 @@
 //
-//  CBPerl.m
+//  PerlCtrl.m
 //  Camel Bones - a bare-bones Perl bridge for Objective-C
 //  Originally written for ShuX
 //
@@ -8,15 +8,15 @@
 
 #import "AppMain.h"
 
-#import "CBPerl.h"
+#import "PerlCtrl.h"
 
-@interface CBPerl (DummyThread)
+@interface PerlCtrl (DummyThread)
 - (void) dummyThread: (id)dummy;
 @end
 
-@implementation CBPerl
+@implementation PerlCtrl
 
-@synthesize CBPerlInterpreter = _CBPerlInterpreter;
+@synthesize PerlCtrlInterpreter = _PerlCtrlInterpreter;
 
 static NSMutableDictionary * perlInstanceDict = nil;
 static Boolean perlInitialized = false;
@@ -62,17 +62,17 @@ static Boolean perlInitialized = false;
     perlInitialized = 0;
 }
 
-+ (CBPerl *) getCBPerlFromPerlInterpreter: (PerlInterpreter *) perlInterpreter {
++ (PerlCtrl *) getPerlCtrlFromPerlInterpreter: (PerlInterpreter *) perlInterpreter {
     @synchronized(perlInstanceDict) {
-        CBPerl * result = [[CBPerl getPerlInstanceDictionary] valueForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) perlInterpreter]];
+        PerlCtrl * result = [[PerlCtrl getPerlInstanceDictionary] valueForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) perlInterpreter]];
         return result;
     }
 }
 
-+ (void) setCBPerl:(CBPerl *) cbperl forPerlInterpreter:(PerlInterpreter *) perlInterpreter {
++ (void) setPerlCtrl:(PerlCtrl *) cbperl forPerlInterpreter:(PerlInterpreter *) perlInterpreter {
     @synchronized(self) {
-        NSAssert ([CBPerl getPerlInstanceDictionary] != NULL, @"perl2CBPerlDict is NULL");
-        [[CBPerl getPerlInstanceDictionary] setObject:cbperl forKey:[NSString stringWithFormat:@"%llx", (unsigned long long) perlInterpreter]];
+        NSAssert ([PerlCtrl getPerlInstanceDictionary] != NULL, @"perl2PerlCtrlDict is NULL");
+        [[PerlCtrl getPerlInstanceDictionary] setObject:cbperl forKey:[NSString stringWithFormat:@"%llx", (unsigned long long) perlInterpreter]];
     }
 }
 
@@ -223,12 +223,12 @@ static Boolean perlInitialized = false;
         {
             if (!perlInitialized)
             {
-                [CBPerl initializePerl];
+                [PerlCtrl initializePerl];
             }
 
-            _CBPerlInterpreter = perl_alloc();
+            _PerlCtrlInterpreter = perl_alloc();
 
-            if(_CBPerlInterpreter == NULL)
+            if(_PerlCtrlInterpreter == NULL)
             {
                 * error = [[NSError alloc] initWithDomain:@"dev.perla.init" code:01 userInfo:@{@"reason": @"Cannot initialize perl interpreter"}];
                 [self cleanUp];
@@ -236,15 +236,15 @@ static Boolean perlInitialized = false;
             }
             else
             {
-                PERL_SET_CONTEXT(_CBPerlInterpreter);
+                PERL_SET_CONTEXT(_PerlCtrlInterpreter);
             }
 
-            [CBPerl setCBPerl:self forPerlInterpreter:_CBPerlInterpreter];
+            [PerlCtrl setPerlCtrl:self forPerlInterpreter:_PerlCtrlInterpreter];
 
             PL_perl_destruct_level = 1;
             @try
             {
-                perl_construct(_CBPerlInterpreter);
+                perl_construct(_PerlCtrlInterpreter);
             }
             @catch (NSException * exception )
             {
@@ -256,7 +256,7 @@ static Boolean perlInitialized = false;
             return;
         }
         @try {
-            result = perl_parse(_CBPerlInterpreter, xs_init, embSize, emb, (char **)NULL);
+            result = perl_parse(_PerlCtrlInterpreter, xs_init, embSize, emb, (char **)NULL);
         }
         @catch (NSException * exception ){
            NSLog(@"perl_parse threw Exception %@", [exception description]);
@@ -266,7 +266,7 @@ static Boolean perlInitialized = false;
     }
 
     @try {
-        int perl_run_result = perl_run(_CBPerlInterpreter);
+        int perl_run_result = perl_run(_PerlCtrlInterpreter);
         result = result ? result : perl_run_result;
     } @catch (NSException *exception) {
         * error = [[NSError alloc] initWithDomain:@"dev.perla.run" code:05 userInfo:@{@"reason":[NSString stringWithFormat:@"Unspecified error\n"]}];
@@ -292,11 +292,11 @@ static Boolean perlInitialized = false;
 
 -(void) cleanUp {
     @synchronized(perlInstanceDict) {
-        PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+        PERL_SET_CONTEXT([PerlCtrl getPerlInterpreter]);
         PL_perl_destruct_level = 1;
-        [[CBPerl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) _CBPerlInterpreter]];
-        perl_destruct(_CBPerlInterpreter);
-        perl_free(_CBPerlInterpreter);
+        [[PerlCtrl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) _PerlCtrlInterpreter]];
+        perl_destruct(_PerlCtrlInterpreter);
+        perl_free(_PerlCtrlInterpreter);
         // NSInteger rc = [self retainCount];
         NSArray *syms = [NSThread callStackSymbols];
         BOOL checkCBRunPerl = NO;
@@ -315,11 +315,11 @@ static Boolean perlInitialized = false;
 
 - (id) initXS {
 
-    [CBPerl initPerlInstanceDictionary: [NSMutableDictionary dictionaryWithCapacity:128]];
+    [PerlCtrl initPerlInstanceDictionary: [NSMutableDictionary dictionaryWithCapacity:128]];
 
     if ((self = [super init])) {
-        _CBPerlInterpreter = PERL_GET_CONTEXT;
-        [CBPerl setCBPerl:self forPerlInterpreter:_CBPerlInterpreter];
+        _PerlCtrlInterpreter = PERL_GET_CONTEXT;
+        [PerlCtrl setPerlCtrl:self forPerlInterpreter:_PerlCtrlInterpreter];
         return [self retain];
     } else {
         // Wonder what happened here?

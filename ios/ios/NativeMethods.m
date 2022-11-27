@@ -5,7 +5,7 @@
 //  Copyright (c) 2021 Jose Palao. All rights reserved.
 //
 
-#import "CBPerl.h"
+#import "PerlCtrl.h"
 #import "NativeMethods.h"
 
 // The BYTEORDER macro is also #defined by perl, and Perl's use
@@ -189,7 +189,7 @@ void* CBRunPerl (char * json)
 {
 @autoreleasepool {
     // Define a Perl context
-    PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+    PERL_SET_CONTEXT([PerlCtrl getPerlInterpreter]);
     dTHX;
 
     NSMutableDictionary * cbRunPerlDict = parseRunPerl(json);
@@ -230,7 +230,7 @@ void* CBRunPerl (char * json)
                     {
                         NSError *perlError = nil;
                         [
-                            [CBPerl alloc]
+                            [PerlCtrl alloc]
                             initWithFileName:filePath
                             withAbsolutePwd:absPwd
                             withDebugger:FALSE
@@ -284,7 +284,7 @@ CBRunPerlCaptureStdout (char * json) {
 @autoreleasepool {
 
     // Define a Perl context
-    PERL_SET_CONTEXT([CBPerl getPerlInterpreter]);
+    PERL_SET_CONTEXT([PerlCtrl getPerlInterpreter]);
     dTHX;
 
     AV * results = newAV();

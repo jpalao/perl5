@@ -1,5 +1,5 @@
 //
-//  CBPerl.h
+//  PerlCtrl.h
 //  Camel Bones - a bare-bones Perl bridge for Objective-C
 //  Originally written for ShuX
 //
@@ -10,23 +10,23 @@
 #import "PerlImports.h"
 #include "perlxsi.h"
 
-#define CBPerlErrorException @"CBPerlErrorException"
+#define PerlCtrlErrorException @"PerlCtrlErrorException"
 
 typedef void (^PerlCompletionBlock)(int perlRunResult);
 
-@interface CBPerl : NSObject {
-    PerlInterpreter * _CBPerlInterpreter;
+@interface PerlCtrl : NSObject {
+    PerlInterpreter * _PerlCtrlInterpreter;
 }
 
-// _CBPerlInterpreter: pointer to this CBPerl object's perl interpreter
-@property (nonatomic, assign) PerlInterpreter * CBPerlInterpreter;
+// _PerlCtrlInterpreter: pointer to this PerlCtrl object's perl interpreter
+@property (nonatomic, assign) PerlInterpreter * PerlCtrlInterpreter;
 
 @property (nonatomic, assign) NSString * perlVersionString;
 
 // getPerlInterpreter: Class method that returns the current perl Interpreter
 + (PerlInterpreter *) getPerlInterpreter;
 
-// The following three methods handle global registration of CBPerl objects and their perl
+// The following three methods handle global registration of PerlCtrl objects and their perl
 // interpreters through perlInstanceDict and perlInitialized globals
 
 // getPerlInterpreter: Class method that returns the global perl Interpreter dictionary
@@ -40,16 +40,16 @@ typedef void (^PerlCompletionBlock)(int perlRunResult);
 // make sure the dictionary is empty before using this!!!
 + (void) clearPerlInstanceDictionary: (NSMutableDictionary *) dictionary;
 
-// getCBPerlFromPerlInterpreter: Class method that returns the CBPerl object corresponding to an embedded perl interpreter object
-+ (CBPerl *) getCBPerlFromPerlInterpreter: (PerlInterpreter *) perlInterpreter;
+// getPerlCtrlFromPerlInterpreter: Class method that returns the PerlCtrl object corresponding to an embedded perl interpreter object
++ (PerlCtrl *) getPerlCtrlFromPerlInterpreter: (PerlInterpreter *) perlInterpreter;
 
-// setCBPerl: Class method that sets the CBPerl object corresponding to an embedded perl interpreter object
-+ (void) setCBPerl:(CBPerl *) cbperl forPerlInterpreter:(PerlInterpreter *) perlInterpreter;
+// setPerlCtrl: Class method that sets the PerlCtrl object corresponding to an embedded perl interpreter object
++ (void) setPerlCtrl:(PerlCtrl *) cbperl forPerlInterpreter:(PerlInterpreter *) perlInterpreter;
 
-// clean up this CBPerl object's perl interpreter
+// clean up this PerlCtrl object's perl interpreter
 - (void) cleanUp;
 
-// init this CBPerl object with a new perl interpreter
+// init this PerlCtrl object with a new perl interpreter
 -(void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments error:(NSError **)error completion:(PerlCompletionBlock)completion;
 
 - (void) dealloc;

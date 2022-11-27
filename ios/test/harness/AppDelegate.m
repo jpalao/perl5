@@ -19,7 +19,7 @@
     // Override point for customization after application launch.
     @autoreleasepool {
         _perlDict = [NSMutableDictionary dictionaryWithCapacity:128];
-        [CBPerl initPerlInstanceDictionary: _perlDict];
+        [PerlCtrl initPerlInstanceDictionary: _perlDict];
     }
     return YES;
 }

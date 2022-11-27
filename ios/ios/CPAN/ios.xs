@@ -1,5 +1,5 @@
 #import <ios/PerlImports.h>
-#import <ios/CBPerl.h>
+#import <ios/PerlCtrl.h>
 #import <ios/NativeMethods.h>
 
 #ifdef GNUSTEP
@@ -22,7 +22,7 @@ void
 CBInit()
     CODE:
     NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
-    [[CBPerl alloc] initXS];
+    [[PerlCtrl alloc] initXS];
 
 AV*
 CBRunPerlCaptureStdout(json)

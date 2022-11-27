@@ -24,11 +24,11 @@
 		82504F652763D96D003FACE3 /* ppport.h in Headers */ = {isa = PBXBuildFile; fileRef = 82504F632763D96D003FACE3 /* ppport.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		826E03DD27616DB200BECAE0 /* typemap in CopyFiles */ = {isa = PBXBuildFile; fileRef = 826E03DC27616DB200BECAE0 /* typemap */; };
 		829161E11D4D561C006DF121 /* AppMain.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3A80C875DB7004DA7BD /* AppMain.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		829161E31D4D561C006DF121 /* CBPerl.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3AB0C875DB7004DA7BD /* CBPerl.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		829161E31D4D561C006DF121 /* PerlCtrl.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3AB0C875DB7004DA7BD /* PerlCtrl.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		829161EE1D4D561C006DF121 /* NativeMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3C60C875DB7004DA7BD /* NativeMethods.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		829161F01D4D561C006DF121 /* PerlImports.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3C80C875DB7004DA7BD /* PerlImports.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		829161F31D4D561C006DF121 /* perlxsi.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3CD0C875DB7004DA7BD /* perlxsi.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		829161FD1D4D561C006DF121 /* CBPerl.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3AC0C875DB7004DA7BD /* CBPerl.m */; settings = {COMPILER_FLAGS = "-Wno-objc-protocol-method-implementation"; }; };
+		829161FD1D4D561C006DF121 /* PerlCtrl.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3AC0C875DB7004DA7BD /* PerlCtrl.m */; settings = {COMPILER_FLAGS = "-Wno-objc-protocol-method-implementation"; }; };
 		829162021D4D561C006DF121 /* AppMain.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3A90C875DB7004DA7BD /* AppMain.m */; };
 		829162041D4D561C006DF121 /* NativeMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3C70C875DB7004DA7BD /* NativeMethods.m */; };
 		829162051D4D561C006DF121 /* perlxsi.c in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3CC0C875DB7004DA7BD /* perlxsi.c */; };
@@ -38,10 +38,10 @@
 		82C7A4E62765392100E523CA /* ios.h in Headers */ = {isa = PBXBuildFile; fileRef = 82C7A4E42765392100E523CA /* ios.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82EAABCD25EC12D1000FE2FC /* NativeMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3C60C875DB7004DA7BD /* NativeMethods.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82EAABD025EC12D1000FE2FC /* AppMain.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3A80C875DB7004DA7BD /* AppMain.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		82EAABD225EC12D1000FE2FC /* CBPerl.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3AB0C875DB7004DA7BD /* CBPerl.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		82EAABD225EC12D1000FE2FC /* PerlCtrl.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3AB0C875DB7004DA7BD /* PerlCtrl.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82EAABDA25EC12D1000FE2FC /* PerlImports.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3C80C875DB7004DA7BD /* PerlImports.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		82EAABDB25EC12D1000FE2FC /* perlxsi.h in Headers */ = {isa = PBXBuildFile; fileRef = AA50E3CD0C875DB7004DA7BD /* perlxsi.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		82EAABDF25EC12D1000FE2FC /* CBPerl.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3AC0C875DB7004DA7BD /* CBPerl.m */; settings = {COMPILER_FLAGS = "-Wno-objc-protocol-method-implementation"; }; };
+		82EAABDF25EC12D1000FE2FC /* PerlCtrl.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3AC0C875DB7004DA7BD /* PerlCtrl.m */; settings = {COMPILER_FLAGS = "-Wno-objc-protocol-method-implementation"; }; };
 		82EAABE425EC12D1000FE2FC /* AppMain.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3A90C875DB7004DA7BD /* AppMain.m */; };
 		82EAABE625EC12D1000FE2FC /* NativeMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3C70C875DB7004DA7BD /* NativeMethods.m */; };
 		82EAABE725EC12D1000FE2FC /* perlxsi.c in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3CC0C875DB7004DA7BD /* perlxsi.c */; };
@@ -91,8 +91,8 @@
 		82EAABFE25EC12D1000FE2FC /* ios.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ios.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA50E3A80C875DB7004DA7BD /* AppMain.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AppMain.h; sourceTree = "<group>"; };
 		AA50E3A90C875DB7004DA7BD /* AppMain.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = AppMain.m; sourceTree = "<group>"; };
-		AA50E3AB0C875DB7004DA7BD /* CBPerl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = CBPerl.h; sourceTree = "<group>"; };
-		AA50E3AC0C875DB7004DA7BD /* CBPerl.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = CBPerl.m; sourceTree = "<group>"; };
+		AA50E3AB0C875DB7004DA7BD /* PerlCtrl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PerlCtrl.h; sourceTree = "<group>"; };
+		AA50E3AC0C875DB7004DA7BD /* PerlCtrl.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = PerlCtrl.m; sourceTree = "<group>"; };
 		AA50E3C60C875DB7004DA7BD /* NativeMethods.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NativeMethods.h; sourceTree = "<group>"; };
 		AA50E3C70C875DB7004DA7BD /* NativeMethods.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = NativeMethods.m; sourceTree = "<group>"; };
 		AA50E3C80C875DB7004DA7BD /* PerlImports.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PerlImports.h; sourceTree = "<group>"; };
@@ -166,7 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				AA50E3A90C875DB7004DA7BD /* AppMain.m */,
-				AA50E3AC0C875DB7004DA7BD /* CBPerl.m */,
+				AA50E3AC0C875DB7004DA7BD /* PerlCtrl.m */,
 				AA50E3C70C875DB7004DA7BD /* NativeMethods.m */,
 				AA50E3CC0C875DB7004DA7BD /* perlxsi.c */,
 			);
@@ -186,7 +186,7 @@
 			children = (
 				82C7A4E42765392100E523CA /* ios.h */,
 				AA50E3A80C875DB7004DA7BD /* AppMain.h */,
-				AA50E3AB0C875DB7004DA7BD /* CBPerl.h */,
+				AA50E3AB0C875DB7004DA7BD /* PerlCtrl.h */,
 			);
 			name = Include;
 			sourceTree = "<group>";
@@ -238,7 +238,7 @@
 			files = (
 				829161EE1D4D561C006DF121 /* NativeMethods.h in Headers */,
 				829161E11D4D561C006DF121 /* AppMain.h in Headers */,
-				829161E31D4D561C006DF121 /* CBPerl.h in Headers */,
+				829161E31D4D561C006DF121 /* PerlCtrl.h in Headers */,
 				82C7A4E52765392100E523CA /* ios.h in Headers */,
 				829161F01D4D561C006DF121 /* PerlImports.h in Headers */,
 				82504F642763D96D003FACE3 /* ppport.h in Headers */,
@@ -252,7 +252,7 @@
 			files = (
 				82EAABCD25EC12D1000FE2FC /* NativeMethods.h in Headers */,
 				82EAABD025EC12D1000FE2FC /* AppMain.h in Headers */,
-				82EAABD225EC12D1000FE2FC /* CBPerl.h in Headers */,
+				82EAABD225EC12D1000FE2FC /* PerlCtrl.h in Headers */,
 				82C7A4E62765392100E523CA /* ios.h in Headers */,
 				82EAABDA25EC12D1000FE2FC /* PerlImports.h in Headers */,
 				82504F652763D96D003FACE3 /* ppport.h in Headers */,
@@ -335,7 +335,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				829161FD1D4D561C006DF121 /* CBPerl.m in Sources */,
+				829161FD1D4D561C006DF121 /* PerlCtrl.m in Sources */,
 				829162021D4D561C006DF121 /* AppMain.m in Sources */,
 				829162041D4D561C006DF121 /* NativeMethods.m in Sources */,
 				829162051D4D561C006DF121 /* perlxsi.c in Sources */,
@@ -346,7 +346,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				82EAABDF25EC12D1000FE2FC /* CBPerl.m in Sources */,
+				82EAABDF25EC12D1000FE2FC /* PerlCtrl.m in Sources */,
 				82EAABE425EC12D1000FE2FC /* AppMain.m in Sources */,
 				82EAABE625EC12D1000FE2FC /* NativeMethods.m in Sources */,
 				82EAABE725EC12D1000FE2FC /* perlxsi.c in Sources */,
