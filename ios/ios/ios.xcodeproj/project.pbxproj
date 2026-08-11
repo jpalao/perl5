@@ -394,7 +394,7 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(BUILD_DIR)/$(CONFIGURATION)";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBPERL_PATH = "";
@@ -483,7 +483,7 @@
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(BUILD_DIR)/$(CONFIGURATION)";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBPERL_PATH = "";
@@ -568,7 +568,7 @@
 				"HEADER_SEARCH_PATHS[sdk=iphonesimulator*]" = "$(LIBPERL_PATH)";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(BUILD_DIR)/$(CONFIGURATION)";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBPERL_PATH = "";
@@ -640,7 +640,7 @@
 				"HEADER_SEARCH_PATHS[sdk=iphonesimulator*]" = "$(LIBPERL_PATH)";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(BUILD_DIR)/$(CONFIGURATION)";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBPERL_PATH = "";
@@ -729,7 +729,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				PROVISIONING_PROFILE = "";
@@ -782,7 +782,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PROVISIONING_PROFILE = "";
 				SDKROOT = macosx;

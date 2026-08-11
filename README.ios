@@ -188,7 +188,7 @@ builds. Default for device builds is 1 BITCODE=1
 =item IPHONE_MIN_VERSION
 
 Minimum iPhoneOS or AppleTVOS version compatible with built perl
-binaries. Default for device builds is 8.0 IPHONE_MIN_VERSION=8.0
+binaries. Default for device builds is 12.0 IPHONE_MIN_VERSION=12.0
 
 =item DEBUG
 

@@ -7,7 +7,7 @@
 : "${BITCODE:=0}"
 : "${DEBUG:=0}"
 : "${INSTALL_DIR:=local}"
-: "${MIN_VERSION:=8.0}"
+: "${MIN_VERSION:=12.0}"
 : "${PERL_APPLETV:=0}"
 : "${PERL_APPLEWATCH:=0}"
 
