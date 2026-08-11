@@ -1,11 +1,16 @@
 #!/usr/bin/env sh
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+WORKDIR="$SCRIPT_DIR"
+
 if [ -e $HOME/perl5/perlbrew/etc/bashrc ];
     then source $HOME/perl5/perlbrew/etc/bashrc;
     else echo "$HOME/perl5/perlbrew/etc/bashrc not found" && exit 0;
 fi
 
-if [ -e setup_test.sh ];
+if [ -e "$SCRIPT_DIR/setup_test.sh" ];
+    then source "$SCRIPT_DIR/setup_test.sh";
+elif [ -e setup_test.sh ];
     then source setup_test.sh;
 fi
 
@@ -32,7 +37,7 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${INSTALL_DIR:=local}"
 : "${ARCHS:=arm64}"
 
-WORKDIR=`pwd`
+WORKDIR="$SCRIPT_DIR"
 
 : "${CAMELBONES_GIT:=https://github.com/jpalao/camelbones.git}"
 : "${CAMELBONES_BRANCH:=original}"
@@ -46,6 +51,7 @@ WORKDIR=`pwd`
 
 : "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
+: "${HARNESS_STORAGE_ROOT:=/Library/PerlHarness}"
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 PERL_TEST_LOG="$IOS_MOUNTPOINT/perl-tests.txt"
@@ -114,9 +120,10 @@ check_dependencies() {
 }
 
 check_exit_code() {
-  if [ $? -ne 0 ]; then
+    status=${1:-$?}
+    if [ "$status" -ne 0 ]; then
     echo "Failed to build perl for $HARNESS_TARGET"
-    exit $?
+        exit "$status"
   fi
 }
 
@@ -211,23 +218,20 @@ test_perl_device() {
 
     popd
 
-    echo "Copy perl build directory to iOS device..."
+    echo "Copy perl build directory to iOS device writable storage..."
 
     if [ "$simulator_build" -eq "0" ]; then
         build_destination_dir="$IOS_MOUNTPOINT"
-        ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
-    else # ARM device
+        if ! copy_tree_to_writable_storage "$WORKDIR/perl-$PERL_VERSION" "$build_destination_dir" "$HARNESS_STORAGE_ROOT"; then
+            exit 1
+        fi
+    else # simulator path
         build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
-        build_destination_dir="$build_destination_dir/Documents/"
+        build_destination_dir="$build_destination_dir/Library/PerlHarness/"
+        copy_tree_to_writable_storage "$WORKDIR/perl-$PERL_VERSION" "$build_destination_dir" "$build_destination_dir"
     fi
 
-    echo "App Documents dir is '$build_destination_dir'"
-
-    if [ "$simulator_build" -eq "0" ]; then
-        cp -RL "$WORKDIR/perl-$PERL_VERSION/." "$build_destination_dir" 2>/dev/null
-    else # ARM device
-        cp -RL "$WORKDIR/perl-$PERL_VERSION/." "$build_destination_dir"
-    fi
+    echo "App writable dir is '$build_destination_dir'"
 
     #check_exit_code
 
@@ -257,6 +261,8 @@ test_perl_device() {
         # needed for scrolling to keep in sync w/ device's ifuse fs
         perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
         REFRESH_PID=$!
+    else
+        download_test_log "$PERL_TEST_LOG" "$HARNESS_STORAGE_ROOT/perl-tests.txt"
     fi
 
     sleep 3
@@ -326,6 +332,14 @@ rm -f "ext/CamelBones-$CAMELBONES_VERSION".tar.gz
 
 prepare_perl
 check_exit_code
+
+# Keep local build script fixes when test.sh clones a fresh perl tree.
+cp "$WORKDIR/ios/build.sh" "perl-$PERL_VERSION/ios/build.sh"
+chmod +x "perl-$PERL_VERSION/ios/build.sh"
+
+# Keep local harness signing/bundle-id fixes for the cloned tree as well.
+cp "$WORKDIR/ios/test/harness.xcodeproj/project.pbxproj" \
+    "perl-$PERL_VERSION/ios/test/harness.xcodeproj/project.pbxproj"
 
 prepare_camelbones
 check_exit_code

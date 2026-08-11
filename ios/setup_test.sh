@@ -1,2 +1,2 @@
-# export IOS_DEVICE_UUID=
-# export HARNESS_APP_ID=net.pytm.harness
+export IOS_DEVICE_UUID=00008020-001C79901A63002E
+export HARNESS_APP_ID=net.pytm.perl

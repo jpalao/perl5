@@ -135,12 +135,17 @@ build_perl() {
   cd "$WORKDIR"
 
   if [ -d "$WORKDIR/ext" ]; then
-  for f in $WORKDIR/ext/*.tar.gz
-  do
-    echo $f is
-    echo "Installing perl extension $f..."
-    tar xvfz "$f" -C "perl-$PERL_VERSION/ext"
-  done
+    # Only unpack extension archives when they are actually present.
+    if ls "$WORKDIR"/ext/*.tar.gz >/dev/null 2>&1; then
+      for f in "$WORKDIR"/ext/*.tar.gz
+      do
+        echo "$f is"
+        echo "Installing perl extension $f..."
+        tar xvfz "$f" -C "perl-$PERL_VERSION/ext"
+      done
+    else
+      echo "No extension archives found in $WORKDIR/ext"
+    fi
   fi
 
   cd "perl-$PERL_VERSION"
@@ -226,6 +231,8 @@ build_perl() {
     perl -0777 -i.bak.7 -pe "s|\-bundle|\-Xlinker \-bitcode_bundle|g" config.sh
   fi
 
+  # Restore the direct Configure invocation; piping through sh/yes triggers the
+  # Perl guard that aborts with 'Say \'sh Configure\', not \'sh <Configure\''.
   ./Configure -Dusedevel -f config.sh -d
 
   # accept all defaults of our arch config
@@ -335,9 +342,10 @@ delete_installed_perl() {
 }
 
 check_exit_code() {
-  if [ $? -ne 0 ]; then
+  status=${1:-$?}
+  if [ "$status" -ne 0 ]; then
     echo "Failed to build perl for iOS"
-    exit $?
+    exit "$status"
   fi
 }
 
@@ -355,7 +363,17 @@ build_ios_framework() {
 
 build_libffi() {
     pushd ./libffi-3.2.1
-    xcodebuild -scheme libffi-"$IOS_TARGET"
+    LIBFFI_SCHEME="libffi-$IOS_TARGET"
+
+    if ! xcodebuild -list -project libffi.xcodeproj | grep -q "^[[:space:]]*$LIBFFI_SCHEME$"; then
+      echo "libffi scheme '$LIBFFI_SCHEME' not found in libffi.xcodeproj"
+      echo "Available libffi schemes:"
+      xcodebuild -list -project libffi.xcodeproj | sed -n '/Schemes:/,$p'
+      exit 1
+    fi
+
+    xcodebuild -project libffi.xcodeproj -scheme "$LIBFFI_SCHEME" \
+      ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO
     check_exit_code
     popd
 }
