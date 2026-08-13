@@ -48,7 +48,7 @@ static char * test_result_filename = "perl-tests.txt";
     [self updateOutputText: [self boilerplateString] withColor:[self colorFromHexString: @"#28FE14"]];
 
     [self setupStdioRedirection];
-    self.scriptPath = [NSMutableString stringWithFormat:@"%@/t/ios_harness", [self applicationDocumentsDirectory]];
+    self.scriptPath = [NSMutableString stringWithString:[self resolveHarnessScriptPath]];
     [self startPerlScript];
 
     _timer = [NSTimer scheduledTimerWithTimeInterval:.5
@@ -231,6 +231,14 @@ static char * test_result_filename = "perl-tests.txt";
     [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
         textView.frame = CGRectMake(CGRectGetMinX(textView.frame), CGRectGetMinY(textView.frame), textSize.width, textSize.height);
     }];
+}
+
+- (NSString *) resolveHarnessScriptPath
+{
+    NSString *baseDocumentsDir = [self applicationDocumentsDirectory];
+    // The full Perl tree is copied directly into the app's writable Documents root,
+    // so the harness lives at <Documents>/t/ios_harness and no versioned subdir is needed.
+    return [baseDocumentsDir stringByAppendingPathComponent:@"t/ios_harness"];
 }
 
 - (void) startPerlScript
