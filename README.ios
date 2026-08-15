@@ -260,8 +260,12 @@ x86_64 targets cannot be built with Apple bitcode support
 =head2 TESTING REQUIREMENTS
 
 
-The following packages are used for testing on device and need to be
-installed on macOS. You can use brew or MacPorts for this purpose.
+Xcode's `devicectl` is used by default for installing the harness,
+copying files to and from its data container, and launching it on a
+physical device.
+
+The following packages provide optional compatibility transports. You
+can use brew or MacPorts to install them.
 
 =over
 
@@ -317,6 +321,15 @@ contains some sensible defaults.
 =item  3. run 'sh test.sh'
 
 =back
+
+Each run stores its TAP output in the working directory using a UTC
+timestamp and the exact Perl commit, for example:
+
+  perl-tests-20260815T194500Z-58a1aa5869abcdef1234567890abcdef12345678.txt
+
+The file is updated while the tests run, so partial output is retained
+if a run is interrupted. Set `TEST_LOG_PREFIX` to identify a targeted
+suite, such as `TEST_LOG_PREFIX=camelbones-tests`.
 
 =head2 TESTING PROCESS
 
@@ -374,22 +387,27 @@ can be executed by perl calls. The `harness` project contains a script
 that will copy and sign the needed Perl binaries from $PREFIX/lib/perl5
 that are then embedded within the harness.app.
 
-(6) `ios-deploy` is used to install the newly built app onto the iOS
-device
+(6) `xcrun devicectl device install app` is used to install the newly
+built app onto the iOS device. The existing app is uninstalled first so
+its data is cleared, matching the previous `ios-deploy -r` behavior.
 
-(7) `ifuse` utility is used to mount the harness.app Documents folder
-from the iOS device in order to copy the perl build directory contents
-into the Documents folder. After installation harness.app can receive
-files in its Documents folder because it has Apple iTunes file sharing
-key enabled.
+(7) `xcrun devicectl device copy to` copies the perl build directory
+contents into the harness.app Documents folder. After installation
+harness.app can receive files in its Documents folder because it has
+the Apple iTunes file sharing key enabled.
 
-This mechanism also allows to edit the harness or any other file
-interactively to test changes with no recompilation needed. Edit
-anything in the harness.app Documents folder and re-run the app. For
-example you can set ENV variables by editing t/harness directly (this
-can be done also within Xcode) or change some tests which can then be
-committed directly from the mounted directory if it contains .git
-directory
+Set `DEVICE_TRANSPORT=ifuse` to mount the Documents folder instead, or
+`DEVICE_TRANSPORT=ios-deploy` to use ios-deploy file transfer. The
+legacy `USE_IFUSE=1`, `USE_IFUSE=0`, and `USE_IFUSE=auto` settings remain
+supported. `DEVICE_TRANSPORT=auto` prefers devicectl, then ifuse, then
+ios-deploy.
+
+The ifuse transport also allows the harness or any other file to be
+edited interactively with no recompilation needed. Edit anything in the
+harness.app Documents folder and re-run the app. For example you can set
+ENV variables by editing t/harness directly (this can be done also
+within Xcode) or change some tests which can then be committed directly
+from the mounted directory if it contains a .git directory.
 
 (8) Then all dynamic .bundle binaries are removed from Documents folder.
 These cannot be loaded from outside the harness.app bundle where the
@@ -413,12 +431,12 @@ in the harness application. You can easily change this to run any other
 Perl script).
 
 The harness.app writes TAP output to `perl-tests.txt` file in
-`Documents` dir, which we can then tail in the terminal. Because
-t/harness runs from Documents folder, which can be mounted in macOS and
-you can  can run or debug the harness.app from the command line, the
-output of tests in the device can be shown simultaneously in both the
-iOS device output view (stderr is shown in red and stdout in green) and
-macOS terminal.
+`Documents` dir. With devicectl or ios-deploy, the script periodically
+downloads newly written output and tails the local copy. With ifuse,
+Documents is mounted in macOS and the file is tailed directly. The test
+output can therefore be shown simultaneously in both the iOS device
+output view (stderr is shown in red and stdout in green) and macOS
+terminal.
 
 =head2 Known problems
 
