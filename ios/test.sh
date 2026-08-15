@@ -1,17 +1,19 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-WORKDIR="$SCRIPT_DIR"
+PERL5_SOURCE_ROOT="${PERL5_SOURCE_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd -P)}"
+WORKDIR="${PERL_IOS_WORKDIR:-$(pwd -P)}"
+PERL5_REVISION="${PERL5_REVISION:-HEAD}"
 
 if [ -e $HOME/perl5/perlbrew/etc/bashrc ];
     then source $HOME/perl5/perlbrew/etc/bashrc;
     else echo "$HOME/perl5/perlbrew/etc/bashrc not found" && exit 0;
 fi
 
-if [ -e "$SCRIPT_DIR/setup_test.sh" ];
+if [ -e "$WORKDIR/setup_test.sh" ];
+    then source "$WORKDIR/setup_test.sh";
+elif [ -e "$SCRIPT_DIR/setup_test.sh" ];
     then source "$SCRIPT_DIR/setup_test.sh";
-elif [ -e setup_test.sh ];
-    then source setup_test.sh;
 fi
 
 if [ -z ${IOS_DEVICE_UUID+x} ];
@@ -37,8 +39,6 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${INSTALL_DIR:=local}"
 : "${ARCHS:=arm64}"
 
-WORKDIR="$SCRIPT_DIR"
-
 : "${CAMELBONES_GIT:=https://github.com/jpalao/camelbones.git}"
 : "${CAMELBONES_BRANCH:=original}"
 : "${CAMELBONES_PREFIX:=$WORKDIR}"
@@ -51,7 +51,6 @@ WORKDIR="$SCRIPT_DIR"
 
 : "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
-: "${HARNESS_STORAGE_ROOT:=/Library/PerlHarness}"
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 PERL_TEST_LOG="$IOS_MOUNTPOINT/perl-tests.txt"
@@ -62,7 +61,7 @@ export CAMELBONES_TARGET=$HARNESS_TARGET
 export CAMELBONES_BUILD_CONFIGURATION=$HARNESS_BUILD_CONFIGURATION
 export CAMELBONES_CI=1
 export CAMELBONES_VERSION='1.3.0'
-export CAMELBONES_CPAN_DIR=`pwd`"/perl-$PERL_VERSION/ext/CamelBones-$CAMELBONES_VERSION"
+export CAMELBONES_CPAN_DIR="$WORKDIR/perl-$PERL_VERSION/ext/CamelBones-$CAMELBONES_VERSION"
 export CAMELBONES_FRAMEWORK_DIR="$PERL_IOS_PREFIX/camelbones/CamelBones"
 export BUILD_CAMELBONES="$BUILD_CAMELBONES"
 export INSTALL_CAMELBONES_FRAMEWORK=0
@@ -128,18 +127,21 @@ check_exit_code() {
 }
 
 prepare_camelbones() {
-  rm -Rf camelbones
-  git clone --single-branch --branch "$CAMELBONES_BRANCH" "$CAMELBONES_GIT"
+    rm -Rf "$WORKDIR/camelbones"
+    git clone --single-branch --branch "$CAMELBONES_BRANCH" "$CAMELBONES_GIT" "$WORKDIR/camelbones"
 }
 
 prepare_ios() {
-  rm -Rf $1
-  git clone --single-branch --branch "$IOS_BRANCH" "$IOS_GIT" $1
+    rm -Rf "$WORKDIR/$1"
+    git clone --single-branch --branch "$IOS_BRANCH" "$IOS_GIT" "$WORKDIR/$1"
 }
 
 prepare_perl() {
-  rm -Rf "perl-$PERL_VERSION"
-  git clone --single-branch --branch "$PERL_5_BRANCH" "$PERL5_GIT" "perl-$PERL_VERSION"
+    perl_build_dir="$WORKDIR/perl-$PERL_VERSION"
+    rm -Rf "$perl_build_dir"
+    git clone --no-checkout "$PERL5_SOURCE_ROOT" "$perl_build_dir"
+    git -C "$perl_build_dir" checkout --detach "$PERL5_REVISION"
+    echo "Building perl5 revision $(git -C "$perl_build_dir" rev-parse HEAD)"
 }
 
 _term() {
@@ -320,6 +322,8 @@ build_artifacts() {
 
 ####################################################################
 
+cd "$WORKDIR" || exit 1
+
 echo "Build started: $(date)"
 
 trap _term SIGINT
@@ -333,14 +337,6 @@ rm -f "ext/CamelBones-$CAMELBONES_VERSION".tar.gz
 
 prepare_perl
 check_exit_code
-
-# Keep local build script fixes when test.sh clones a fresh perl tree.
-cp "$WORKDIR/ios/build.sh" "perl-$PERL_VERSION/ios/build.sh"
-chmod +x "perl-$PERL_VERSION/ios/build.sh"
-
-# Keep local harness signing/bundle-id fixes for the cloned tree as well.
-cp "$WORKDIR/ios/test/harness.xcodeproj/project.pbxproj" \
-    "perl-$PERL_VERSION/ios/test/harness.xcodeproj/project.pbxproj"
 
 prepare_camelbones
 check_exit_code
