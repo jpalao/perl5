@@ -51,15 +51,19 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 
 : "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
-: "${USE_IFUSE:=auto}"
+: "${DEVICE_TRANSPORT:=devicectl}"
 : "${AUTO_LAUNCH:=1}"
+: "${TEST_LOG_PREFIX:=perl-tests}"
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 REMOTE_DOCUMENTS_DIR="Documents"
 REMOTE_TEST_LOG="$REMOTE_DOCUMENTS_DIR/perl-tests.txt"
-PERL_TEST_LOG="$WORKDIR/perl-tests.txt"
+PERL_TEST_LOG=""
+TEST_LOG_SOURCE=""
 TRANSFER_TRANSPORT=""
+DEVICECTL_AVAILABLE=0
 REFRESH_PID=""
+MOUNT_REFRESH_PID=""
 
 # CAMELBONES #
 export CAMELBONES_PREFIX="$CAMELBONES_PREFIX"
@@ -114,7 +118,9 @@ check_host_perl_version () {
 }
 
 check_dependencies() {
-    deps=( "xcodebuild" "git" "perl" "perlbrew" "ios-deploy" "rsync" )
+    local requested_transport="$DEVICE_TRANSPORT"
+
+    deps=( "xcodebuild" "xcrun" "git" "perl" "perlbrew" "rsync" )
     for i in "${deps[@]}"
     do
         command -v $i >/dev/null 2>&1 || {
@@ -123,29 +129,75 @@ check_dependencies() {
         }
     done
 
-    case "$USE_IFUSE" in
-        0)
-            TRANSFER_TRANSPORT="ios-deploy"
+    if xcrun devicectl --version >/dev/null 2>&1; then
+        DEVICECTL_AVAILABLE=1
+    fi
+
+    if [ -n "${USE_IFUSE+x}" ]; then
+        case "$USE_IFUSE" in
+            0)
+                requested_transport="ios-deploy"
+                ;;
+            1)
+                requested_transport="ifuse"
+                ;;
+            auto)
+                if command -v ifuse >/dev/null 2>&1; then
+                    requested_transport="ifuse"
+                else
+                    requested_transport="ios-deploy"
+                fi
+                ;;
+            *)
+                echo >&2 "USE_IFUSE must be 0, 1, or auto"
+                exit 1
+                ;;
+        esac
+    fi
+
+    case "$requested_transport" in
+        devicectl)
+            if [ "$DEVICECTL_AVAILABLE" -ne 1 ]; then
+                echo >&2 "DEVICE_TRANSPORT=devicectl requires Xcode with devicectl support"
+                exit 1
+            fi
             ;;
-        1)
+        ifuse)
             command -v ifuse >/dev/null 2>&1 || {
-                echo >&2 "USE_IFUSE=1 requires ifuse"
+                echo >&2 "DEVICE_TRANSPORT=ifuse requires ifuse"
                 exit 1
             }
-            TRANSFER_TRANSPORT="ifuse"
+            ;;
+        ios-deploy)
+            command -v ios-deploy >/dev/null 2>&1 || {
+                echo >&2 "DEVICE_TRANSPORT=ios-deploy requires ios-deploy"
+                exit 1
+            }
             ;;
         auto)
-            if command -v ifuse >/dev/null 2>&1; then
-                TRANSFER_TRANSPORT="ifuse"
+            if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
+                requested_transport="devicectl"
+            elif command -v ifuse >/dev/null 2>&1; then
+                requested_transport="ifuse"
+            elif command -v ios-deploy >/dev/null 2>&1; then
+                requested_transport="ios-deploy"
             else
-                TRANSFER_TRANSPORT="ios-deploy"
+                echo >&2 "No supported device transport is available"
+                exit 1
             fi
             ;;
         *)
-            echo >&2 "USE_IFUSE must be 0, 1, or auto"
+            echo >&2 "DEVICE_TRANSPORT must be devicectl, ifuse, ios-deploy, or auto"
             exit 1
             ;;
     esac
+
+    TRANSFER_TRANSPORT="$requested_transport"
+
+    if [ "$DEVICECTL_AVAILABLE" -ne 1 ] && ! command -v ios-deploy >/dev/null 2>&1; then
+        echo >&2 "Installing the device harness requires devicectl or ios-deploy"
+        exit 1
+    fi
 
     case "$AUTO_LAUNCH" in
         0|1)
@@ -178,11 +230,18 @@ prepare_ios() {
 }
 
 prepare_perl() {
+    local perl_revision
+    local test_timestamp
+
     perl_build_dir="$WORKDIR/perl-$PERL_VERSION"
     rm -Rf "$perl_build_dir"
     git clone --no-checkout "$PERL5_SOURCE_ROOT" "$perl_build_dir"
     git -C "$perl_build_dir" checkout --detach "$PERL5_REVISION"
-    echo "Building perl5 revision $(git -C "$perl_build_dir" rev-parse HEAD)"
+    perl_revision=$(git -C "$perl_build_dir" rev-parse HEAD)
+    test_timestamp=$(date -u "+%Y%m%dT%H%M%SZ")
+    PERL_TEST_LOG="$WORKDIR/$TEST_LOG_PREFIX-$test_timestamp-$perl_revision.txt"
+    echo "Building perl5 revision $perl_revision"
+    echo "Test log: $PERL_TEST_LOG"
 }
 
 _term() {
@@ -190,10 +249,13 @@ _term() {
         echo "Killing refresh process..."
         kill -TERM "$REFRESH_PID" >/dev/null 2>&1 || true
     fi
+    if [ -n "$MOUNT_REFRESH_PID" ]; then
+        kill -TERM "$MOUNT_REFRESH_PID" >/dev/null 2>&1 || true
+    fi
     if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
         umount -f "$IOS_MOUNTPOINT" >/dev/null 2>&1 || true
     fi
-    rm -Rf "$WORKDIR/.ios-deploy-download"
+    rm -Rf "$WORKDIR/.device-transfer-download" "$WORKDIR/.device-transfer-upload"
     exit 0
 }
 
@@ -203,10 +265,17 @@ mount_harness_documents() {
     ifuse "$IOS_MOUNTPOINT" -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
 }
 
-upload_tree_with_ios_deploy() {
+transfer_fallback_allowed() {
+    if [ -n "${USE_IFUSE+x}" ]; then
+        [ "$USE_IFUSE" = "auto" ]
+    else
+        [ "$DEVICE_TRANSPORT" = "auto" ]
+    fi
+}
+
+stage_tree_for_upload() {
     local source_dir="$1"
-    local upload_dir="$WORKDIR/.ios-deploy-upload"
-    local status
+    local upload_dir="$2"
 
     rm -Rf "$upload_dir"
     mkdir -p "$upload_dir"
@@ -215,7 +284,32 @@ upload_tree_with_ios_deploy() {
         --exclude '*.bundle' \
         "$source_dir/" "$upload_dir/"
     check_exit_code
+}
 
+upload_tree_with_devicectl() {
+    local source_dir="$1"
+    local upload_dir="$WORKDIR/.device-transfer-upload"
+    local status
+
+    stage_tree_for_upload "$source_dir" "$upload_dir"
+    xcrun devicectl device copy to \
+        --device "$IOS_DEVICE_UUID" \
+        --user mobile \
+        --domain-type appDataContainer \
+        --domain-identifier "$HARNESS_APP_ID" \
+        --source "$upload_dir" \
+        --destination "$REMOTE_DOCUMENTS_DIR"
+    status=$?
+    rm -Rf "$upload_dir"
+    return "$status"
+}
+
+upload_tree_with_ios_deploy() {
+    local source_dir="$1"
+    local upload_dir="$WORKDIR/.device-transfer-upload"
+    local status
+
+    stage_tree_for_upload "$source_dir" "$upload_dir"
     ios-deploy -i "$IOS_DEVICE_UUID" -1 "$HARNESS_APP_ID" \
         --upload "$upload_dir" --to "$REMOTE_DOCUMENTS_DIR"
     status=$?
@@ -223,15 +317,11 @@ upload_tree_with_ios_deploy() {
     return "$status"
 }
 
-download_test_log_with_ios_deploy() {
-    local download_dir="$WORKDIR/.ios-deploy-download"
-    local downloaded_log="$download_dir/$REMOTE_TEST_LOG"
+update_local_test_log() {
+    local downloaded_log="$1"
     local local_size=0
     local remote_size
 
-    rm -Rf "$download_dir"
-    ios-deploy -i "$IOS_DEVICE_UUID" -1 "$HARNESS_APP_ID" \
-        --download="$REMOTE_TEST_LOG" --to "$download_dir" >/dev/null 2>&1 || return 1
     [ -f "$downloaded_log" ] || return 1
 
     if [ -f "$PERL_TEST_LOG" ]; then
@@ -246,16 +336,60 @@ download_test_log_with_ios_deploy() {
     fi
 }
 
-refresh_test_log_with_ios_deploy() {
+download_test_log_with_devicectl() {
+    local download_dir="$WORKDIR/.device-transfer-download"
+    local downloaded_log="$download_dir/perl-tests.txt"
+
+    rm -Rf "$download_dir"
+    mkdir -p "$download_dir"
+    xcrun devicectl device copy from \
+        --device "$IOS_DEVICE_UUID" \
+        --user mobile \
+        --domain-type appDataContainer \
+        --domain-identifier "$HARNESS_APP_ID" \
+        --source "$REMOTE_TEST_LOG" \
+        --destination "$downloaded_log" >/dev/null 2>&1 || return 1
+    update_local_test_log "$downloaded_log"
+}
+
+download_test_log_with_ios_deploy() {
+    local download_dir="$WORKDIR/.device-transfer-download"
+    local downloaded_log="$download_dir/$REMOTE_TEST_LOG"
+
+    rm -Rf "$download_dir"
+    ios-deploy -i "$IOS_DEVICE_UUID" -1 "$HARNESS_APP_ID" \
+        --download="$REMOTE_TEST_LOG" --to "$download_dir" >/dev/null 2>&1 || return 1
+    update_local_test_log "$downloaded_log"
+}
+
+download_test_log() {
+    case "$TRANSFER_TRANSPORT" in
+        devicectl)
+            download_test_log_with_devicectl
+            ;;
+        ios-deploy)
+            download_test_log_with_ios_deploy
+            ;;
+        ifuse|simulator)
+            update_local_test_log "$TEST_LOG_SOURCE"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+refresh_test_log() {
     while true; do
-        download_test_log_with_ios_deploy || true
+        download_test_log || true
         sleep 2
     done
 }
 
 launch_harness() {
     if [ "$AUTO_LAUNCH" = "1" ]; then
-        if xcrun devicectl device process launch \
+        if [ "$DEVICECTL_AVAILABLE" -eq 1 ] && \
+            xcrun devicectl device process launch \
             --device "$IOS_DEVICE_UUID" \
             --terminate-existing \
             "$HARNESS_APP_ID"; then
@@ -263,7 +397,8 @@ launch_harness() {
         fi
 
         echo "devicectl launch failed; trying ios-deploy"
-        if ios-deploy -i "$IOS_DEVICE_UUID" --noinstall --justlaunch --bundle "$test_app"; then
+        if command -v ios-deploy >/dev/null 2>&1 && \
+            ios-deploy -i "$IOS_DEVICE_UUID" --noinstall --justlaunch --bundle "$test_app"; then
             return 0
         fi
         echo "ios-deploy automatic launch requires DeviceSupport for the connected iOS version."
@@ -282,6 +417,12 @@ launch_harness() {
 copy_tree_to_device() {
     local source_dir="$1"
 
+    if [ "$TRANSFER_TRANSPORT" = "devicectl" ]; then
+        build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
+        upload_tree_with_devicectl "$source_dir"
+        return $?
+    fi
+
     if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
         if mount_harness_documents; then
             build_destination_dir="$IOS_MOUNTPOINT"
@@ -293,8 +434,13 @@ copy_tree_to_device() {
             return 0
         fi
 
-        if [ "$USE_IFUSE" = "1" ]; then
+        if ! transfer_fallback_allowed; then
             echo >&2 "Failed to mount harness Documents with ifuse"
+            return 1
+        fi
+
+        if ! command -v ios-deploy >/dev/null 2>&1; then
+            echo >&2 "ifuse mount failed and ios-deploy fallback is unavailable"
             return 1
         fi
 
@@ -304,6 +450,20 @@ copy_tree_to_device() {
 
     build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (ios-deploy)"
     upload_tree_with_ios_deploy "$source_dir"
+}
+
+install_harness() {
+    local app_path="$1"
+
+    if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
+        xcrun devicectl device uninstall app \
+            --device "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" >/dev/null 2>&1 || true
+        xcrun devicectl device install app \
+            --device "$IOS_DEVICE_UUID" "$app_path"
+        return $?
+    fi
+
+    ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
 }
 
 test_perl_device() {
@@ -329,7 +489,7 @@ test_perl_device() {
     test_app="Build/Products/$HARNESS_BUILD_CONFIGURATION-$HARNESS_TARGET/harness.app"
 
     if [ "$simulator_build" -eq "0" ]; then
-        ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$test_app"
+        install_harness "$test_app"
         check_exit_code
     else
         xcrun simctl uninstall "$IOS_DEVICE_UUID" "$HARNESS_APP_ID"
@@ -391,7 +551,8 @@ test_perl_device() {
     else
         xcrun simctl launch "$IOS_DEVICE_UUID" "$HARNESS_APP_ID"
         check_exit_code
-        PERL_TEST_LOG="$build_destination_dir/perl-tests.txt"
+        TRANSFER_TRANSPORT="simulator"
+        TEST_LOG_SOURCE="$build_destination_dir/perl-tests.txt"
     fi
 
     popd
@@ -399,7 +560,11 @@ test_perl_device() {
     if [ "$simulator_build" -eq "0" ]; then
         if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
             if ! mount_harness_documents; then
-                if [ "$USE_IFUSE" = "1" ]; then
+                if ! transfer_fallback_allowed; then
+                    check_exit_code 1
+                fi
+                if ! command -v ios-deploy >/dev/null 2>&1; then
+                    echo >&2 "ifuse remount failed and ios-deploy fallback is unavailable"
                     check_exit_code 1
                 fi
                 echo "ifuse remount failed; using ios-deploy for the test log"
@@ -408,30 +573,35 @@ test_perl_device() {
         fi
 
         if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
-            PERL_TEST_LOG="$IOS_MOUNTPOINT/perl-tests.txt"
+            TEST_LOG_SOURCE="$IOS_MOUNTPOINT/perl-tests.txt"
             sleep 2
             # needed for scrolling to keep in sync w/ device's ifuse fs
             perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
-            REFRESH_PID=$!
-        else
-            PERL_TEST_LOG="$WORKDIR/perl-tests.txt"
-            rm -f "$PERL_TEST_LOG"
-            while ! download_test_log_with_ios_deploy; do
-                sleep 2
-            done
-            refresh_test_log_with_ios_deploy &
-            REFRESH_PID=$!
+            MOUNT_REFRESH_PID=$!
         fi
     fi
+
+    rm -f "$PERL_TEST_LOG"
+    while ! download_test_log; do
+        sleep 2
+    done
+    refresh_test_log &
+    REFRESH_PID=$!
 
     sleep 3
 
     tail -n 3000 -f "$PERL_TEST_LOG"
 
-    if [ "$simulator_build" -eq "0" ]; then
+    if [ -n "$REFRESH_PID" ]; then
         echo "kill $REFRESH_PID"
         kill "$REFRESH_PID" >/dev/null 2>&1 || true
         REFRESH_PID=""
+    fi
+    if [ -n "$MOUNT_REFRESH_PID" ]; then
+        kill "$MOUNT_REFRESH_PID" >/dev/null 2>&1 || true
+        MOUNT_REFRESH_PID=""
+    fi
+    if [ "$simulator_build" -eq "0" ]; then
         if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
             umount -f "$IOS_MOUNTPOINT"
             check_exit_code
