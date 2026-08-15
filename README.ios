@@ -398,9 +398,15 @@ on iOS if it is not properly installed and signed. This has a number of
 implications, for example it is not possible to install XS extensions
 after the app is installed, only at app build time.
 
-(9) `ios-deploy` is used to start the harness.app in the iOS device,
-which expects the build directory to be in the Documents folder to start
-the harness or else fails
+(9) `xcrun devicectl device process launch` is used to start the
+harness.app in the iOS device, which expects the build directory to be
+in the Documents folder to start the harness or else fails.
+
+With ios-deploy 1.11.4, both `--debug` and a non-debug
+`--noinstall --justlaunch` use the debugserver path. They require the
+installed Xcode to contain matching DeviceSupport and a Developer Disk
+Image for the iOS version running on the connected device. Use
+`devicectl` for non-debug launch when that support is unavailable.
 
 (10) harness.app starts which in turn runs t/harness (this is hardcoded
 in the harness application. You can easily change this to run any other
