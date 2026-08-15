@@ -218,20 +218,23 @@ test_perl_device() {
 
     popd
 
-    echo "Copy perl build directory to iOS device writable storage..."
+    echo "Copy perl build directory to iOS device..."
 
     if [ "$simulator_build" -eq "0" ]; then
         build_destination_dir="$IOS_MOUNTPOINT"
-        if ! copy_tree_to_writable_storage "$WORKDIR/perl-$PERL_VERSION" "$build_destination_dir" "$HARNESS_STORAGE_ROOT"; then
-            exit 1
-        fi
-    else # simulator path
+        ifuse $IOS_MOUNTPOINT -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
+    else # ARM device
         build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
-        build_destination_dir="$build_destination_dir/Library/PerlHarness/"
-        copy_tree_to_writable_storage "$WORKDIR/perl-$PERL_VERSION" "$build_destination_dir" "$build_destination_dir"
+        build_destination_dir="$build_destination_dir/Documents/"
     fi
 
-    echo "App writable dir is '$build_destination_dir'"
+    echo "App Documents dir is '$build_destination_dir'"
+
+    if [ "$simulator_build" -eq "0" ]; then
+        cp -RL "$WORKDIR/perl-$PERL_VERSION/." "$build_destination_dir" 2>/dev/null
+    else # ARM device
+        cp -RL "$WORKDIR/perl-$PERL_VERSION/." "$build_destination_dir"
+    fi
 
     #check_exit_code
 
@@ -261,8 +264,6 @@ test_perl_device() {
         # needed for scrolling to keep in sync w/ device's ifuse fs
         perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
         REFRESH_PID=$!
-    else
-        download_test_log "$PERL_TEST_LOG" "$HARNESS_STORAGE_ROOT/perl-tests.txt"
     fi
 
     sleep 3
