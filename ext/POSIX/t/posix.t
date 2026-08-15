@@ -68,7 +68,7 @@ my $test = next_test();
 write(1,"ok $test\nnot ok $test\n", 5);
 
 SKIP: {
-    skip "iOS: pipe not supported", 1 if $Is_Ios;
+    skip "iOS: pipe not supported", 1 if $Is_iOS;
     @fds = POSIX::pipe();
     cmp_ok($fds[0], '>', $testfd, 'POSIX::pipe');
 
@@ -415,7 +415,7 @@ like($fd1, qr/\A\d+\z/, 'O_RDONLY with open');
 cmp_ok($fd1, '>', $testfd);
 my $fd2 = dup($fd1);
 SKIP: {
-    skip 'iOS: fd check not reliable', 4 if $Is_Ios;
+    skip 'iOS: fd check not reliable', 4 if $Is_iOS;
     like($fd2, qr/\A\d+\z/, 'dup');
     cmp_ok($fd2, '>', $fd1);
     is(POSIX::close($fd1), '0 but true', 'close');
