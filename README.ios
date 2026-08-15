@@ -395,17 +395,19 @@ harness.app can receive files in its Documents folder because it has
 the Apple iTunes file sharing key enabled.
 
 Set `DEVICE_TRANSPORT=ifuse` to mount the Documents folder instead. The
-legacy `USE_IFUSE=1`, `USE_IFUSE=0`, and `USE_IFUSE=auto` settings are
-still accepted for compatibility, but the active device flow is devicectl
-first and ifuse as an optional mounted-filesystem mode. `DEVICE_TRANSPORT=auto`
-prefer devicectl, then ifuse.
+`USE_IFUSE=1`, `USE_IFUSE=0`, and `USE_IFUSE=auto` variables remain
+supported for development workflows, but they are not required by the
+normal open-source runtime path and should not be assumed to exist on a
+user machine. The active default flow is devicectl-first, with ifuse as
+an optional mounted-filesystem mode for local debugging.
 
 The ifuse transport also allows the harness or any other file to be
-edited interactively with no recompilation needed. Edit anything in the
-harness.app Documents folder and re-run the app. For example you can set
-ENV variables by editing t/harness directly (this can be done also
-within Xcode) or change some tests which can then be committed directly
-from the mounted directory if it contains a .git directory.
+edited interactively with no recompilation needed. This is a developer
+option for local testing and debugging. Edit anything in the harness.app
+Documents folder and re-run the app. For example you can set ENV
+variables by editing t/harness directly (this can be done also within
+Xcode) or change some tests which can then be committed directly from
+the mounted directory if it contains a .git directory.
 
 (8) Then all dynamic .bundle binaries are removed from Documents folder.
 These cannot be loaded from outside the harness.app bundle where the

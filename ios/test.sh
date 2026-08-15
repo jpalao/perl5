@@ -52,6 +52,9 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
 : "${DEVICE_TRANSPORT:=devicectl}"
+# Developer convenience for local mounted Documents access.
+# It is optional and not assumed to be present in the general open-source user environment.
+: "${USE_IFUSE:=auto}"
 : "${AUTO_LAUNCH:=1}"
 : "${TEST_LOG_PREFIX:=perl-tests}"
 
