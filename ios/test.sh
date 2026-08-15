@@ -52,6 +52,7 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
 : "${USE_IFUSE:=auto}"
+: "${AUTO_LAUNCH:=1}"
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 REMOTE_DOCUMENTS_DIR="Documents"
@@ -146,6 +147,15 @@ check_dependencies() {
             ;;
     esac
 
+    case "$AUTO_LAUNCH" in
+        0|1)
+            ;;
+        *)
+            echo >&2 "AUTO_LAUNCH must be 0 or 1"
+            exit 1
+            ;;
+    esac
+
     echo "Device file transport: $TRANSFER_TRANSPORT"
 }
 
@@ -216,12 +226,24 @@ upload_tree_with_ios_deploy() {
 download_test_log_with_ios_deploy() {
     local download_dir="$WORKDIR/.ios-deploy-download"
     local downloaded_log="$download_dir/$REMOTE_TEST_LOG"
+    local local_size=0
+    local remote_size
 
     rm -Rf "$download_dir"
     ios-deploy -i "$IOS_DEVICE_UUID" -1 "$HARNESS_APP_ID" \
         --download="$REMOTE_TEST_LOG" --to "$download_dir" >/dev/null 2>&1 || return 1
     [ -f "$downloaded_log" ] || return 1
-    cat "$downloaded_log" > "$PERL_TEST_LOG"
+
+    if [ -f "$PERL_TEST_LOG" ]; then
+        local_size=$(wc -c < "$PERL_TEST_LOG" | tr -d ' ')
+    fi
+    remote_size=$(wc -c < "$downloaded_log" | tr -d ' ')
+
+    if [ "$remote_size" -lt "$local_size" ]; then
+        cat "$downloaded_log" > "$PERL_TEST_LOG"
+    elif [ "$remote_size" -gt "$local_size" ]; then
+        tail -c "+$((local_size + 1))" "$downloaded_log" >> "$PERL_TEST_LOG"
+    fi
 }
 
 refresh_test_log_with_ios_deploy() {
@@ -232,11 +254,22 @@ refresh_test_log_with_ios_deploy() {
 }
 
 launch_harness() {
-    if ios-deploy -i "$IOS_DEVICE_UUID" --noinstall --justlaunch --bundle "$test_app"; then
-        return 0
+    if [ "$AUTO_LAUNCH" = "1" ]; then
+        if xcrun devicectl device process launch \
+            --device "$IOS_DEVICE_UUID" \
+            --terminate-existing \
+            "$HARNESS_APP_ID"; then
+            return 0
+        fi
+
+        echo "devicectl launch failed; trying ios-deploy"
+        if ios-deploy -i "$IOS_DEVICE_UUID" --noinstall --justlaunch --bundle "$test_app"; then
+            return 0
+        fi
+        echo "ios-deploy automatic launch requires DeviceSupport for the connected iOS version."
+        echo "Automatic launch failed with both devicectl and ios-deploy."
     fi
 
-    echo "Automatic launch requires DeviceSupport for the connected iOS version."
     if [ -t 0 ]; then
         read -r -p "Launch the harness on the iPhone, then press Return to continue: "
         return 0
