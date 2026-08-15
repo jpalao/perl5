@@ -136,7 +136,7 @@ check_dependencies() {
     if [ -n "${USE_IFUSE+x}" ]; then
         case "$USE_IFUSE" in
             0)
-                requested_transport="ios-deploy"
+                requested_transport="devicectl"
                 ;;
             1)
                 requested_transport="ifuse"
@@ -145,7 +145,7 @@ check_dependencies() {
                 if command -v ifuse >/dev/null 2>&1; then
                     requested_transport="ifuse"
                 else
-                    requested_transport="ios-deploy"
+                    requested_transport="devicectl"
                 fi
                 ;;
             *)
@@ -168,34 +168,26 @@ check_dependencies() {
                 exit 1
             }
             ;;
-        ios-deploy)
-            command -v ios-deploy >/dev/null 2>&1 || {
-                echo >&2 "DEVICE_TRANSPORT=ios-deploy requires ios-deploy"
-                exit 1
-            }
-            ;;
         auto)
             if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
                 requested_transport="devicectl"
             elif command -v ifuse >/dev/null 2>&1; then
                 requested_transport="ifuse"
-            elif command -v ios-deploy >/dev/null 2>&1; then
-                requested_transport="ios-deploy"
             else
                 echo >&2 "No supported device transport is available"
                 exit 1
             fi
             ;;
         *)
-            echo >&2 "DEVICE_TRANSPORT must be devicectl, ifuse, ios-deploy, or auto"
+            echo >&2 "DEVICE_TRANSPORT must be devicectl, ifuse, or auto"
             exit 1
             ;;
     esac
 
     TRANSFER_TRANSPORT="$requested_transport"
 
-    if [ "$DEVICECTL_AVAILABLE" -ne 1 ] && ! command -v ios-deploy >/dev/null 2>&1; then
-        echo >&2 "Installing the device harness requires devicectl or ios-deploy"
+    if [ "$DEVICECTL_AVAILABLE" -ne 1 ]; then
+        echo >&2 "Installing the device harness requires devicectl"
         exit 1
     fi
 
@@ -304,19 +296,6 @@ upload_tree_with_devicectl() {
     return "$status"
 }
 
-upload_tree_with_ios_deploy() {
-    local source_dir="$1"
-    local upload_dir="$WORKDIR/.device-transfer-upload"
-    local status
-
-    stage_tree_for_upload "$source_dir" "$upload_dir"
-    ios-deploy -i "$IOS_DEVICE_UUID" -1 "$HARNESS_APP_ID" \
-        --upload "$upload_dir" --to "$REMOTE_DOCUMENTS_DIR"
-    status=$?
-    rm -Rf "$upload_dir"
-    return "$status"
-}
-
 update_local_test_log() {
     local downloaded_log="$1"
     local local_size=0
@@ -352,23 +331,10 @@ download_test_log_with_devicectl() {
     update_local_test_log "$downloaded_log"
 }
 
-download_test_log_with_ios_deploy() {
-    local download_dir="$WORKDIR/.device-transfer-download"
-    local downloaded_log="$download_dir/$REMOTE_TEST_LOG"
-
-    rm -Rf "$download_dir"
-    ios-deploy -i "$IOS_DEVICE_UUID" -1 "$HARNESS_APP_ID" \
-        --download="$REMOTE_TEST_LOG" --to "$download_dir" >/dev/null 2>&1 || return 1
-    update_local_test_log "$downloaded_log"
-}
-
 download_test_log() {
     case "$TRANSFER_TRANSPORT" in
         devicectl)
             download_test_log_with_devicectl
-            ;;
-        ios-deploy)
-            download_test_log_with_ios_deploy
             ;;
         ifuse|simulator)
             update_local_test_log "$TEST_LOG_SOURCE"
@@ -396,13 +362,7 @@ launch_harness() {
             return 0
         fi
 
-        echo "devicectl launch failed; trying ios-deploy"
-        if command -v ios-deploy >/dev/null 2>&1 && \
-            ios-deploy -i "$IOS_DEVICE_UUID" --noinstall --justlaunch --bundle "$test_app"; then
-            return 0
-        fi
-        echo "ios-deploy automatic launch requires DeviceSupport for the connected iOS version."
-        echo "Automatic launch failed with both devicectl and ios-deploy."
+        echo "Automatic launch failed with devicectl. Launch the harness manually and continue."
     fi
 
     if [ -t 0 ]; then
@@ -434,36 +394,22 @@ copy_tree_to_device() {
             return 0
         fi
 
-        if ! transfer_fallback_allowed; then
-            echo >&2 "Failed to mount harness Documents with ifuse"
-            return 1
-        fi
-
-        if ! command -v ios-deploy >/dev/null 2>&1; then
-            echo >&2 "ifuse mount failed and ios-deploy fallback is unavailable"
-            return 1
-        fi
-
-        echo "ifuse mount failed; falling back to ios-deploy"
-        TRANSFER_TRANSPORT="ios-deploy"
+        echo >&2 "Failed to mount harness Documents with ifuse"
+        return 1
     fi
 
-    build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (ios-deploy)"
-    upload_tree_with_ios_deploy "$source_dir"
+    build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
+    upload_tree_with_devicectl "$source_dir"
 }
 
 install_harness() {
     local app_path="$1"
 
-    if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
-        xcrun devicectl device uninstall app \
-            --device "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" >/dev/null 2>&1 || true
-        xcrun devicectl device install app \
-            --device "$IOS_DEVICE_UUID" "$app_path"
-        return $?
-    fi
-
-    ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+    xcrun devicectl device uninstall app \
+        --device "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" >/dev/null 2>&1 || true
+    xcrun devicectl device install app \
+        --device "$IOS_DEVICE_UUID" "$app_path"
+    return $?
 }
 
 test_perl_device() {
@@ -560,15 +506,8 @@ test_perl_device() {
     if [ "$simulator_build" -eq "0" ]; then
         if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
             if ! mount_harness_documents; then
-                if ! transfer_fallback_allowed; then
-                    check_exit_code 1
-                fi
-                if ! command -v ios-deploy >/dev/null 2>&1; then
-                    echo >&2 "ifuse remount failed and ios-deploy fallback is unavailable"
-                    check_exit_code 1
-                fi
-                echo "ifuse remount failed; using ios-deploy for the test log"
-                TRANSFER_TRANSPORT="ios-deploy"
+                echo >&2 "ifuse remount failed while preparing the test log"
+                check_exit_code 1
             fi
         fi
 

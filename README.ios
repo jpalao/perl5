@@ -273,8 +273,6 @@ can use brew or MacPorts to install them.
 
 =item ifuse - L<https://github.com/libimobiledevice/ifuse/>
 
-=item ios-deploy - L <https://github.com/ios-control/ios-deploy>
-
 =back
 
 =head2 BEFORE TESTING
@@ -389,18 +387,18 @@ that are then embedded within the harness.app.
 
 (6) `xcrun devicectl device install app` is used to install the newly
 built app onto the iOS device. The existing app is uninstalled first so
-its data is cleared, matching the previous `ios-deploy -r` behavior.
+its data is cleared before the next run.
 
 (7) `xcrun devicectl device copy to` copies the perl build directory
 contents into the harness.app Documents folder. After installation
 harness.app can receive files in its Documents folder because it has
 the Apple iTunes file sharing key enabled.
 
-Set `DEVICE_TRANSPORT=ifuse` to mount the Documents folder instead, or
-`DEVICE_TRANSPORT=ios-deploy` to use ios-deploy file transfer. The
-legacy `USE_IFUSE=1`, `USE_IFUSE=0`, and `USE_IFUSE=auto` settings remain
-supported. `DEVICE_TRANSPORT=auto` prefers devicectl, then ifuse, then
-ios-deploy.
+Set `DEVICE_TRANSPORT=ifuse` to mount the Documents folder instead. The
+legacy `USE_IFUSE=1`, `USE_IFUSE=0`, and `USE_IFUSE=auto` settings are
+still accepted for compatibility, but the active device flow is devicectl
+first and ifuse as an optional mounted-filesystem mode. `DEVICE_TRANSPORT=auto`
+prefer devicectl, then ifuse.
 
 The ifuse transport also allows the harness or any other file to be
 edited interactively with no recompilation needed. Edit anything in the
@@ -420,23 +418,16 @@ after the app is installed, only at app build time.
 harness.app in the iOS device, which expects the build directory to be
 in the Documents folder to start the harness or else fails.
 
-With ios-deploy 1.11.4, both `--debug` and a non-debug
-`--noinstall --justlaunch` use the debugserver path. They require the
-installed Xcode to contain matching DeviceSupport and a Developer Disk
-Image for the iOS version running on the connected device. Use
-`devicectl` for non-debug launch when that support is unavailable.
-
 (10) harness.app starts which in turn runs t/harness (this is hardcoded
 in the harness application. You can easily change this to run any other
 Perl script).
 
 The harness.app writes TAP output to `perl-tests.txt` file in
-`Documents` dir. With devicectl or ios-deploy, the script periodically
-downloads newly written output and tails the local copy. With ifuse,
-Documents is mounted in macOS and the file is tailed directly. The test
-output can therefore be shown simultaneously in both the iOS device
-output view (stderr is shown in red and stdout in green) and macOS
-terminal.
+`Documents` dir. With devicectl, the script periodically downloads newly
+written output and tails the local copy. With ifuse, Documents is mounted
+in macOS and the file is tailed directly. The test output can therefore
+be shown simultaneously in both the iOS device output view (stderr is
+shown in red and stdout in green) and macOS terminal.
 
 =head2 Known problems
 
