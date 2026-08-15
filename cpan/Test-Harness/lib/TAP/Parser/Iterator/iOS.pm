@@ -76,10 +76,22 @@ sub _initialize {
 
     my $workdir = getcwd();
     my ($exit_code, $tap);
-    if (ref $thing eq 'ARRAY') {
-        chomp @$thing;
-        my $command = join " ", @$thing;
+    my $command_parts;
+    my ($setup, $teardown);
+    if (ref $thing eq 'HASH') {
+        $command_parts = $thing->{command};
+        $setup = $thing->{setup};
+        $teardown = $thing->{teardown};
+    } elsif (ref $thing eq 'ARRAY') {
+        $command_parts = $thing;
+    }
+
+    if ($command_parts) {
+        $setup->() if $setup;
+        chomp @$command_parts;
+        my $command = join " ", @$command_parts;
         ($exit_code, $tap) = exec_test($workdir, $command);
+        $teardown->() if $teardown;
         $self->{array} = array_ref_from($tap);
         $self->{exit}  = $exit_code;
     }
