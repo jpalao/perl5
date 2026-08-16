@@ -51,8 +51,10 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 
 : "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
+# Device transport is the real install/copy/launch mechanism.
+# Supported values are devicectl (default) and ios-deploy.
 : "${DEVICE_TRANSPORT:=devicectl}"
-# Developer convenience for local mounted Documents access.
+# USE_IFUSE is a separate developer convenience for mounted Documents access.
 # It is optional and not assumed to be present in the general open-source user environment.
 : "${USE_IFUSE:=auto}"
 : "${AUTO_LAUNCH:=1}"
@@ -65,6 +67,9 @@ PERL_TEST_LOG=""
 TEST_LOG_SOURCE=""
 TRANSFER_TRANSPORT=""
 DEVICECTL_AVAILABLE=0
+IOS_DEPLOY_AVAILABLE=0
+IFUSE_AVAILABLE=0
+HARNESS_APP_PATH=""
 REFRESH_PID=""
 MOUNT_REFRESH_PID=""
 
@@ -135,64 +140,56 @@ check_dependencies() {
     if xcrun devicectl --version >/dev/null 2>&1; then
         DEVICECTL_AVAILABLE=1
     fi
-
-    if [ -n "${USE_IFUSE+x}" ]; then
-        case "$USE_IFUSE" in
-            0)
-                requested_transport="devicectl"
-                ;;
-            1)
-                requested_transport="ifuse"
-                ;;
-            auto)
-                if command -v ifuse >/dev/null 2>&1; then
-                    requested_transport="ifuse"
-                else
-                    requested_transport="devicectl"
-                fi
-                ;;
-            *)
-                echo >&2 "USE_IFUSE must be 0, 1, or auto"
-                exit 1
-                ;;
-        esac
+    if command -v ios-deploy >/dev/null 2>&1; then
+        IOS_DEPLOY_AVAILABLE=1
     fi
+    if command -v ifuse >/dev/null 2>&1; then
+        IFUSE_AVAILABLE=1
+    fi
+
+    case "$USE_IFUSE" in
+        0|1|auto)
+            ;;
+        *)
+            echo >&2 "USE_IFUSE must be 0, 1, or auto"
+            exit 1
+            ;;
+    esac
 
     case "$requested_transport" in
         devicectl)
             if [ "$DEVICECTL_AVAILABLE" -ne 1 ]; then
-                echo >&2 "DEVICE_TRANSPORT=devicectl requires Xcode with devicectl support"
-                exit 1
+                if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
+                    requested_transport="ios-deploy"
+                else
+                    echo >&2 "DEVICE_TRANSPORT=devicectl requires Xcode with devicectl support"
+                    exit 1
+                fi
             fi
             ;;
-        ifuse)
-            command -v ifuse >/dev/null 2>&1 || {
-                echo >&2 "DEVICE_TRANSPORT=ifuse requires ifuse"
+        ios-deploy)
+            command -v ios-deploy >/dev/null 2>&1 || {
+                echo >&2 "DEVICE_TRANSPORT=ios-deploy requires ios-deploy"
                 exit 1
             }
             ;;
         auto)
             if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
                 requested_transport="devicectl"
-            elif command -v ifuse >/dev/null 2>&1; then
-                requested_transport="ifuse"
+            elif [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
+                requested_transport="ios-deploy"
             else
                 echo >&2 "No supported device transport is available"
                 exit 1
             fi
             ;;
         *)
-            echo >&2 "DEVICE_TRANSPORT must be devicectl, ifuse, or auto"
+            echo >&2 "DEVICE_TRANSPORT must be devicectl, ios-deploy, or auto"
             exit 1
             ;;
     esac
 
     TRANSFER_TRANSPORT="$requested_transport"
-
-    if [ "$DEVICECTL_AVAILABLE" -ne 1 ]; then
-        echo >&2 "Installing the device harness requires devicectl"
-        exit 1
-    fi
 
     case "$AUTO_LAUNCH" in
         0|1)
@@ -204,6 +201,9 @@ check_dependencies() {
     esac
 
     echo "Device file transport: $TRANSFER_TRANSPORT"
+    if [ "$USE_IFUSE" = "1" ] || [ "$USE_IFUSE" = "auto" ] && [ "$IFUSE_AVAILABLE" -eq 1 ]; then
+        echo "ifuse facility enabled"
+    fi
 }
 
 check_exit_code() {
@@ -261,11 +261,17 @@ mount_harness_documents() {
 }
 
 transfer_fallback_allowed() {
-    if [ -n "${USE_IFUSE+x}" ]; then
-        [ "$USE_IFUSE" = "auto" ]
-    else
-        [ "$DEVICE_TRANSPORT" = "auto" ]
+    [ "$DEVICE_TRANSPORT" = "auto" ]
+}
+
+ifuse_requested() {
+    if [ "$USE_IFUSE" = "1" ]; then
+        return 0
     fi
+    if [ "$USE_IFUSE" = "auto" ] && [ "$IFUSE_AVAILABLE" -eq 1 ]; then
+        return 0
+    fi
+    return 1
 }
 
 stage_tree_for_upload() {
@@ -357,15 +363,29 @@ refresh_test_log() {
 
 launch_harness() {
     if [ "$AUTO_LAUNCH" = "1" ]; then
-        if [ "$DEVICECTL_AVAILABLE" -eq 1 ] && \
-            xcrun devicectl device process launch \
-            --device "$IOS_DEVICE_UUID" \
-            --terminate-existing \
-            "$HARNESS_APP_ID"; then
+        case "$TRANSFER_TRANSPORT" in
+            devicectl)
+                if [ "$DEVICECTL_AVAILABLE" -eq 1 ] && \
+                    xcrun devicectl device process launch \
+                    --device "$IOS_DEVICE_UUID" \
+                    --terminate-existing \
+                    "$HARNESS_APP_ID"; then
+                    return 0
+                fi
+                echo "Automatic launch failed with devicectl. Launch the harness manually and continue."
+                ;;
+            ios-deploy)
+                if [ -n "$HARNESS_APP_PATH" ] && command -v ios-deploy >/dev/null 2>&1 && \
+                    ios-deploy --noinstall --justlaunch --debug --bundle "$HARNESS_APP_PATH"; then
+                    return 0
+                fi
+                echo "Automatic launch failed with ios-deploy. Launch the harness manually and continue."
+                ;;
+        esac
+
+        if ifuse_requested && mount_harness_documents; then
             return 0
         fi
-
-        echo "Automatic launch failed with devicectl. Launch the harness manually and continue."
     fi
 
     if [ -t 0 ]; then
@@ -380,25 +400,24 @@ launch_harness() {
 copy_tree_to_device() {
     local source_dir="$1"
 
+    if ifuse_requested && mount_harness_documents; then
+        build_destination_dir="$IOS_MOUNTPOINT"
+        cp -RL "$source_dir/." "$build_destination_dir" 2>/dev/null
+        check_exit_code
+        rm -Rf "$build_destination_dir/ios/test/Build"
+        find "$build_destination_dir" -name "*.bundle" -type f -delete
+        check_exit_code
+        return 0
+    fi
+
     if [ "$TRANSFER_TRANSPORT" = "devicectl" ]; then
         build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
         upload_tree_with_devicectl "$source_dir"
         return $?
     fi
 
-    if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
-        if mount_harness_documents; then
-            build_destination_dir="$IOS_MOUNTPOINT"
-            cp -RL "$source_dir/." "$build_destination_dir" 2>/dev/null
-            check_exit_code
-            rm -Rf "$build_destination_dir/ios/test/Build"
-            find "$build_destination_dir" -name "*.bundle" -type f -delete
-            check_exit_code
-            return 0
-        fi
-
-        echo >&2 "Failed to mount harness Documents with ifuse"
-        return 1
+    if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
+        echo >&2 "ios-deploy copy fallback is not available through the mounted ifuse facility; using the active device transport instead"
     fi
 
     build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
@@ -408,10 +427,17 @@ copy_tree_to_device() {
 install_harness() {
     local app_path="$1"
 
-    xcrun devicectl device uninstall app \
-        --device "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" >/dev/null 2>&1 || true
-    xcrun devicectl device install app \
-        --device "$IOS_DEVICE_UUID" "$app_path"
+    case "$TRANSFER_TRANSPORT" in
+        ios-deploy)
+            ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+            ;;
+        *)
+            xcrun devicectl device uninstall app \
+                --device "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" >/dev/null 2>&1 || true
+            xcrun devicectl device install app \
+                --device "$IOS_DEVICE_UUID" "$app_path"
+            ;;
+    esac
     return $?
 }
 
@@ -436,6 +462,7 @@ test_perl_device() {
     # install the app so it can receive files in Documents
     simulator_build=`echo "$ARCHS" | grep -c "x86_64"` # x86_64 simulator
     test_app="Build/Products/$HARNESS_BUILD_CONFIGURATION-$HARNESS_TARGET/harness.app"
+    HARNESS_APP_PATH="$test_app"
 
     if [ "$simulator_build" -eq "0" ]; then
         install_harness "$test_app"
