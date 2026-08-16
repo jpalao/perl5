@@ -249,10 +249,11 @@ check_dependencies() {
 
 check_exit_code() {
     local status=${1:-$?}
+    local stage_name=${2:-"build step"}
     if [ "$status" -ne 0 ]; then
-    echo "Failed to build perl for $HARNESS_TARGET"
+        echo "Failed during $stage_name for $HARNESS_TARGET" >&2
         exit "$status"
-  fi
+    fi
 }
 
 prepare_camelbones() {
@@ -321,11 +322,14 @@ stage_tree_for_upload() {
 
     rm -Rf "$upload_dir"
     mkdir -p "$upload_dir"
-    rsync -aL \
+    if ! capture_command_output rsync -aL \
         --exclude '/ios/test/Build/' \
         --exclude '*.bundle' \
-        "$source_dir/" "$upload_dir/"
-    check_exit_code
+        "$source_dir/" "$upload_dir/"; then
+        echo >&2 "rsync staging failed for $source_dir"
+        return 1
+    fi
+    return 0
 }
 
 capture_command_output() {
@@ -464,11 +468,17 @@ copy_tree_to_device() {
 
     if ifuse_requested && mount_harness_documents; then
         build_destination_dir="$IOS_MOUNTPOINT"
-        cp -RL "$source_dir/." "$build_destination_dir" 2>/dev/null
-        check_exit_code
+        echo "Copying $source_dir to mounted Documents at $build_destination_dir (verbose)"
+        if ! capture_command_output cp -RvL "$source_dir/." "$build_destination_dir"; then
+            echo >&2 "cp failed while copying $source_dir to $build_destination_dir"
+            return 1
+        fi
         rm -Rf "$build_destination_dir/ios/test/Build"
-        find "$build_destination_dir" -name "*.bundle" -type f -delete
-        check_exit_code
+        echo "Cleaning bundle artifacts under $build_destination_dir"
+        if ! capture_command_output find "$build_destination_dir" -name "*.bundle" -type f -delete; then
+            echo >&2 "bundle cleanup failed in $build_destination_dir"
+            return 1
+        fi
         return 0
     fi
 
