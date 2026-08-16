@@ -67,6 +67,7 @@ PERL_TEST_LOG=""
 TEST_LOG_SOURCE=""
 TRANSFER_TRANSPORT=""
 DEVICECTL_AVAILABLE=0
+DEVICECTL_CONNECTED=0
 IOS_DEPLOY_AVAILABLE=0
 IFUSE_AVAILABLE=0
 HARNESS_APP_PATH=""
@@ -125,6 +126,11 @@ check_host_perl_version () {
     fi
 }
 
+devicectl_device_visible() {
+    [ "$DEVICECTL_AVAILABLE" -eq 1 ] || return 1
+    xcrun devicectl device info details --device "$IOS_DEVICE_UUID" >/dev/null 2>&1
+}
+
 check_dependencies() {
     local requested_transport="$DEVICE_TRANSPORT"
 
@@ -147,6 +153,12 @@ check_dependencies() {
         IFUSE_AVAILABLE=1
     fi
 
+    if [ "$DEVICECTL_AVAILABLE" -eq 1 ] && devicectl_device_visible; then
+        DEVICECTL_CONNECTED=1
+    else
+        DEVICECTL_CONNECTED=0
+    fi
+
     case "$USE_IFUSE" in
         0|1|auto)
             ;;
@@ -165,6 +177,14 @@ check_dependencies() {
                     echo >&2 "DEVICE_TRANSPORT=devicectl requires Xcode with devicectl support"
                     exit 1
                 fi
+            elif [ "$DEVICECTL_CONNECTED" -ne 1 ]; then
+                if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
+                    echo "devicectl cannot see device $IOS_DEVICE_UUID; falling back to ios-deploy"
+                    requested_transport="ios-deploy"
+                else
+                    echo >&2 "devicectl cannot see device $IOS_DEVICE_UUID and ios-deploy is unavailable"
+                    exit 1
+                fi
             fi
             ;;
         ios-deploy)
@@ -174,7 +194,7 @@ check_dependencies() {
             }
             ;;
         auto)
-            if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
+            if [ "$DEVICECTL_CONNECTED" -eq 1 ]; then
                 requested_transport="devicectl"
             elif [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
                 requested_transport="ios-deploy"
@@ -372,6 +392,12 @@ launch_harness() {
                     "$HARNESS_APP_ID"; then
                     return 0
                 fi
+                if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && [ -n "$HARNESS_APP_PATH" ]; then
+                    echo "devicectl launch failed; retrying with ios-deploy"
+                    if ios-deploy --noinstall --justlaunch --debug --bundle "$HARNESS_APP_PATH"; then
+                        return 0
+                    fi
+                fi
                 echo "Automatic launch failed with devicectl. Launch the harness manually and continue."
                 ;;
             ios-deploy)
@@ -426,6 +452,7 @@ copy_tree_to_device() {
 
 install_harness() {
     local app_path="$1"
+    local status
 
     case "$TRANSFER_TRANSPORT" in
         ios-deploy)
@@ -436,6 +463,13 @@ install_harness() {
                 --device "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" >/dev/null 2>&1 || true
             xcrun devicectl device install app \
                 --device "$IOS_DEVICE_UUID" "$app_path"
+            status=$?
+            if [ "$status" -ne 0 ] && [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
+                echo "devicectl install failed; retrying with ios-deploy"
+                ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+                return $?
+            fi
+            return "$status"
             ;;
     esac
     return $?
