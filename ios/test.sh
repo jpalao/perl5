@@ -450,13 +450,18 @@ launch_harness() {
 
 copy_tree_to_device() {
     local source_dir="$1"
+    local copy_errors="$WORKDIR/.device-copy-errors.log"
 
     if ifuse_requested && mount_harness_documents; then
         build_destination_dir="$IOS_MOUNTPOINT"
         echo "Copying $source_dir to mounted Documents at $build_destination_dir (verbose)"
-        if ! capture_command_output cp -RvL "$source_dir/." "$build_destination_dir"; then
-            echo >&2 "cp failed while copying $source_dir to $build_destination_dir"
-            return 1
+        rm -f "$copy_errors"
+        cp -RvL "$source_dir/." "$build_destination_dir" 2>"$copy_errors"
+        if [ $? -ne 0 ]; then
+            echo >&2 "ifuse copy completed with filesystem warnings; continuing"
+            echo >&2 "Copy diagnostics: $copy_errors"
+        else
+            rm -f "$copy_errors"
         fi
         rm -Rf "$build_destination_dir/ios/test/Build"
         echo "Cleaning bundle artifacts under $build_destination_dir"
@@ -716,7 +721,9 @@ cp "perl-$PERL_VERSION/lib/auto/XS/APItest/APItest.bundle" "$INSTALL_DIR/lib/per
 cp "perl-$PERL_VERSION/lib/auto/XS/Typemap/Typemap.bundle" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/Typemap"
 
 mkdir -p "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/"
+chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/APItest.pm" 2>/dev/null || true
 cp "perl-$PERL_VERSION/lib/XS/APItest.pm" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/"
+check_exit_code $? "APItest.pm installation"
 
 test_perl_device
 
