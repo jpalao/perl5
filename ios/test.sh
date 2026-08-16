@@ -458,6 +458,8 @@ copy_tree_to_device() {
         build_destination_dir="$IOS_MOUNTPOINT"
         echo "Copying $source_dir to mounted Documents at $build_destination_dir (verbose)"
         rm -f "$copy_errors"
+        # ifuse/macFUSE does not implement every chmod or extended-attribute
+        # operation used by cp. The file data is copied, but cp returns nonzero.
         cp -RvL "$source_dir/." "$build_destination_dir" 2>"$copy_errors"
         if [ $? -ne 0 ]; then
             echo >&2 "ifuse copy completed with filesystem warnings; continuing"
