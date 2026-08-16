@@ -165,40 +165,25 @@ check_dependencies() {
         if devicectl_device_visible; then
             DEVICECTL_CONNECTED=1
             echo "devicectl sees device $IOS_DEVICE_UUID"
-        else
-            echo "devicectl cannot see device $IOS_DEVICE_UUID"
-            if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && ios_deploy_device_visible; then
-                IOS_DEPLOY_CONNECTED=1
-                echo "ios-deploy sees device $IOS_DEVICE_UUID"
-            else
-                echo "ios-deploy cannot see device $IOS_DEVICE_UUID"
-            fi
-        fi
-    else
-        echo "devicectl unavailable; checking ios-deploy"
-        if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && ios_deploy_device_visible; then
+        elif [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && ios_deploy_device_visible; then
             IOS_DEPLOY_CONNECTED=1
             echo "ios-deploy sees device $IOS_DEVICE_UUID"
         else
             echo "ios-deploy cannot see device $IOS_DEVICE_UUID"
         fi
+    elif [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && ios_deploy_device_visible; then
+        IOS_DEPLOY_CONNECTED=1
+        echo "ios-deploy sees device $IOS_DEVICE_UUID"
+    else
+        echo "ios-deploy cannot see device $IOS_DEVICE_UUID"
     fi
-
-    case "$USE_IFUSE" in
-        0|1|auto)
-            ;;
-        *)
-            echo >&2 "USE_IFUSE must be 0, 1, or auto"
-            exit 1
-            ;;
-    esac
 
     case "$requested_transport" in
         devicectl)
             if [ "$DEVICECTL_CONNECTED" -eq 1 ]; then
                 echo "devicectl can reach device $IOS_DEVICE_UUID; using devicectl"
             elif [ "$IOS_DEPLOY_CONNECTED" -eq 1 ]; then
-                echo "devicectl cannot see device $IOS_DEVICE_UUID; falling back to ios-deploy"
+                echo "falling back to ios-deploy"
                 requested_transport="ios-deploy"
             else
                 echo >&2 "No available transport: device UUID is not seen with either devicectl or ios-deploy"
