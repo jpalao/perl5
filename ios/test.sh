@@ -406,6 +406,16 @@ refresh_test_log() {
     done
 }
 
+launch_harness_with_idevicedebug() {
+    # ios-deploy --noinstall always starts debugserver, even without --debug,
+    # and therefore requires DeviceSupport Symbols that Xcode lacks for iOS 12.
+    command -v idevicedebug >/dev/null 2>&1 || {
+        echo >&2 "idevicedebug is required to launch the harness on this device"
+        return 1
+    }
+    idevicedebug -u "$IOS_DEVICE_UUID" --detach run "$HARNESS_APP_ID"
+}
+
 launch_harness() {
     if [ "$AUTO_LAUNCH" = "1" ]; then
         case "$TRANSFER_TRANSPORT" in
@@ -417,22 +427,19 @@ launch_harness() {
                     "$HARNESS_APP_ID"; then
                     return 0
                 fi
-                if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && [ -n "$HARNESS_APP_PATH" ]; then
-                    echo "devicectl launch failed; retrying with ios-deploy"
-                    # --debug requires an LLDB DeviceSupport Symbols directory, which
-                    # may not exist for legacy iOS versions such as iOS 12.
-                    if ios-deploy --noinstall --justlaunch --bundle "$HARNESS_APP_PATH"; then
+                if command -v idevicedebug >/dev/null 2>&1; then
+                    echo "devicectl launch failed; retrying with idevicedebug"
+                    if launch_harness_with_idevicedebug; then
                         return 0
                     fi
                 fi
                 echo "Automatic launch failed with devicectl. Launch the harness manually and continue."
                 ;;
             ios-deploy)
-                if [ -n "$HARNESS_APP_PATH" ] && command -v ios-deploy >/dev/null 2>&1 && \
-                    ios-deploy --noinstall --justlaunch --bundle "$HARNESS_APP_PATH"; then
+                if launch_harness_with_idevicedebug; then
                     return 0
                 fi
-                echo "Automatic launch failed with ios-deploy. Launch the harness manually and continue."
+                echo "Automatic launch failed with idevicedebug. Launch the harness manually and continue."
                 ;;
         esac
 
