@@ -419,7 +419,9 @@ launch_harness() {
                 fi
                 if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && [ -n "$HARNESS_APP_PATH" ]; then
                     echo "devicectl launch failed; retrying with ios-deploy"
-                    if ios-deploy --noinstall --justlaunch --debug --bundle "$HARNESS_APP_PATH"; then
+                    # --debug requires an LLDB DeviceSupport Symbols directory, which
+                    # may not exist for legacy iOS versions such as iOS 12.
+                    if ios-deploy --noinstall --justlaunch --bundle "$HARNESS_APP_PATH"; then
                         return 0
                     fi
                 fi
@@ -427,7 +429,7 @@ launch_harness() {
                 ;;
             ios-deploy)
                 if [ -n "$HARNESS_APP_PATH" ] && command -v ios-deploy >/dev/null 2>&1 && \
-                    ios-deploy --noinstall --justlaunch --debug --bundle "$HARNESS_APP_PATH"; then
+                    ios-deploy --noinstall --justlaunch --bundle "$HARNESS_APP_PATH"; then
                     return 0
                 fi
                 echo "Automatic launch failed with ios-deploy. Launch the harness manually and continue."
