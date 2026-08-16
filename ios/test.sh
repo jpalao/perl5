@@ -131,6 +131,11 @@ devicectl_device_visible() {
     xcrun devicectl device info details --device "$IOS_DEVICE_UUID" >/dev/null 2>&1
 }
 
+ios_deploy_device_visible() {
+    [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] || return 1
+    ios-deploy -c -i "$IOS_DEVICE_UUID" >/dev/null 2>&1
+}
+
 check_dependencies() {
     local requested_transport="$DEVICE_TRANSPORT"
 
@@ -153,10 +158,30 @@ check_dependencies() {
         IFUSE_AVAILABLE=1
     fi
 
-    if [ "$DEVICECTL_AVAILABLE" -eq 1 ] && devicectl_device_visible; then
-        DEVICECTL_CONNECTED=1
+    DEVICECTL_CONNECTED=0
+    IOS_DEPLOY_CONNECTED=0
+
+    if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
+        if devicectl_device_visible; then
+            DEVICECTL_CONNECTED=1
+            echo "devicectl sees device $IOS_DEVICE_UUID"
+        else
+            echo "devicectl cannot see device $IOS_DEVICE_UUID"
+            if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && ios_deploy_device_visible; then
+                IOS_DEPLOY_CONNECTED=1
+                echo "ios-deploy sees device $IOS_DEVICE_UUID"
+            else
+                echo "ios-deploy cannot see device $IOS_DEVICE_UUID"
+            fi
+        fi
     else
-        DEVICECTL_CONNECTED=0
+        echo "devicectl unavailable; checking ios-deploy"
+        if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ] && ios_deploy_device_visible; then
+            IOS_DEPLOY_CONNECTED=1
+            echo "ios-deploy sees device $IOS_DEVICE_UUID"
+        else
+            echo "ios-deploy cannot see device $IOS_DEVICE_UUID"
+        fi
     fi
 
     case "$USE_IFUSE" in
@@ -170,36 +195,32 @@ check_dependencies() {
 
     case "$requested_transport" in
         devicectl)
-            if [ "$DEVICECTL_AVAILABLE" -ne 1 ]; then
-                if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
-                    requested_transport="ios-deploy"
-                else
-                    echo >&2 "DEVICE_TRANSPORT=devicectl requires Xcode with devicectl support"
-                    exit 1
-                fi
-            elif [ "$DEVICECTL_CONNECTED" -ne 1 ]; then
-                if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
-                    echo "devicectl cannot see device $IOS_DEVICE_UUID; falling back to ios-deploy"
-                    requested_transport="ios-deploy"
-                else
-                    echo >&2 "devicectl cannot see device $IOS_DEVICE_UUID and ios-deploy is unavailable"
-                    exit 1
-                fi
+            if [ "$DEVICECTL_CONNECTED" -eq 1 ]; then
+                echo "devicectl can reach device $IOS_DEVICE_UUID; using devicectl"
+            elif [ "$IOS_DEPLOY_CONNECTED" -eq 1 ]; then
+                echo "devicectl cannot see device $IOS_DEVICE_UUID; falling back to ios-deploy"
+                requested_transport="ios-deploy"
+            else
+                echo >&2 "No available transport: device UUID is not seen with either devicectl or ios-deploy"
+                exit 1
             fi
             ;;
         ios-deploy)
-            command -v ios-deploy >/dev/null 2>&1 || {
-                echo >&2 "DEVICE_TRANSPORT=ios-deploy requires ios-deploy"
+            if [ "$IOS_DEPLOY_CONNECTED" -ne 1 ]; then
+                echo >&2 "No available transport: device UUID is not seen with either devicectl or ios-deploy"
                 exit 1
-            }
+            fi
+            echo "ios-deploy can reach device $IOS_DEVICE_UUID; using ios-deploy"
             ;;
         auto)
             if [ "$DEVICECTL_CONNECTED" -eq 1 ]; then
                 requested_transport="devicectl"
-            elif [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
+                echo "auto-selected transport: devicectl for device $IOS_DEVICE_UUID"
+            elif [ "$IOS_DEPLOY_CONNECTED" -eq 1 ]; then
                 requested_transport="ios-deploy"
+                echo "auto-selected transport: ios-deploy for device $IOS_DEVICE_UUID"
             else
-                echo >&2 "No supported device transport is available"
+                echo >&2 "No available transport: device UUID is not seen with either devicectl or ios-deploy"
                 exit 1
             fi
             ;;
@@ -307,22 +328,37 @@ stage_tree_for_upload() {
     check_exit_code
 }
 
+capture_command_output() {
+    local output_file="$WORKDIR/.device-command-output.log"
+    local status
+
+    rm -f "$output_file"
+    "$@" >"$output_file" 2>&1
+    status=$?
+    if [ "$status" -ne 0 ]; then
+        echo "Command failed: $*" >&2
+        cat "$output_file" >&2
+    fi
+    return "$status"
+}
+
 upload_tree_with_devicectl() {
     local source_dir="$1"
     local upload_dir="$WORKDIR/.device-transfer-upload"
-    local status
 
     stage_tree_for_upload "$source_dir" "$upload_dir"
-    xcrun devicectl device copy to \
+    if ! capture_command_output xcrun devicectl device copy to \
         --device "$IOS_DEVICE_UUID" \
         --user mobile \
         --domain-type appDataContainer \
         --domain-identifier "$HARNESS_APP_ID" \
         --source "$upload_dir" \
-        --destination "$REMOTE_DOCUMENTS_DIR"
-    status=$?
+        --destination "$REMOTE_DOCUMENTS_DIR"; then
+        rm -Rf "$upload_dir"
+        return 1
+    fi
     rm -Rf "$upload_dir"
-    return "$status"
+    return 0
 }
 
 update_local_test_log() {
@@ -443,7 +479,8 @@ copy_tree_to_device() {
     fi
 
     if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
-        echo >&2 "ios-deploy copy fallback is not available through the mounted ifuse facility; using the active device transport instead"
+        echo >&2 "ios-deploy is the active transport, but bulk tree copy is not available without the ifuse mount. Enable USE_IFUSE=1 or switch to devicectl for a visible device."
+        return 1
     fi
 
     build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
@@ -456,23 +493,25 @@ install_harness() {
 
     case "$TRANSFER_TRANSPORT" in
         ios-deploy)
-            ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+            capture_command_output ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+            return $?
             ;;
         *)
             xcrun devicectl device uninstall app \
                 --device "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" >/dev/null 2>&1 || true
-            xcrun devicectl device install app \
-                --device "$IOS_DEVICE_UUID" "$app_path"
-            status=$?
-            if [ "$status" -ne 0 ] && [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
-                echo "devicectl install failed; retrying with ios-deploy"
-                ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
-                return $?
+            if ! capture_command_output xcrun devicectl device install app \
+                --device "$IOS_DEVICE_UUID" "$app_path"; then
+                status=$?
+                if [ "$status" -ne 0 ] && [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
+                    echo "devicectl install failed; retrying with ios-deploy" >&2
+                    capture_command_output ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+                    return $?
+                fi
+                return "$status"
             fi
-            return "$status"
+            return 0
             ;;
     esac
-    return $?
 }
 
 test_perl_device() {
