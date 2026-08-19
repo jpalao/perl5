@@ -59,6 +59,8 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${USE_IFUSE:=auto}"
 : "${AUTO_LAUNCH:=1}"
 : "${TEST_LOG_PREFIX:=perl-tests}"
+: "${IFUSE_MOUNT_TIMEOUT:=30}"
+: "${TEST_LOG_WAIT_TIMEOUT:=120}"
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 REMOTE_DOCUMENTS_DIR="Documents"
@@ -70,6 +72,7 @@ DEVICECTL_AVAILABLE=0
 DEVICECTL_CONNECTED=0
 IOS_DEPLOY_AVAILABLE=0
 IFUSE_AVAILABLE=0
+IFUSE_IN_USE=0
 HARNESS_APP_PATH=""
 REFRESH_PID=""
 MOUNT_REFRESH_PID=""
@@ -274,7 +277,7 @@ _term() {
     if [ -n "$MOUNT_REFRESH_PID" ]; then
         kill -TERM "$MOUNT_REFRESH_PID" >/dev/null 2>&1 || true
     fi
-    if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
+    if [ "$IFUSE_IN_USE" -eq 1 ]; then
         umount -f "$IOS_MOUNTPOINT" >/dev/null 2>&1 || true
     fi
     rm -Rf "$WORKDIR/.device-transfer-download" "$WORKDIR/.device-transfer-upload"
@@ -285,6 +288,26 @@ mount_harness_documents() {
     umount -f "$IOS_MOUNTPOINT" >/dev/null 2>&1 || true
     mkdir -p "$IOS_MOUNTPOINT"
     ifuse "$IOS_MOUNTPOINT" -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
+}
+
+run_with_timeout() {
+    local timeout_seconds="$1"
+    local command_pid
+    local elapsed=0
+    shift
+
+    "$@" &
+    command_pid=$!
+    while kill -0 "$command_pid" >/dev/null 2>&1; do
+        if [ "$elapsed" -ge "$timeout_seconds" ]; then
+            kill "$command_pid" >/dev/null 2>&1 || true
+            wait "$command_pid" >/dev/null 2>&1 || true
+            return 124
+        fi
+        sleep 1
+        elapsed=$((elapsed + 1))
+    done
+    wait "$command_pid"
 }
 
 transfer_fallback_allowed() {
@@ -386,11 +409,16 @@ download_test_log_with_devicectl() {
 }
 
 download_test_log() {
+    if [ "$IFUSE_IN_USE" -eq 1 ]; then
+        update_local_test_log "$TEST_LOG_SOURCE"
+        return $?
+    fi
+
     case "$TRANSFER_TRANSPORT" in
         devicectl)
             download_test_log_with_devicectl
             ;;
-        ifuse|simulator)
+        simulator)
             update_local_test_log "$TEST_LOG_SOURCE"
             ;;
         *)
@@ -416,40 +444,51 @@ launch_harness_with_idevicedebug() {
     idevicedebug -u "$IOS_DEVICE_UUID" --detach run "$HARNESS_APP_ID"
 }
 
-launch_harness() {
-    if [ "$AUTO_LAUNCH" = "1" ]; then
-        case "$TRANSFER_TRANSPORT" in
-            devicectl)
-                if [ "$DEVICECTL_AVAILABLE" -eq 1 ] && \
-                    xcrun devicectl device process launch \
-                    --device "$IOS_DEVICE_UUID" \
-                    --terminate-existing \
-                    "$HARNESS_APP_ID"; then
+try_launch_harness() {
+    case "$TRANSFER_TRANSPORT" in
+        devicectl)
+            if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
+                if capture_command_output xcrun devicectl device process launch \
+                        --device "$IOS_DEVICE_UUID" \
+                        --terminate-existing \
+                        "$HARNESS_APP_ID"; then
                     return 0
                 fi
-                if command -v idevicedebug >/dev/null 2>&1; then
-                    echo "devicectl launch failed; retrying with idevicedebug"
-                    if launch_harness_with_idevicedebug; then
-                        return 0
-                    fi
+                if grep -qi "locked" "$WORKDIR/.device-command-output.log"; then
+                    echo >&2 "The device is locked; unlock it before retrying launch."
                 fi
-                echo "Automatic launch failed with devicectl. Launch the harness manually and continue."
-                ;;
-            ios-deploy)
+            fi
+            if command -v idevicedebug >/dev/null 2>&1; then
+                echo "devicectl launch failed; retrying with idevicedebug"
                 if launch_harness_with_idevicedebug; then
                     return 0
                 fi
-                echo "Automatic launch failed with idevicedebug. Launch the harness manually and continue."
-                ;;
-        esac
+            fi
+            ;;
+        ios-deploy)
+            if launch_harness_with_idevicedebug; then
+                return 0
+            fi
+            ;;
+    esac
+    return 1
+}
 
-        if ifuse_requested && mount_harness_documents; then
+launch_harness() {
+    if [ "$AUTO_LAUNCH" = "1" ]; then
+        if try_launch_harness; then
             return 0
+        fi
+        if [ -t 0 ]; then
+            read -r -p "Automatic launch failed. Unlock the device, then press Return to retry: "
+            if try_launch_harness; then
+                return 0
+            fi
         fi
     fi
 
     if [ -t 0 ]; then
-        read -r -p "Launch the harness on the iPhone, then press Return to continue: "
+        read -r -p "Launch the harness manually, then press Return to continue: "
         return 0
     fi
 
@@ -462,6 +501,7 @@ copy_tree_to_device() {
     local copy_errors="$WORKDIR/.device-copy-errors.log"
 
     if ifuse_requested && mount_harness_documents; then
+        IFUSE_IN_USE=1
         build_destination_dir="$IOS_MOUNTPOINT"
         echo "Copying $source_dir to mounted Documents at $build_destination_dir (verbose)"
         rm -f "$copy_errors"
@@ -603,7 +643,7 @@ test_perl_device() {
     echo "App Documents dir is '$build_destination_dir'"
 
     if [ "$simulator_build" -eq "0" ]; then
-        if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
+        if [ "$IFUSE_IN_USE" -eq 1 ]; then
             umount -f "$IOS_MOUNTPOINT"
         fi
         launch_harness
@@ -618,14 +658,12 @@ test_perl_device() {
     popd
 
     if [ "$simulator_build" -eq "0" ]; then
-        if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
-            if ! mount_harness_documents; then
-                echo >&2 "ifuse remount failed while preparing the test log"
+        if [ "$IFUSE_IN_USE" -eq 1 ]; then
+            echo "Remounting harness Documents to follow the test log"
+            if ! run_with_timeout "$IFUSE_MOUNT_TIMEOUT" mount_harness_documents; then
+                echo >&2 "ifuse remount failed or timed out after ${IFUSE_MOUNT_TIMEOUT}s while preparing the test log"
                 check_exit_code 1
             fi
-        fi
-
-        if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
             TEST_LOG_SOURCE="$IOS_MOUNTPOINT/perl-tests.txt"
             sleep 2
             # needed for scrolling to keep in sync w/ device's ifuse fs
@@ -635,9 +673,21 @@ test_perl_device() {
     fi
 
     rm -f "$PERL_TEST_LOG"
+    echo "Waiting up to ${TEST_LOG_WAIT_TIMEOUT}s for device test log: $REMOTE_TEST_LOG"
+    test_log_waited=0
     while ! download_test_log; do
+        if [ "$test_log_waited" -ge "$TEST_LOG_WAIT_TIMEOUT" ]; then
+            echo >&2 "Timed out waiting for the device test log after ${TEST_LOG_WAIT_TIMEOUT}s"
+            echo >&2 "Expected source: ${TEST_LOG_SOURCE:-$REMOTE_TEST_LOG}"
+            check_exit_code 1 "test log discovery"
+        fi
         sleep 2
+        test_log_waited=$((test_log_waited + 2))
+        if [ $((test_log_waited % 10)) -eq 0 ]; then
+            echo "Still waiting for the device test log (${test_log_waited}s elapsed)"
+        fi
     done
+    echo "Device test log found; streaming output"
     refresh_test_log &
     REFRESH_PID=$!
 
@@ -655,7 +705,7 @@ test_perl_device() {
         MOUNT_REFRESH_PID=""
     fi
     if [ "$simulator_build" -eq "0" ]; then
-        if [ "$TRANSFER_TRANSPORT" = "ifuse" ]; then
+        if [ "$IFUSE_IN_USE" -eq 1 ]; then
             umount -f "$IOS_MOUNTPOINT"
             check_exit_code
         fi
