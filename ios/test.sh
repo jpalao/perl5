@@ -496,6 +496,13 @@ launch_harness() {
     return 1
 }
 
+ifuse_copy_has_content_errors() {
+    local copy_errors="$1"
+
+    [ -s "$copy_errors" ] || return 0
+    grep -qv '^cp: .*: fchmod failed: Function not implemented$' "$copy_errors"
+}
+
 copy_tree_to_device() {
     local source_dir="$1"
     local copy_errors="$WORKDIR/.device-copy-errors.log"
@@ -505,11 +512,14 @@ copy_tree_to_device() {
         build_destination_dir="$IOS_MOUNTPOINT"
         echo "Copying $source_dir to mounted Documents at $build_destination_dir (verbose)"
         rm -f "$copy_errors"
-        # ifuse/macFUSE does not implement every chmod or extended-attribute
-        # operation used by cp. The file data is copied, but cp returns nonzero.
-        cp -RvL "$source_dir/." "$build_destination_dir" 2>"$copy_errors"
+        cp -RXvL "$source_dir/." "$build_destination_dir" 2>"$copy_errors"
         if [ $? -ne 0 ]; then
-            echo >&2 "ifuse copy completed with filesystem warnings; continuing"
+            if ifuse_copy_has_content_errors "$copy_errors"; then
+                echo >&2 "ifuse copy failed; content may be incomplete"
+                echo >&2 "Copy diagnostics: $copy_errors"
+                return 1
+            fi
+            echo >&2 "ifuse copy completed with metadata warnings; continuing"
             echo >&2 "Copy diagnostics: $copy_errors"
         else
             rm -f "$copy_errors"
