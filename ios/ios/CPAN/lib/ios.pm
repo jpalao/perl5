@@ -146,8 +146,9 @@ sub parse_test {
     my ($file) = $cmd =~ s/(.*?)([^\s]*)\s*$/$2/r;
     print Dumper("File", $file) if $DEBUG;
 
-    if (! -e "$pwd/$file") {
-        warn "parse_test() file not found: $pwd/$file\n";
+    my $test_path = $file =~ m{^/} ? $file : "$pwd/$file";
+    if (! -e $test_path) {
+        warn "parse_test() file not found: $test_path\n";
         return {
             file => undef
         }
