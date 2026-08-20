@@ -506,6 +506,7 @@ ifuse_copy_has_content_errors() {
 prepare_ifuse_directory_tree() {
     local source_dir="$1"
     local destination_dir="$2"
+    local attempt
     local relative_dir
 
     while IFS= read -r -d '' relative_dir; do
@@ -517,6 +518,12 @@ prepare_ifuse_directory_tree() {
     while IFS= read -r -d '' relative_dir; do
         relative_dir=${relative_dir#./}
         [ "$relative_dir" = "." ] && continue
+        for attempt in 1 2 3 4 5; do
+            [ -d "$destination_dir/$relative_dir" ] && break
+            mkdir -p "$destination_dir/$relative_dir" || return 1
+            [ -d "$destination_dir/$relative_dir" ] && break
+            sleep 1
+        done
         [ -d "$destination_dir/$relative_dir" ] || {
             echo >&2 "ifuse directory is not visible after creation: $destination_dir/$relative_dir"
             return 1
