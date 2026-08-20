@@ -503,6 +503,27 @@ ifuse_copy_has_content_errors() {
     grep -qv '^cp: .*: fchmod failed: Function not implemented$' "$copy_errors"
 }
 
+prepare_ifuse_directory_tree() {
+    local source_dir="$1"
+    local destination_dir="$2"
+    local relative_dir
+
+    while IFS= read -r -d '' relative_dir; do
+        relative_dir=${relative_dir#./}
+        [ "$relative_dir" = "." ] && continue
+        mkdir -p "$destination_dir/$relative_dir" || return 1
+    done < <(cd "$source_dir" && find -L . -type d -print0)
+
+    while IFS= read -r -d '' relative_dir; do
+        relative_dir=${relative_dir#./}
+        [ "$relative_dir" = "." ] && continue
+        [ -d "$destination_dir/$relative_dir" ] || {
+            echo >&2 "ifuse directory is not visible after creation: $destination_dir/$relative_dir"
+            return 1
+        }
+    done < <(cd "$source_dir" && find -L . -type d -print0)
+}
+
 copy_tree_to_device() {
     local source_dir="$1"
     local copy_errors="$WORKDIR/.device-copy-errors.log"
@@ -512,6 +533,11 @@ copy_tree_to_device() {
         build_destination_dir="$IOS_MOUNTPOINT"
         echo "Copying $source_dir to mounted Documents at $build_destination_dir (verbose)"
         rm -f "$copy_errors"
+        echo "Preparing directory tree on mounted Documents"
+        if ! prepare_ifuse_directory_tree "$source_dir" "$build_destination_dir"; then
+            echo >&2 "ifuse directory preparation failed; content was not copied"
+            return 1
+        fi
         cp -RXvL "$source_dir/." "$build_destination_dir" 2>"$copy_errors"
         if [ $? -ne 0 ]; then
             if ifuse_copy_has_content_errors "$copy_errors"; then
