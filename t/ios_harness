@@ -38,6 +38,8 @@ my @ios_blacklist = qw (
     ../cpan/Test-Harness/t/taint.t
     ../cpan/Test-Harness/t/testargs.t
 
+    ../cpan/Test-Simple/t/Legacy/exit.t
+
     ../cpan/ExtUtils-MakeMaker/t/02-xsdynamic.t
     ../cpan/ExtUtils-MakeMaker/t/basic.t
     ../cpan/ExtUtils-MakeMaker/t/echo.t
