@@ -301,7 +301,7 @@ CBRunPerlCaptureStdout (char * json) {
     NSPipe * stderrPipe = [NSPipe pipe];
     __block BOOL  ended = FALSE;
     __block id notificationObserver, notificationObserver2;
-    NSMutableData * stdoutOutput = [NSMutableData dataWithCapacity:100000000];
+    NSMutableData * stdoutOutput = [NSMutableData data];
     NSFileHandle * stdoutPipeOut = [stdoutPipe fileHandleForReading];
     NSFileHandle * stderrPipeOut = [stderrPipe fileHandleForReading];
 
