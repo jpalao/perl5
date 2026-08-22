@@ -89,8 +89,7 @@ sub _initialize {
     if ($command_parts) {
         $setup->() if $setup;
         chomp @$command_parts;
-        my $command = join " ", @$command_parts;
-        ($exit_code, $tap) = exec_test($workdir, $command);
+        ($exit_code, $tap) = exec_test($workdir, $command_parts);
         $teardown->() if $teardown;
         $self->{array} = array_ref_from($tap);
         $self->{exit}  = $exit_code;

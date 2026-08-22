@@ -140,27 +140,34 @@ sub parse_test {
     print Dumper("parse_test pwd", $pwd) if $DEBUG;
     print Dumper("parse_test t", $t) if $DEBUG;
 
-    my ($cmd) = $t =~ s/.*?(perl|harness)["']?\s(.*$)/$2/r;
-    print Dumper("cmd", $cmd) if $DEBUG;
+    my @command = grep defined,
+        ref $t eq 'ARRAY' ? @$t : &quotewords('\s+', 0, $t);
+    shift @command while @command && $command[0] !~ /(?:perl|harness)["']?$/;
+    shift @command;
 
-    my ($file) = $cmd =~ s/(.*?)([^\s]*)\s*$/$2/r;
-    print Dumper("File", $file) if $DEBUG;
+    my $file_index;
+    for my $index (0 .. $#command) {
+        my $candidate = $command[$index];
+        my $candidate_path = $candidate =~ m{^/} ? $candidate : "$pwd/$candidate";
+        if (-f $candidate_path) {
+            $file_index = $index;
+            last;
+        }
+    }
 
-    my $test_path = $file =~ m{^/} ? $file : "$pwd/$file";
-    if (! -e $test_path) {
-        warn "parse_test() file not found: $test_path\n";
+    if (! defined $file_index) {
+        warn "parse_test() test file not found in command: $t\n";
         return {
             file => undef
         }
     }
 
-    my ($arg) = $t =~ s/(.*?$file)(.*)/$2/r;
-    print Dumper("Args", $arg) if $DEBUG;
-    my @args = &quotewords('\s+', 0, $arg);
-
-    my ($switch) = $cmd =~ s/(.*?)([^\s]*)\s*$/$1/r;
-    my @switches = split " ", $switch;
+    my @switches = splice @command, 0, $file_index;
+    my $file = shift @command;
+    my @args = @command;
+    print Dumper("File", $file) if $DEBUG;
     print Dumper("Switches:", @switches) if $DEBUG;
+    print Dumper("Args", @args) if $DEBUG;
 
     my $result = {
         progfile => $file,
