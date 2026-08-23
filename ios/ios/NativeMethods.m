@@ -377,19 +377,29 @@ CBRunPerlCaptureStdout (char * json) {
         ended = TRUE;
     }
 
-    [[NSNotificationCenter defaultCenter] removeObserver:notificationObserver name:NSFileHandleDataAvailableNotification object:stdoutPipeOut];
-    [[NSNotificationCenter defaultCenter] removeObserver:notificationObserver2 name:NSFileHandleDataAvailableNotification object:stderrPipeOut];
-
-    [stdoutPipeOut closeFile];
-    [stdoutPipeIn closeFile];
-    [stderrPipeOut closeFile];
-    [stderrPipeIn closeFile];
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] removeObserver:notificationObserver name:NSFileHandleDataAvailableNotification object:stdoutPipeOut];
+        [[NSNotificationCenter defaultCenter] removeObserver:notificationObserver2 name:NSFileHandleDataAvailableNotification object:stderrPipeOut];
+    });
 
     int new_fd = dup2(saved_stdout, STDOUT_FILENO);
         new_fd = dup2(saved_stderr, STDERR_FILENO);
 
     close_r = close(saved_stdout);
     close_r = close(saved_stderr);
+
+    [stdoutPipeIn closeFile];
+    [stderrPipeIn closeFile];
+
+    @synchronized (stdioQueue) {
+        [stdoutOutput appendData:[stdoutPipeOut readDataToEndOfFile]];
+        if (!redirectStderr) {
+            [stdoutOutput appendData:[stderrPipeOut readDataToEndOfFile]];
+        }
+    }
+
+    [stdoutPipeOut closeFile];
+    [stderrPipeOut closeFile];
 
     stdout_result = newSVpvn_flags([stdoutOutput bytes], [stdoutOutput length], SVf_UTF8);
 
