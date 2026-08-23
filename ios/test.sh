@@ -352,10 +352,60 @@ ifuse_requested() {
     return 1
 }
 
+device_visible_for_copy() {
+    if ifuse_requested; then
+        ios_deploy_device_visible && device_unlocked_for_copy
+        return $?
+    fi
+
+    case "$TRANSFER_TRANSPORT" in
+        devicectl)
+            devicectl_device_visible && device_unlocked_for_copy
+            ;;
+        ios-deploy)
+            ios_deploy_device_visible && device_unlocked_for_copy
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+}
+
+device_unlocked_for_copy() {
+    local lock_state_file="$WORKDIR/.device-lock-state.json"
+    local passcode_required
+
+    if ! devicectl_device_visible; then
+        return 0
+    fi
+    rm -f "$lock_state_file"
+    if ! xcrun devicectl device info lockState \
+            --device "$IOS_DEVICE_UUID" \
+            --json-output "$lock_state_file" \
+            --quiet >/dev/null 2>&1; then
+        rm -f "$lock_state_file"
+        return 1
+    fi
+    passcode_required=$(/usr/bin/plutil -extract result.passcodeRequired raw -o - "$lock_state_file" 2>/dev/null)
+    rm -f "$lock_state_file"
+    [ "$passcode_required" = "false" ]
+}
+
+wait_for_device_before_copy() {
+    while ! device_visible_for_copy; do
+        echo >&2 "The device is locked or unavailable for file copy. Unlock or reconnect it before continuing."
+        if [ ! -t 0 ]; then
+            return 1
+        fi
+        read -r -p "Press Return to check the device and start the copy (Ctrl-C to stop): "
+    done
+}
+
 stage_tree_for_upload() {
     local source_dir="$1"
     local upload_dir="$2"
 
+    echo "Staging Perl tree for devicectl upload (no ifuse mount)..."
     rm -Rf "$upload_dir"
     mkdir -p "$upload_dir"
     if ! capture_command_output rsync -aL \
@@ -365,6 +415,7 @@ stage_tree_for_upload() {
         echo >&2 "rsync staging failed for $source_dir"
         return 1
     fi
+    echo "Perl tree staging complete."
     return 0
 }
 
@@ -387,6 +438,7 @@ upload_tree_with_devicectl() {
     local upload_dir="$WORKDIR/.device-transfer-upload"
 
     stage_tree_for_upload "$source_dir" "$upload_dir"
+    echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with devicectl..."
     if ! capture_command_output xcrun devicectl device copy to \
         --device "$IOS_DEVICE_UUID" \
         --user mobile \
@@ -397,6 +449,7 @@ upload_tree_with_devicectl() {
         rm -Rf "$upload_dir"
         return 1
     fi
+    echo "devicectl Perl tree upload complete."
     rm -Rf "$upload_dir"
     return 0
 }
@@ -568,7 +621,11 @@ copy_tree_to_device() {
     local source_dir="$1"
     local copy_errors="$WORKDIR/.device-copy-errors.log"
 
-    if ifuse_requested && mount_harness_documents; then
+    if ifuse_requested; then
+        if ! mount_harness_documents; then
+            echo >&2 "ifuse could not mount Documents; content was not copied"
+            return 1
+        fi
         IFUSE_IN_USE=1
         build_destination_dir="$IOS_MOUNTPOINT"
         echo "Copying $source_dir to mounted Documents at $build_destination_dir (verbose)"
@@ -617,15 +674,19 @@ copy_tree_to_device() {
 copy_tree_to_device_with_retry() {
     local source_dir="$1"
 
-    if copy_tree_to_device "$source_dir"; then
-        return 0
+    if ! wait_for_device_before_copy; then
+        echo >&2 "Device $IOS_DEVICE_UUID is still unavailable for file copy."
+        return 1
     fi
-    if [ -t 0 ]; then
-        read -r -p "Device copy failed. Unlock or reconnect the device, then press Return to retry: "
-        copy_tree_to_device "$source_dir"
-        return $?
-    fi
-    return 1
+    while ! copy_tree_to_device "$source_dir"; do
+        if [ ! -t 0 ]; then
+            return 1
+        fi
+        read -r -p "Device copy failed. Unlock or reconnect the device, then press Return to retry (Ctrl-C to stop): "
+        if ! wait_for_device_before_copy; then
+            return 1
+        fi
+    done
 }
 
 install_harness() {
