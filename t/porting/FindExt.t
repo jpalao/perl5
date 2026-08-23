@@ -39,6 +39,8 @@ sub compare {
         @have = grep(!/DB_File/, @have);
         # FindExt does not locate ios.pm?
         @have = grep(!/ios/, @have);
+        # CamelBones is copied into ext/ after Configure has run.
+        @have = grep(!m{\ACamelBones/}, @have);
     }
     is(scalar @have, scalar @$want, "We find the same number of $desc");
     is("@have", "@$want", "We find the same list of $desc");
