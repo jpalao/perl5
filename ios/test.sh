@@ -76,6 +76,9 @@ IFUSE_IN_USE=0
 HARNESS_APP_PATH=""
 REFRESH_PID=""
 MOUNT_REFRESH_PID=""
+TAIL_PID=""
+RUN_LOCK_DIR="$WORKDIR/.perl-ios-test.lock"
+RUN_LOCK_OWNED=0
 
 # CAMELBONES #
 export CAMELBONES_PREFIX="$CAMELBONES_PREFIX"
@@ -269,7 +272,29 @@ prepare_perl() {
     echo "Test log: $PERL_TEST_LOG"
 }
 
-_term() {
+acquire_run_lock() {
+    local existing_pid=""
+
+    if ! mkdir "$RUN_LOCK_DIR" 2>/dev/null; then
+        if [ -f "$RUN_LOCK_DIR/pid" ]; then
+            read -r existing_pid < "$RUN_LOCK_DIR/pid" || true
+        fi
+        if [ -n "$existing_pid" ] && kill -0 "$existing_pid" >/dev/null 2>&1; then
+            echo >&2 "Another iOS test run is already using $WORKDIR (PID $existing_pid)"
+            exit 1
+        fi
+        rm -Rf "$RUN_LOCK_DIR"
+        mkdir "$RUN_LOCK_DIR" || exit 1
+    fi
+    printf '%s\n' "$$" > "$RUN_LOCK_DIR/pid"
+    RUN_LOCK_OWNED=1
+}
+
+cleanup() {
+    if [ -n "$TAIL_PID" ]; then
+        kill -TERM "$TAIL_PID" >/dev/null 2>&1 || true
+        TAIL_PID=""
+    fi
     if [ -n "$REFRESH_PID" ]; then
         echo "Killing refresh process..."
         kill -TERM "$REFRESH_PID" >/dev/null 2>&1 || true
@@ -281,7 +306,10 @@ _term() {
         umount -f "$IOS_MOUNTPOINT" >/dev/null 2>&1 || true
     fi
     rm -Rf "$WORKDIR/.device-transfer-download" "$WORKDIR/.device-transfer-upload"
-    exit 0
+    if [ "$RUN_LOCK_OWNED" -eq 1 ]; then
+        rm -Rf "$RUN_LOCK_DIR"
+        RUN_LOCK_OWNED=0
+    fi
 }
 
 mount_harness_documents() {
@@ -386,7 +414,8 @@ update_local_test_log() {
     remote_size=$(wc -c < "$downloaded_log" | tr -d ' ')
 
     if [ "$remote_size" -lt "$local_size" ]; then
-        cat "$downloaded_log" > "$PERL_TEST_LOG"
+        echo "Device test log reset; preserving archive: $PERL_TEST_LOG" >&2
+        return 2
     elif [ "$remote_size" -gt "$local_size" ]; then
         tail -c "+$((local_size + 1))" "$downloaded_log" >> "$PERL_TEST_LOG"
     fi
@@ -429,7 +458,11 @@ download_test_log() {
 
 refresh_test_log() {
     while true; do
-        download_test_log || true
+        download_test_log
+        status=$?
+        if [ "$status" -eq 2 ]; then
+            return 0
+        fi
         sleep 2
     done
 }
@@ -736,7 +769,20 @@ test_perl_device() {
 
     sleep 3
 
-    tail -n 3000 -f "$PERL_TEST_LOG"
+    tail -n 3000 -f "$PERL_TEST_LOG" &
+    TAIL_PID=$!
+    while kill -0 "$TAIL_PID" >/dev/null 2>&1; do
+        if tail -n 1 "$PERL_TEST_LOG" | grep -q '^Result: '; then
+            break
+        fi
+        if ! kill -0 "$REFRESH_PID" >/dev/null 2>&1; then
+            break
+        fi
+        sleep 2
+    done
+    kill -TERM "$TAIL_PID" >/dev/null 2>&1 || true
+    wait "$TAIL_PID" >/dev/null 2>&1 || true
+    TAIL_PID=""
 
     if [ -n "$REFRESH_PID" ]; then
         echo "kill $REFRESH_PID"
@@ -799,7 +845,10 @@ cd "$WORKDIR" || exit 1
 
 echo "Build started: $(date)"
 
-trap _term SIGINT
+trap cleanup EXIT
+trap 'exit 130' SIGINT SIGTERM SIGHUP
+
+acquire_run_lock
 
 check_dependencies
 
