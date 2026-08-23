@@ -614,6 +614,20 @@ copy_tree_to_device() {
     upload_tree_with_devicectl "$source_dir"
 }
 
+copy_tree_to_device_with_retry() {
+    local source_dir="$1"
+
+    if copy_tree_to_device "$source_dir"; then
+        return 0
+    fi
+    if [ -t 0 ]; then
+        read -r -p "Device copy failed. Unlock or reconnect the device, then press Return to retry: "
+        copy_tree_to_device "$source_dir"
+        return $?
+    fi
+    return 1
+}
+
 install_harness() {
     local app_path="$1"
     local status
@@ -705,7 +719,7 @@ test_perl_device() {
     echo "Copy perl build directory to iOS device..."
 
     if [ "$simulator_build" -eq "0" ]; then
-        copy_tree_to_device "$WORKDIR/perl-$PERL_VERSION"
+        copy_tree_to_device_with_retry "$WORKDIR/perl-$PERL_VERSION"
         check_exit_code
     else # ARM device
         build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
