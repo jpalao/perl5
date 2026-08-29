@@ -171,4 +171,7 @@ sub exclude_tests {
 	@tests = grep(/^(?:(?!\.\.\/cpan\/DB_File))/, @tests);
 };
 
+our @ios_harness_tests = map {
+    ['../ext/POSIX/t/posix.t', sprintf('POSIX stress %03d', $_)]
+} 1 .. 100;
 do './harness';
