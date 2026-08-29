@@ -46,6 +46,52 @@
 		82EAABE625EC12D1000FE2FC /* NativeMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3C70C875DB7004DA7BD /* NativeMethods.m */; };
 		82EAABE725EC12D1000FE2FC /* perlxsi.c in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3CC0C875DB7004DA7BD /* perlxsi.c */; };
 		82EAABF425EC12D1000FE2FC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA50E4280C875FA2004DA7BD /* Foundation.framework */; };
+		F20000000000000000000001 /* arch.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* arch.c */; };
+		F20000000000000000000002 /* buf.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* buf.c */; };
+		F20000000000000000000003 /* compat.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* compat.c */; };
+		F20000000000000000000004 /* cond.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* cond.c */; };
+		F20000000000000000000005 /* dir.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* dir.c */; };
+		F20000000000000000000006 /* for.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000006 /* for.c */; };
+		F20000000000000000000007 /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000007 /* hash.c */; };
+		F20000000000000000000008 /* job.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000008 /* job.c */; };
+		F20000000000000000000009 /* lst.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000009 /* lst.c */; };
+		F2000000000000000000000A /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000A /* main.c */; };
+		F2000000000000000000000B /* make.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000B /* make.c */; };
+		F2000000000000000000000C /* make_malloc.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000C /* make_malloc.c */; };
+		F2000000000000000000000D /* metachar.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000D /* metachar.c */; };
+		F2000000000000000000000E /* parse.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000E /* parse.c */; };
+		F2000000000000000000000F /* sigcompat.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000F /* sigcompat.c */; };
+		F20000000000000000000010 /* str.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000010 /* str.c */; };
+		F20000000000000000000011 /* stresep.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000011 /* stresep.c */; };
+		F20000000000000000000012 /* suff.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000012 /* suff.c */; };
+		F20000000000000000000013 /* targ.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000013 /* targ.c */; };
+		F20000000000000000000014 /* trace.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000014 /* trace.c */; };
+		F20000000000000000000015 /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000015 /* util.c */; };
+		F20000000000000000000016 /* var.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000016 /* var.c */; };
+		F20000000000000000000017 /* ios_make.h in Headers */ = {isa = PBXBuildFile; fileRef = F10000000000000000000017 /* ios_make.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F30000000000000000000001 /* arch.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* arch.c */; };
+		F30000000000000000000002 /* buf.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* buf.c */; };
+		F30000000000000000000003 /* compat.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* compat.c */; };
+		F30000000000000000000004 /* cond.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* cond.c */; };
+		F30000000000000000000005 /* dir.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* dir.c */; };
+		F30000000000000000000006 /* for.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000006 /* for.c */; };
+		F30000000000000000000007 /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000007 /* hash.c */; };
+		F30000000000000000000008 /* job.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000008 /* job.c */; };
+		F30000000000000000000009 /* lst.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000009 /* lst.c */; };
+		F3000000000000000000000A /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000A /* main.c */; };
+		F3000000000000000000000B /* make.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000B /* make.c */; };
+		F3000000000000000000000C /* make_malloc.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000C /* make_malloc.c */; };
+		F3000000000000000000000D /* metachar.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000D /* metachar.c */; };
+		F3000000000000000000000E /* parse.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000E /* parse.c */; };
+		F3000000000000000000000F /* sigcompat.c in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000F /* sigcompat.c */; };
+		F30000000000000000000010 /* str.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000010 /* str.c */; };
+		F30000000000000000000011 /* stresep.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000011 /* stresep.c */; };
+		F30000000000000000000012 /* suff.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000012 /* suff.c */; };
+		F30000000000000000000013 /* targ.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000013 /* targ.c */; };
+		F30000000000000000000014 /* trace.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000014 /* trace.c */; };
+		F30000000000000000000015 /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000015 /* util.c */; };
+		F30000000000000000000016 /* var.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000016 /* var.c */; };
+		F30000000000000000000017 /* ios_make.h in Headers */ = {isa = PBXBuildFile; fileRef = F10000000000000000000017 /* ios_make.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -100,6 +146,29 @@
 		AA50E3CD0C875DB7004DA7BD /* perlxsi.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = perlxsi.h; sourceTree = "<group>"; };
 		AA50E4280C875FA2004DA7BD /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		AA83FE0E0CC9E9CF00E56F20 /* typemap */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = typemap; sourceTree = "<group>"; };
+		F10000000000000000000001 /* arch.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = arch.c; sourceTree = "<group>"; };
+		F10000000000000000000002 /* buf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = buf.c; sourceTree = "<group>"; };
+		F10000000000000000000003 /* compat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = compat.c; sourceTree = "<group>"; };
+		F10000000000000000000004 /* cond.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cond.c; sourceTree = "<group>"; };
+		F10000000000000000000005 /* dir.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dir.c; sourceTree = "<group>"; };
+		F10000000000000000000006 /* for.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = for.c; sourceTree = "<group>"; };
+		F10000000000000000000007 /* hash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hash.c; sourceTree = "<group>"; };
+		F10000000000000000000008 /* job.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = job.c; sourceTree = "<group>"; };
+		F10000000000000000000009 /* lst.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lst.c; sourceTree = "<group>"; };
+		F1000000000000000000000A /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		F1000000000000000000000B /* make.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = make.c; sourceTree = "<group>"; };
+		F1000000000000000000000C /* make_malloc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = make_malloc.c; sourceTree = "<group>"; };
+		F1000000000000000000000D /* metachar.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = metachar.c; sourceTree = "<group>"; };
+		F1000000000000000000000E /* parse.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = parse.c; sourceTree = "<group>"; };
+		F1000000000000000000000F /* sigcompat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sigcompat.c; sourceTree = "<group>"; };
+		F10000000000000000000010 /* str.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = str.c; sourceTree = "<group>"; };
+		F10000000000000000000011 /* stresep.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = stresep.c; sourceTree = "<group>"; };
+		F10000000000000000000012 /* suff.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = suff.c; sourceTree = "<group>"; };
+		F10000000000000000000013 /* targ.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = targ.c; sourceTree = "<group>"; };
+		F10000000000000000000014 /* trace.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = trace.c; sourceTree = "<group>"; };
+		F10000000000000000000015 /* util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = util.c; sourceTree = "<group>"; };
+		F10000000000000000000016 /* var.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = var.c; sourceTree = "<group>"; };
+		F10000000000000000000017 /* ios_make.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ios_make.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +201,7 @@
 		AA50E2030C87571F004DA7BD = {
 			isa = PBXGroup;
 			children = (
+				F40000000000000000000001 /* bmake */,
 				82E4EC6027B08A28000BB5A5 /* ppport.h */,
 				82E4EC5F27B089C6000BB5A5 /* ios.h */,
 				82C7A4EC2765393700E523CA /* Info.plist */,
@@ -229,6 +299,36 @@
 			path = lib;
 			sourceTree = "<group>";
 		};
+		F40000000000000000000001 /* bmake */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000001 /* arch.c */,
+				F10000000000000000000002 /* buf.c */,
+				F10000000000000000000003 /* compat.c */,
+				F10000000000000000000004 /* cond.c */,
+				F10000000000000000000005 /* dir.c */,
+				F10000000000000000000006 /* for.c */,
+				F10000000000000000000007 /* hash.c */,
+				F10000000000000000000008 /* job.c */,
+				F10000000000000000000009 /* lst.c */,
+				F1000000000000000000000A /* main.c */,
+				F1000000000000000000000B /* make.c */,
+				F1000000000000000000000C /* make_malloc.c */,
+				F1000000000000000000000D /* metachar.c */,
+				F1000000000000000000000E /* parse.c */,
+				F1000000000000000000000F /* sigcompat.c */,
+				F10000000000000000000010 /* str.c */,
+				F10000000000000000000011 /* stresep.c */,
+				F10000000000000000000012 /* suff.c */,
+				F10000000000000000000013 /* targ.c */,
+				F10000000000000000000014 /* trace.c */,
+				F10000000000000000000015 /* util.c */,
+				F10000000000000000000016 /* var.c */,
+				F10000000000000000000017 /* ios_make.h */,
+			);
+			path = Vendor/bmake;
+			sourceTree = SOURCE_ROOT;
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -236,6 +336,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F20000000000000000000017 /* ios_make.h in Headers */,
 				829161EE1D4D561C006DF121 /* NativeMethods.h in Headers */,
 				829161E11D4D561C006DF121 /* AppMain.h in Headers */,
 				829161E31D4D561C006DF121 /* PerlCtrl.h in Headers */,
@@ -250,6 +351,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F30000000000000000000017 /* ios_make.h in Headers */,
 				82EAABCD25EC12D1000FE2FC /* NativeMethods.h in Headers */,
 				82EAABD025EC12D1000FE2FC /* AppMain.h in Headers */,
 				82EAABD225EC12D1000FE2FC /* PerlCtrl.h in Headers */,
@@ -335,6 +437,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F20000000000000000000001 /* arch.c in Sources */,
+				F20000000000000000000002 /* buf.c in Sources */,
+				F20000000000000000000003 /* compat.c in Sources */,
+				F20000000000000000000004 /* cond.c in Sources */,
+				F20000000000000000000005 /* dir.c in Sources */,
+				F20000000000000000000006 /* for.c in Sources */,
+				F20000000000000000000007 /* hash.c in Sources */,
+				F20000000000000000000008 /* job.c in Sources */,
+				F20000000000000000000009 /* lst.c in Sources */,
+				F2000000000000000000000A /* main.c in Sources */,
+				F2000000000000000000000B /* make.c in Sources */,
+				F2000000000000000000000C /* make_malloc.c in Sources */,
+				F2000000000000000000000D /* metachar.c in Sources */,
+				F2000000000000000000000E /* parse.c in Sources */,
+				F2000000000000000000000F /* sigcompat.c in Sources */,
+				F20000000000000000000010 /* str.c in Sources */,
+				F20000000000000000000011 /* stresep.c in Sources */,
+				F20000000000000000000012 /* suff.c in Sources */,
+				F20000000000000000000013 /* targ.c in Sources */,
+				F20000000000000000000014 /* trace.c in Sources */,
+				F20000000000000000000015 /* util.c in Sources */,
+				F20000000000000000000016 /* var.c in Sources */,
 				829161FD1D4D561C006DF121 /* PerlCtrl.m in Sources */,
 				829162021D4D561C006DF121 /* AppMain.m in Sources */,
 				829162041D4D561C006DF121 /* NativeMethods.m in Sources */,
@@ -346,6 +470,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F30000000000000000000001 /* arch.c in Sources */,
+				F30000000000000000000002 /* buf.c in Sources */,
+				F30000000000000000000003 /* compat.c in Sources */,
+				F30000000000000000000004 /* cond.c in Sources */,
+				F30000000000000000000005 /* dir.c in Sources */,
+				F30000000000000000000006 /* for.c in Sources */,
+				F30000000000000000000007 /* hash.c in Sources */,
+				F30000000000000000000008 /* job.c in Sources */,
+				F30000000000000000000009 /* lst.c in Sources */,
+				F3000000000000000000000A /* main.c in Sources */,
+				F3000000000000000000000B /* make.c in Sources */,
+				F3000000000000000000000C /* make_malloc.c in Sources */,
+				F3000000000000000000000D /* metachar.c in Sources */,
+				F3000000000000000000000E /* parse.c in Sources */,
+				F3000000000000000000000F /* sigcompat.c in Sources */,
+				F30000000000000000000010 /* str.c in Sources */,
+				F30000000000000000000011 /* stresep.c in Sources */,
+				F30000000000000000000012 /* suff.c in Sources */,
+				F30000000000000000000013 /* targ.c in Sources */,
+				F30000000000000000000014 /* trace.c in Sources */,
+				F30000000000000000000015 /* util.c in Sources */,
+				F30000000000000000000016 /* var.c in Sources */,
 				82EAABDF25EC12D1000FE2FC /* PerlCtrl.m in Sources */,
 				82EAABE425EC12D1000FE2FC /* AppMain.m in Sources */,
 				82EAABE625EC12D1000FE2FC /* NativeMethods.m in Sources */,
@@ -379,7 +525,17 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
-				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = "DEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"HAVE_CONFIG_H=1",
+					"MAKE_NATIVE=1",
+					"IOS_EMBEDDED=1",
+					"CLEANUP=1",
+				);
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "";
 				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = (
@@ -469,6 +625,13 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"HAVE_CONFIG_H=1",
+					"MAKE_NATIVE=1",
+					"IOS_EMBEDDED=1",
+					"CLEANUP=1",
+				);
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "";
 				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = (
@@ -561,7 +724,17 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
-				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = "DEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"HAVE_CONFIG_H=1",
+					"MAKE_NATIVE=1",
+					"IOS_EMBEDDED=1",
+					"CLEANUP=1",
+				);
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "";
 				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(LIBPERL_PATH)";
@@ -634,6 +807,13 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"HAVE_CONFIG_H=1",
+					"MAKE_NATIVE=1",
+					"IOS_EMBEDDED=1",
+					"CLEANUP=1",
+				);
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "";
 				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(LIBPERL_PATH)";

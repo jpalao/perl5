@@ -33,6 +33,7 @@ our @methods = (
     'exec_perl_capture',
     'exec_perl',
     'exec_test',
+    'make',
     'yield',
     'cat',
 );
@@ -50,11 +51,15 @@ use open ":std", ":encoding(UTF-8)";
 use JSON::PP;
 use Data::Dumper;
 use Cwd qw(abs_path chdir getcwd);
+use File::Basename qw(basename);
 use Text::ParseWords;
 
 our $DEBUG = 0;
 
 our $capture = 1;
+
+use constant DARWIN_O_WRONLY => 0x0001;
+use constant DARWIN_O_CREAT => 0x0200;
 
 my $json = JSON::PP->new->convert_blessed(1);
 
@@ -83,6 +88,8 @@ sub yield {
 
 sub exec_perl {
     my ($req) = @_;
+    my $old_pwd = getcwd();
+    my $pwd = $req->{pwd};
     my $runPerl = {
         switches => $req->{switches},
         nolib => $req->{nolib},
@@ -98,7 +105,12 @@ sub exec_perl {
     };
     my $exec = $json->utf8->canonical->pretty->encode($runPerl);
     print "\$exec: $exec\n" if $DEBUG;
-    my $t = CBRunPerl($exec);
+    chdir $pwd or die "Could not chdir to $pwd: $!"
+        if defined $pwd && $pwd ne '';
+    my $t = eval { CBRunPerl($exec) };
+    my $error = $@;
+    chdir $old_pwd or die "Could not restore directory $old_pwd: $!";
+    die $error if $error ne '';
     print "\$t: $t\n" if $DEBUG;
     return int($t);
 }
@@ -270,6 +282,103 @@ sub exec_cli {
     print  Dumper("code", $result->[0]) if $DEBUG;
     print  Dumper("output", $result->[1]) if $DEBUG;
     return ($result->[0], $result->[1] ? $result->[1] : $@);
+}
+
+sub make {
+    my ($pwd, @args) = @_;
+    my $old_pwd = getcwd();
+    my ($status, $error);
+
+    $pwd = $old_pwd if !defined $pwd || $pwd eq '';
+    @args = ('pure_all') if !@args;
+    eval {
+        chdir $pwd or die "Could not chdir to $pwd: $!";
+        $status = CBRunMake(@args);
+        1;
+    } or $error = $@;
+    chdir $old_pwd or die "Could not restore directory $old_pwd: $!";
+    die $error if defined $error;
+    return $status;
+}
+
+sub _make_perl_request {
+    my ($pwd, @words) = @_;
+    my (@switches, @args, $progfile);
+    my $after_separator = 0;
+
+    while (@words) {
+        my $word = shift @words;
+        next if $word eq '\\';
+        if ($after_separator) {
+            push @args, $word;
+        } elsif ($word eq '--') {
+            $after_separator = 1;
+        } elsif ($word !~ /^-/ && -f ($word =~ m{^/} ? $word : "$pwd/$word")) {
+            $progfile = $word;
+            @args = grep { $_ ne '\\' } @words;
+            last;
+        } else {
+            push @switches, $word;
+        }
+    }
+
+    return {
+        pwd => $pwd,
+        progfile => $progfile,
+        switches => \@switches,
+        args => \@args,
+    };
+}
+
+{
+    no open;
+
+    sub _make_touch_file {
+        my ($file) = @_;
+        sysopen my $handle, $file,
+            DARWIN_O_CREAT | DARWIN_O_WRONLY, 0666
+            or return 0;
+        return close $handle;
+    }
+}
+
+sub _run_make_recipe {
+    my ($command) = @_;
+    my @words = grep { defined && $_ ne '' }
+        &quotewords('\s+', 0, $command);
+    return 0 if !@words;
+
+    my $program = shift @words;
+    my $name = basename($program);
+    if ($name =~ /^(?:perl(?:5(?:\.\d+)*)?|harness)$/) {
+        my ($result) = exec_perl_capture(
+            _make_perl_request(getcwd(), @words));
+        my ($status, $output) = @$result;
+        print $output if defined $output && length $output;
+        $status = $status >> 8 if defined $status && $status > 255;
+        return defined $status ? $status : 1;
+    }
+
+    return 0 if $name eq 'true' && !@words;
+
+    if ($name eq 'chmod' && @words >= 2 && $words[0] =~ /^[0-7]{3,4}$/) {
+        my $mode = oct shift @words;
+        return chmod($mode, @words) == @words ? 0 : 1;
+    }
+
+    if ($name eq 'touch' && @words) {
+        for my $file (@words) {
+            if (-e $file) {
+                return 1 if !utime undef, undef, $file;
+            } else {
+                return 1 if !_make_touch_file($file);
+            }
+        }
+        return 0;
+    }
+
+    warn "Unsupported iOS make recipe: $command\n";
+    return 127;
 }
 
 sub cat {
