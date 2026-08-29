@@ -273,9 +273,18 @@ void* CBRunPerl (char * json)
 } // autoreleasepool
 }
 
-static void handleStdioException(NSException *exception, NSMutableData *string) {
-    @synchronized (stdioQueue) {
-        [string appendData:[[exception description] dataUsingEncoding:NSUTF8StringEncoding]];
+static void drainPipe(NSFileHandle *readHandle, NSMutableData *streamOutput, NSMutableData *combinedOutput) {
+    @autoreleasepool {
+        while (TRUE) {
+            NSData *data = [readHandle availableData];
+            if ([data length] == 0) {
+                break;
+            }
+            [streamOutput appendData:data];
+            @synchronized (combinedOutput) {
+                [combinedOutput appendData:data];
+            }
+        }
     }
 }
 
@@ -299,9 +308,9 @@ CBRunPerlCaptureStdout (char * json) {
 
     NSPipe * stdoutPipe = [NSPipe pipe];
     NSPipe * stderrPipe = [NSPipe pipe];
-    __block BOOL  ended = FALSE;
-    __block id notificationObserver, notificationObserver2;
+    NSMutableData * combinedOutput = [NSMutableData data];
     NSMutableData * stdoutOutput = [NSMutableData data];
+    NSMutableData * stderrOutput = [NSMutableData data];
     NSFileHandle * stdoutPipeOut = [stdoutPipe fileHandleForReading];
     NSFileHandle * stderrPipeOut = [stderrPipe fileHandleForReading];
 
@@ -327,60 +336,18 @@ CBRunPerlCaptureStdout (char * json) {
 
     dup2([stdoutPipeIn fileDescriptor], stdout_fd);
 
-    [stdoutPipeIn initWithFileDescriptor:[stdoutPipeIn fileDescriptor]];
-    [stderrPipeIn initWithFileDescriptor:[stderrPipeIn fileDescriptor]];
-
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        notificationObserver = [[NSNotificationCenter defaultCenter] addObserverForName:NSFileHandleDataAvailableNotification object:stdoutPipeOut queue:[NSOperationQueue mainQueue] usingBlock: (void (^)(NSNotification *)) ^{
-            if (!ended) {
-                @try {
-                    @synchronized (stdioQueue) {
-                         [stdoutOutput appendData:[stdoutPipeOut availableData]];
-                    }
-                    if (!ended) {
-                        [stdoutPipeOut waitForDataInBackgroundAndNotify];
-                    }
-                }
-                @catch (NSException * exception) {
-                    if (!ended) {
-                        handleStdioException(exception, stdoutOutput);
-                    }
-                }
-            }
-        }];
-        [stdoutPipeOut waitForDataInBackgroundAndNotify];
-        if (!redirectStderr)
-        {
-            notificationObserver2 = [[NSNotificationCenter defaultCenter] addObserverForName:NSFileHandleDataAvailableNotification object:stderrPipeOut queue:[NSOperationQueue mainQueue] usingBlock: (void (^)(NSNotification *)) ^{
-                if (!ended) {
-                    @try {
-                        @synchronized (stdioQueue) {
-                            [stdoutOutput appendData:[stderrPipeOut availableData]];
-                        }
-                        if (!ended) {
-                            [stderrPipeOut waitForDataInBackgroundAndNotify];
-                        }
-                    }
-                    @catch (NSException * exception) {
-                        if (!ended) {
-                            handleStdioException(exception, stdoutOutput);
-                        }
-                    }
-                }
-            }];
-            [stderrPipeOut waitForDataInBackgroundAndNotify];
-        }
+    dispatch_group_t readerGroup = dispatch_group_create();
+    dispatch_queue_t readerQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
+    dispatch_group_async(readerGroup, readerQueue, ^{
+        drainPipe(stdoutPipeOut, stdoutOutput, combinedOutput);
     });
-
-    exit_code = CBRunPerl(json);
-    @synchronized (stdioQueue) {
-        ended = TRUE;
+    if (!redirectStderr) {
+        dispatch_group_async(readerGroup, readerQueue, ^{
+            drainPipe(stderrPipeOut, stderrOutput, combinedOutput);
+        });
     }
 
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        [[NSNotificationCenter defaultCenter] removeObserver:notificationObserver name:NSFileHandleDataAvailableNotification object:stdoutPipeOut];
-        [[NSNotificationCenter defaultCenter] removeObserver:notificationObserver2 name:NSFileHandleDataAvailableNotification object:stderrPipeOut];
-    });
+    exit_code = CBRunPerl(json);
 
     int new_fd = dup2(saved_stdout, STDOUT_FILENO);
         new_fd = dup2(saved_stderr, STDERR_FILENO);
@@ -391,17 +358,15 @@ CBRunPerlCaptureStdout (char * json) {
     [stdoutPipeIn closeFile];
     [stderrPipeIn closeFile];
 
-    @synchronized (stdioQueue) {
-        [stdoutOutput appendData:[stdoutPipeOut readDataToEndOfFile]];
-        if (!redirectStderr) {
-            [stdoutOutput appendData:[stderrPipeOut readDataToEndOfFile]];
-        }
-    }
+    dispatch_group_wait(readerGroup, DISPATCH_TIME_FOREVER);
+#if !OS_OBJECT_USE_OBJC
+    dispatch_release(readerGroup);
+#endif
 
     [stdoutPipeOut closeFile];
     [stderrPipeOut closeFile];
 
-    stdout_result = newSVpvn_flags([stdoutOutput bytes], [stdoutOutput length], SVf_UTF8);
+    stdout_result = newSVpvn_flags([combinedOutput bytes], [combinedOutput length], SVf_UTF8);
 
     av_push(results, exit_code);
     av_push(results, stdout_result);
