@@ -17,7 +17,6 @@ use Config;
 $::do_nothing = $::do_nothing = 1;
 require './TEST';
 our $Valgrind_Log;
-our @ios_harness_tests;
 
 my $Verbose = 0;
 $Verbose++ while @ARGV && $ARGV[0] eq '-v' && shift;
@@ -91,9 +90,7 @@ if ($ENV{HARNESS_OPTIONS}) {
     }
 }
 
-if (@ios_harness_tests) {
-    @tests = @ios_harness_tests;
-} elsif (@ARGV) {
+if (@ARGV) {
     # If you want these run in speed order, just use prove
 
     # Note: we use glob even on *nix and not just on Windows
