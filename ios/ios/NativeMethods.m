@@ -273,13 +273,21 @@ void* CBRunPerl (char * json)
 } // autoreleasepool
 }
 
-static void drainPipe(NSFileHandle *readHandle, NSMutableData *streamOutput, NSMutableData *combinedOutput) {
+static void drainPipe(int readFD, NSMutableData *streamOutput, NSMutableData *combinedOutput) {
     @autoreleasepool {
         while (TRUE) {
-            NSData *data = [readHandle availableData];
-            if ([data length] == 0) {
+            unsigned char buffer[8192];
+            ssize_t bytesRead = read(readFD, buffer, sizeof(buffer));
+            if (bytesRead == 0) {
                 break;
             }
+            if (bytesRead < 0) {
+                if (errno == EINTR) {
+                    continue;
+                }
+                break;
+            }
+            NSData *data = [NSData dataWithBytes:buffer length:(NSUInteger)bytesRead];
             [streamOutput appendData:data];
             @synchronized (combinedOutput) {
                 [combinedOutput appendData:data];
@@ -313,6 +321,8 @@ CBRunPerlCaptureStdout (char * json) {
     NSMutableData * stderrOutput = [NSMutableData data];
     NSFileHandle * stdoutPipeOut = [stdoutPipe fileHandleForReading];
     NSFileHandle * stderrPipeOut = [stderrPipe fileHandleForReading];
+    int stdoutReadFD = [stdoutPipeOut fileDescriptor];
+    int stderrReadFD = [stderrPipeOut fileDescriptor];
 
     NSFileHandle * stdoutPipeIn = [stdoutPipe fileHandleForWriting];
     NSFileHandle * stderrPipeIn = [stderrPipe fileHandleForWriting];
@@ -339,11 +349,11 @@ CBRunPerlCaptureStdout (char * json) {
     dispatch_group_t readerGroup = dispatch_group_create();
     dispatch_queue_t readerQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
     dispatch_group_async(readerGroup, readerQueue, ^{
-        drainPipe(stdoutPipeOut, stdoutOutput, combinedOutput);
+        drainPipe(stdoutReadFD, stdoutOutput, combinedOutput);
     });
     if (!redirectStderr) {
         dispatch_group_async(readerGroup, readerQueue, ^{
-            drainPipe(stderrPipeOut, stderrOutput, combinedOutput);
+            drainPipe(stderrReadFD, stderrOutput, combinedOutput);
         });
     }
 
