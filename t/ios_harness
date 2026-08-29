@@ -24,19 +24,13 @@ $ENV{HOME} = getcwd();
 # or they may pass or fail randomly
 my @ios_blacklist = qw (
     ../cpan/Test-Harness/t/compat/env.t
-    ../cpan/Test-Harness/t/compat/failure.t
     ../cpan/Test-Harness/t/compat/inc_taint.t
     ../cpan/Test-Harness/t/compat/inc-propagation.t
     ../cpan/Test-Harness/t/compat/test-harness-compat.t
-    ../cpan/Test-Harness/t/file.t
-    ../cpan/Test-Harness/t/harness.t
     ../cpan/Test-Harness/t/iterators.t
-    ../cpan/Test-Harness/t/parser-subclass.t
     ../cpan/Test-Harness/t/perl5lib.t
     ../cpan/Test-Harness/t/proverun.t
     ../cpan/Test-Harness/t/regression.t
-    ../cpan/Test-Harness/t/taint.t
-    ../cpan/Test-Harness/t/testargs.t
 
     ../cpan/Test-Simple/t/Legacy/exit.t
 
