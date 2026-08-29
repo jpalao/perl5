@@ -75,6 +75,7 @@ IFUSE_AVAILABLE=0
 IFUSE_IN_USE=0
 HARNESS_APP_PATH=""
 REFRESH_PID=""
+MOUNT_REFRESH_PID=""
 TAIL_PID=""
 RUN_LOCK_DIR="$WORKDIR/.perl-ios-test.lock"
 RUN_LOCK_OWNED=0
@@ -289,34 +290,17 @@ acquire_run_lock() {
     RUN_LOCK_OWNED=1
 }
 
-# TERM, then CONT (a stopped job ignores TERM until resumed), then KILL.
-stop_background_job() {
-    local pid="$1"
-    local waited=0
-
-    [ -n "$pid" ] || return 0
-    kill -TERM "$pid" >/dev/null 2>&1 || true
-    kill -CONT "$pid" >/dev/null 2>&1 || true
-    while kill -0 "$pid" >/dev/null 2>&1; do
-        if [ "$waited" -ge 5 ]; then
-            kill -KILL "$pid" >/dev/null 2>&1 || true
-            break
-        fi
-        sleep 1
-        waited=$((waited + 1))
-    done
-    wait "$pid" >/dev/null 2>&1 || true
-}
-
 cleanup() {
     if [ -n "$TAIL_PID" ]; then
-        stop_background_job "$TAIL_PID"
+        kill -TERM "$TAIL_PID" >/dev/null 2>&1 || true
         TAIL_PID=""
     fi
     if [ -n "$REFRESH_PID" ]; then
         echo "Killing refresh process..."
-        stop_background_job "$REFRESH_PID"
-        REFRESH_PID=""
+        kill -TERM "$REFRESH_PID" >/dev/null 2>&1 || true
+    fi
+    if [ -n "$MOUNT_REFRESH_PID" ]; then
+        kill -TERM "$MOUNT_REFRESH_PID" >/dev/null 2>&1 || true
     fi
     if [ "$IFUSE_IN_USE" -eq 1 ]; then
         umount -f "$IOS_MOUNTPOINT" >/dev/null 2>&1 || true
@@ -508,8 +492,6 @@ download_test_log_with_devicectl() {
 
 download_test_log() {
     if [ "$IFUSE_IN_USE" -eq 1 ]; then
-        # refresh the FUSE directory cache so the log's size is not stale
-        ls "$IOS_MOUNTPOINT" >/dev/null 2>&1 || true
         update_local_test_log "$TEST_LOG_SOURCE"
         return $?
     fi
@@ -528,9 +510,7 @@ download_test_log() {
 }
 
 refresh_test_log() {
-    local parent_pid="$1"
-
-    while kill -0 "$parent_pid" >/dev/null 2>&1; do
+    while true; do
         download_test_log
         status=$?
         if [ "$status" -eq 2 ]; then
@@ -837,6 +817,9 @@ test_perl_device() {
             fi
             TEST_LOG_SOURCE="$IOS_MOUNTPOINT/perl-tests.txt"
             sleep 2
+            # needed for scrolling to keep in sync w/ device's ifuse fs
+            perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
+            MOUNT_REFRESH_PID=$!
         fi
     fi
 
@@ -856,7 +839,7 @@ test_perl_device() {
         fi
     done
     echo "Device test log found; streaming output"
-    refresh_test_log "$$" &
+    refresh_test_log &
     REFRESH_PID=$!
 
     sleep 3
@@ -872,13 +855,18 @@ test_perl_device() {
         fi
         sleep 2
     done
-    stop_background_job "$TAIL_PID"
+    kill -TERM "$TAIL_PID" >/dev/null 2>&1 || true
+    wait "$TAIL_PID" >/dev/null 2>&1 || true
     TAIL_PID=""
 
     if [ -n "$REFRESH_PID" ]; then
         echo "kill $REFRESH_PID"
-        stop_background_job "$REFRESH_PID"
+        kill "$REFRESH_PID" >/dev/null 2>&1 || true
         REFRESH_PID=""
+    fi
+    if [ -n "$MOUNT_REFRESH_PID" ]; then
+        kill "$MOUNT_REFRESH_PID" >/dev/null 2>&1 || true
+        MOUNT_REFRESH_PID=""
     fi
     if [ "$simulator_build" -eq "0" ]; then
         if [ "$IFUSE_IN_USE" -eq 1 ]; then
