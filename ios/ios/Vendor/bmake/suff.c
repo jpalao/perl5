@@ -2033,6 +2033,9 @@ Suff_SetNull(const char *name)
 void
 Suff_Init(void)
 {
+	Lst_Init(&sufflist);
+	Lst_Init(&suffClean);
+	Lst_Init(&transforms);
 	/*
 	 * Create null suffix for single-suffix rules (POSIX). The thing
 	 * doesn't actually go on the suffix list or everyone will think

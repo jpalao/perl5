@@ -13,8 +13,11 @@ BEGIN {
             eval {
                 ($code, $result) = exec_cli(getcwd(), "@_")
             };
-            $code = $code >> 8 if defined $code;
-            $? = $code;
+            if ($@ ne '') {
+                warn $@;
+                $result = $@;
+            }
+            $? = defined $code ? $code : -1;
             return $result;
         };
     }
@@ -271,6 +274,13 @@ sub exec_test {
 sub exec_cli {
     my ($pwd, $test) = @_;
     print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
+    my @words = grep { defined && $_ ne '' }
+        &quotewords('\s+', 0, $test);
+    if (@words && basename($words[0]) =~ /^(?:b?make|gmake)$/) {
+        shift @words;
+        @words = grep { $_ ne '2>&1' } @words;
+        return make_capture($pwd, @words);
+    }
     my $json = parse_cli($pwd, $test);
     print  Dumper("json", $json) if $DEBUG;
     my $result;
@@ -282,6 +292,23 @@ sub exec_cli {
     print  Dumper("code", $result->[0]) if $DEBUG;
     print  Dumper("output", $result->[1]) if $DEBUG;
     return ($result->[0], $result->[1] ? $result->[1] : $@);
+}
+
+sub make_capture {
+    my ($pwd, @args) = @_;
+    my $old_pwd = getcwd();
+    my ($result, $error);
+
+    $pwd = $old_pwd if !defined $pwd || $pwd eq '';
+    @args = ('pure_all') if !@args;
+    eval {
+        chdir $pwd or die "Could not chdir to $pwd: $!";
+        ($result) = CBRunMakeCapture(@args);
+        1;
+    } or $error = $@;
+    chdir $old_pwd or die "Could not restore directory $old_pwd: $!";
+    die $error if defined $error;
+    return @$result;
 }
 
 sub make {
@@ -360,6 +387,11 @@ sub _run_make_recipe {
     }
 
     return 0 if $name eq 'true' && !@words;
+
+    if ($name eq 'echo') {
+        print join(' ', @words), "\n";
+        return 0;
+    }
 
     if ($name eq 'chmod' && @words >= 2 && $words[0] =~ /^[0-7]{3,4}$/) {
         my $mode = oct shift @words;
