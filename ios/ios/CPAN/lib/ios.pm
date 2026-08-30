@@ -9,6 +9,7 @@ ios - supporting XS code for iOS and derivatives
 BEGIN {
     if ($^O =~ /darwin-ios/) {
         *CORE::GLOBAL::readpipe = sub {
+            my $list_context = wantarray;
             my ($code, $result);
             eval {
                 ($code, $result) = exec_cli(getcwd(), "@_")
@@ -18,6 +19,12 @@ BEGIN {
                 $result = $@;
             }
             $? = defined $code ? $code : -1;
+            if ($list_context && defined $result) {
+                open my $output, '<', \$result or die "Cannot read captured output: $!";
+                my @records = <$output>;
+                close $output;
+                return @records;
+            }
             return $result;
         };
     }

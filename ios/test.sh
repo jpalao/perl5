@@ -401,6 +401,19 @@ wait_for_device_before_copy() {
     done
 }
 
+refresh_generated_config_timestamps() {
+    local tree="$1"
+    local config_sh="$tree/config.sh"
+    local config_pm="$tree/lib/Config.pm"
+    local config_h="$tree/config.h"
+
+    [ -f "$config_sh" ] && [ -f "$config_pm" ] && [ -f "$config_h" ] || return 0
+    perl -e '
+        my $mtime = (stat $ARGV[0])[9] + 1;
+        utime $mtime, $mtime, @ARGV[1, 2] or die "utime: $!\n";
+    ' "$config_sh" "$config_pm" "$config_h"
+}
+
 stage_tree_for_upload() {
     local source_dir="$1"
     local upload_dir="$2"
@@ -415,6 +428,7 @@ stage_tree_for_upload() {
         echo >&2 "rsync staging failed for $source_dir"
         return 1
     fi
+    refresh_generated_config_timestamps "$upload_dir" || return 1
     echo "Perl tree staging complete."
     return 0
 }
@@ -647,6 +661,7 @@ copy_tree_to_device() {
         else
             rm -f "$copy_errors"
         fi
+        refresh_generated_config_timestamps "$build_destination_dir" || return 1
         rm -Rf "$build_destination_dir/ios/test/Build"
         echo "Cleaning bundle artifacts under $build_destination_dir"
         if ! capture_command_output find "$build_destination_dir" -name "*.bundle" -type f -delete; then
@@ -786,6 +801,8 @@ test_perl_device() {
         build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
         build_destination_dir="$build_destination_dir/Documents/"
         cp -RL "$WORKDIR/perl-$PERL_VERSION/." "$build_destination_dir"
+        refresh_generated_config_timestamps "$build_destination_dir"
+        check_exit_code
         rm -Rf "$build_destination_dir/ios/test/Build"
         find "$build_destination_dir" -name "*.bundle" -type f -delete
         check_exit_code
