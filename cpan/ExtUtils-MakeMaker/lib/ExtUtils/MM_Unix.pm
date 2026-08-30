@@ -2091,8 +2091,9 @@ sub init_PERL {
         push @perls, $miniperl;
     }
 
-    $self->{PERL} ||=
-        $self->find_perl(5.0, \@perls, \@defpath, $Verbose );
+    $self->{PERL} ||= $^O =~ /darwin-ios/
+        ? $thisperl
+        : $self->find_perl(5.0, \@perls, \@defpath, $Verbose );
 
     my $perl = $self->{PERL};
     $perl =~ s/^"//;

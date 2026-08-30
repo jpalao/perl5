@@ -300,7 +300,6 @@ sub make_capture {
     my ($result, $error);
 
     $pwd = $old_pwd if !defined $pwd || $pwd eq '';
-    @args = ('pure_all') if !@args;
     eval {
         chdir $pwd or die "Could not chdir to $pwd: $!";
         ($result) = CBRunMakeCapture(@args);
@@ -317,7 +316,6 @@ sub make {
     my ($status, $error);
 
     $pwd = $old_pwd if !defined $pwd || $pwd eq '';
-    @args = ('pure_all') if !@args;
     eval {
         chdir $pwd or die "Could not chdir to $pwd: $!";
         $status = CBRunMake(@args);
@@ -389,7 +387,20 @@ sub _run_make_recipe {
     return 0 if $name eq 'true' && !@words;
 
     if ($name eq 'echo') {
-        print join(' ', @words), "\n";
+        my $newline = 1;
+        if (@words && $words[0] eq '-n') {
+            shift @words;
+            $newline = 0;
+        }
+        if (@words >= 2 && $words[-2] =~ /^>{1,2}$/) {
+            my $file = pop @words;
+            my $mode = pop @words;
+            open my $handle, $mode, $file or return 1;
+            print {$handle} join(' ', @words), ($newline ? "\n" : '')
+                or return 1;
+            return close $handle ? 0 : 1;
+        }
+        print join(' ', @words), ($newline ? "\n" : '');
         return 0;
     }
 
