@@ -20,6 +20,8 @@ my $blib = File::Spec->catdir($fixture, 'blib');
 my $makefile = File::Spec->catfile($fixture, 'Makefile');
 my $marker = File::Spec->catfile($fixture, 'pm_to_blib');
 my $cwd_marker = File::Spec->catfile($fixture, 'nested-cwd.txt');
+my $recursive_fixture = File::Spec->catdir($fixture, 'recursive');
+my $child_fixture = File::Spec->catdir($recursive_fixture, 'Child');
 
 remove_tree($fixture);
 make_path(File::Spec->catdir($fixture, 'lib', 'Perla'));
@@ -62,6 +64,30 @@ ok(-f File::Spec->catfile($blib, 'lib', 'Perla', 'Pure.pm'),
     'module is copied into blib');
 is(ios::make($fixture, 'pure_all'), 0,
     'embedded make can run repeatedly');
+
+make_path($child_fixture);
+open my $parent_makefile, '>', File::Spec->catfile($recursive_fixture, 'Makefile')
+    or die "Could not create recursive parent Makefile: $!";
+print {$parent_makefile} <<'MAKEFILE';
+all:
+	cd Child && make -f Makefile all
+	echo parent > parent-after.txt
+MAKEFILE
+close $parent_makefile;
+open my $child_makefile, '>', File::Spec->catfile($child_fixture, 'Makefile')
+    or die "Could not create recursive child Makefile: $!";
+print {$child_makefile} <<'MAKEFILE';
+all:
+	echo child > child.txt
+MAKEFILE
+close $child_makefile;
+
+my ($recursive_status) = ios::make_capture($recursive_fixture, 'all');
+is($recursive_status, 0, 'recursive embedded make succeeds');
+ok(-f File::Spec->catfile($child_fixture, 'child.txt'),
+    'recursive make runs in the child directory');
+ok(-f File::Spec->catfile($recursive_fixture, 'parent-after.txt'),
+    'parent recipe resumes after recursive make');
 
 my $load = ios::exec_perl({
     pwd => $fixture,

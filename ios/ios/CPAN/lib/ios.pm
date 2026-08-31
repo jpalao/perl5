@@ -62,6 +62,8 @@ use JSON::PP;
 use Data::Dumper;
 use Cwd qw(abs_path chdir getcwd);
 use File::Basename qw(basename);
+use File::Copy qw(copy);
+use File::Path qw(remove_tree);
 use Text::ParseWords;
 
 our $DEBUG = 0;
@@ -70,8 +72,10 @@ our $capture = 1;
 
 use constant DARWIN_O_WRONLY => 0x0001;
 use constant DARWIN_O_CREAT => 0x0200;
+use constant IOS_MAKE_DEFER => 125;
 
 my $json = JSON::PP->new->convert_blessed(1);
+our $make_recursion_state;
 
 sub check_error {
   my ($error) = @_;
@@ -80,6 +84,18 @@ sub check_error {
 
 sub yield {
   CBYield(shift);
+}
+
+sub _perl_switches_with_environment {
+        my ($switches) = @_;
+        my @result = @{$switches || []};
+
+        return \@result if grep { $_ eq '-T' || $_ eq '-t' } @result;
+        return \@result if !defined $ENV{PERL5LIB};
+
+        push @result, map { "-I$_" }
+                grep { length } split /\Q$Config{path_sep}\E/, $ENV{PERL5LIB};
+        return \@result;
 }
 
 # runperl, run_perl - Runs a separate perl interpreter and returns its output.
@@ -194,7 +210,7 @@ sub parse_test {
     my $result = {
         progfile => $file,
         pwd => $pwd,
-        switches => \@switches,
+        switches => _perl_switches_with_environment(\@switches),
         args => \@args,
     };
 
@@ -301,9 +317,10 @@ sub exec_cli {
     return ($result->[0], $result->[1] ? $result->[1] : $@);
 }
 
-sub make_capture {
+sub _make_capture_once {
     my ($pwd, @args) = @_;
     my $old_pwd = getcwd();
+    my $old_env_pwd = $ENV{PWD};
     my ($result, $error);
 
     $pwd = $old_pwd if !defined $pwd || $pwd eq '';
@@ -313,13 +330,68 @@ sub make_capture {
         1;
     } or $error = $@;
     chdir $old_pwd or die "Could not restore directory $old_pwd: $!";
+    if (defined $old_env_pwd) {
+        $ENV{PWD} = $old_env_pwd;
+    } else {
+        delete $ENV{PWD};
+    }
     die $error if defined $error;
     return @$result;
+}
+
+sub _parse_recursive_make_recipe {
+    my ($pwd, $command) = @_;
+    my @words = grep { defined && $_ ne '' }
+        &quotewords('\s+', 0, $command);
+    return if @words < 4 || shift(@words) ne 'cd';
+
+    my $directory = shift @words;
+    return if $directory !~ m{^[^/]+$} || $directory eq '.' || $directory eq '..';
+    return if shift(@words) ne '&&';
+
+    my $make_program = shift @words;
+    return if basename($make_program) !~ /^(?:b?make|gmake)$/;
+
+    my $child_pwd = abs_path("$pwd/$directory");
+    return if !defined $child_pwd || !-d $child_pwd;
+    return {
+        pwd => $child_pwd,
+        args => \@words,
+        key => join("\0", $pwd, $command),
+    };
+}
+
+sub make_capture {
+    my ($pwd, @args) = @_;
+    $pwd = getcwd() if !defined $pwd || $pwd eq '';
+    $pwd = abs_path($pwd)
+        or die "Could not resolve make directory $pwd: $!";
+    my $state = $make_recursion_state || {
+        active => {},
+        completed => {},
+    };
+
+    local $make_recursion_state = $state;
+    while (1) {
+        delete $state->{pending};
+        my @result = _make_capture_once($pwd, @args);
+        my $recursive = delete $state->{pending};
+        return @result if !defined $recursive;
+
+        die "Recursive iOS make cycle at $recursive->{pwd}\n"
+            if $state->{active}{$recursive->{key}};
+        local $state->{active}{$recursive->{key}} = 1;
+        my ($status, $output) = make_capture(
+            $recursive->{pwd}, @{$recursive->{args}});
+        return ($status, $output) if $status != 0;
+        $state->{completed}{$recursive->{key}} = $output // '';
+    }
 }
 
 sub make {
     my ($pwd, @args) = @_;
     my $old_pwd = getcwd();
+    my $old_env_pwd = $ENV{PWD};
     my ($status, $error);
 
     $pwd = $old_pwd if !defined $pwd || $pwd eq '';
@@ -329,6 +401,11 @@ sub make {
         1;
     } or $error = $@;
     chdir $old_pwd or die "Could not restore directory $old_pwd: $!";
+    if (defined $old_env_pwd) {
+        $ENV{PWD} = $old_env_pwd;
+    } else {
+        delete $ENV{PWD};
+    }
     die $error if defined $error;
     return $status;
 }
@@ -340,11 +417,12 @@ sub _make_perl_request {
 
     while (@words) {
         my $word = shift @words;
-        next if $word eq '\\';
+        next if $word eq '\\' || $word =~ /^\s*$/;
         if ($after_separator) {
             push @args, $word;
         } elsif ($word eq '--') {
             $after_separator = 1;
+            push @args, $word;
         } elsif ($word !~ /^-/ && -f ($word =~ m{^/} ? $word : "$pwd/$word")) {
             $progfile = $word;
             @args = grep { $_ ne '\\' } @words;
@@ -356,6 +434,7 @@ sub _make_perl_request {
 
     return {
         pwd => $pwd,
+        nolib => 1,
         progfile => $progfile,
         switches => \@switches,
         args => \@args,
@@ -376,17 +455,49 @@ sub _make_perl_request {
 
 sub _run_make_recipe {
     my ($command) = @_;
+    my $recursive = _parse_recursive_make_recipe(getcwd(), $command);
+    if ($recursive && $make_recursion_state) {
+        if (exists $make_recursion_state->{completed}{$recursive->{key}}) {
+            print $make_recursion_state->{completed}{$recursive->{key}};
+            return 0;
+        }
+        return IOS_MAKE_DEFER if exists $make_recursion_state->{pending};
+        $make_recursion_state->{pending} = $recursive;
+        return IOS_MAKE_DEFER;
+    }
+
     my @words = grep { defined && $_ ne '' }
         &quotewords('\s+', 0, $command);
+    return 0 if !@words;
+
+    my %environment;
+    while (@words && $words[0] =~ /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/s) {
+        $environment{$1} = $2;
+        shift @words;
+    }
     return 0 if !@words;
 
     my $program = shift @words;
     my $name = basename($program);
     if ($name =~ /^(?:perl(?:5(?:\.\d+)*)?|harness)$/) {
+        my ($redirect_mode, $redirect_file);
+        if (@words >= 2 && $words[-2] =~ /^>{1,2}$/) {
+            $redirect_file = pop @words;
+            $redirect_mode = pop @words;
+        }
+        local @ENV{keys %environment} = values %environment
+            if %environment;
         my ($result) = exec_perl_capture(
             _make_perl_request(getcwd(), @words));
         my ($status, $output) = @$result;
-        print $output if defined $output && length $output;
+        if (defined $redirect_mode) {
+            open my $handle, $redirect_mode, $redirect_file or return 1;
+            return 1 if defined $output && length $output
+                && !print {$handle} $output;
+            close $handle or return 1;
+        } else {
+            print $output if defined $output && length $output;
+        }
         $status = $status >> 8 if defined $status && $status > 255;
         return defined $status ? $status : 1;
     }
@@ -425,6 +536,35 @@ sub _run_make_recipe {
             }
         }
         return 0;
+    }
+
+    if ($name eq 'rm') {
+        my ($force, $recursive);
+        while (@words && $words[0] =~ /^-/) {
+            my $option = shift @words;
+            last if $option eq '--';
+            return 127 if $option !~ /^-[fRr]+$/;
+            $force = 1 if $option =~ /f/;
+            $recursive = 1 if $option =~ /[Rr]/;
+        }
+        return 1 if !@words;
+        for my $file (@words) {
+            if (-d $file && !-l $file) {
+                return 1 if !$recursive;
+                my $errors;
+                remove_tree($file, { error => \$errors });
+                return 1 if $errors && @$errors;
+                next;
+            }
+            next if unlink $file;
+            next if $force && !-e $file && !-l $file;
+            return 1;
+        }
+        return 0;
+    }
+
+    if ($name eq 'cp' && @words == 2) {
+        return copy($words[0], $words[1]) ? 0 : 1;
     }
 
     warn "Unsupported iOS make recipe: $command\n";

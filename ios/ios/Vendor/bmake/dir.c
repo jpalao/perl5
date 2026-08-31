@@ -504,6 +504,13 @@ Dir_InitDot(void)
 	Dir_SetPATH();		/* initialize */
 }
 
+void
+Dir_EnsureDot(void)
+{
+	if (dot == NULL)
+		Dir_InitDot();
+}
+
 #ifdef CLEANUP
 static void
 FreeCachedTable(HashTable *tbl)

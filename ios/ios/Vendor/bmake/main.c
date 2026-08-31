@@ -1501,6 +1501,9 @@ main_Init(int argc, char **argv)
 static void
 main_ReadFiles(void)
 {
+#ifdef IOS_EMBEDDED
+	Dir_EnsureDot();
+#endif
 
 	if (Lst_IsEmpty(&sysIncPath->dirs))
 		SearchPath_AddAll(sysIncPath, defSysIncPath);
@@ -1641,16 +1644,26 @@ main_ExitCode(bool outOfDate)
 	return outOfDate ? 1 : 0;
 }
 
+#ifdef IOS_EMBEDDED
+static bool ios_make_needs_cleanup;
+#endif
+
 static int
 bmake_main(int argc, char **argv)
 {
 	bool outOfDate;
 
 	main_Init(argc, argv);
+#ifdef IOS_EMBEDDED
+	ios_make_needs_cleanup = true;
+#endif
 	main_ReadFiles();
 	main_PrepareMaking();
 	outOfDate = main_Run();
 	main_CleanUp();
+#ifdef IOS_EMBEDDED
+	ios_make_needs_cleanup = false;
+#endif
 	return main_ExitCode(outOfDate);
 }
 
@@ -1700,10 +1713,16 @@ ios_make_run(int argc, char **argv, ios_make_recipe_callback callback,
 	ios_make_exit_status = 2;
 	main_errors = 0;
 
-	if (setjmp(ios_make_exit_buffer) == 0)
+	ios_make_needs_cleanup = false;
+	if (setjmp(ios_make_exit_buffer) == 0) {
 		status = bmake_main(argc, argv);
-	else
+	} else {
 		status = ios_make_exit_status;
+		if (ios_make_needs_cleanup) {
+			main_CleanUp();
+			ios_make_needs_cleanup = false;
+		}
+	}
 
 	ios_make_callback = NULL;
 	ios_make_callback_context = NULL;

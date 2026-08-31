@@ -80,6 +80,7 @@ typedef struct CachedDir CachedDir;
 void Dir_Init(void);
 void Dir_InitCur(const char *);
 void Dir_InitDot(void);
+void Dir_EnsureDot(void);
 #ifdef CLEANUP
 void Dir_End(void);
 #endif
