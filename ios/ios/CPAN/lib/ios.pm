@@ -18,7 +18,7 @@ BEGIN {
                 warn $@;
                 $result = $@;
             }
-            $? = defined $code ? $code : -1;
+            $? = defined $code ? $code >> 8 : -1;
             if ($list_context && defined $result) {
                 open my $output, '<', \$result or die "Cannot read captured output: $!";
                 my @records = <$output>;
@@ -64,7 +64,16 @@ use Cwd qw(abs_path chdir getcwd);
 use File::Basename qw(basename);
 use File::Copy qw(copy);
 use File::Path qw(remove_tree);
+our %main_symbols_before_parsewords;
+BEGIN {
+    %main_symbols_before_parsewords = map { $_ => 1 } keys %::;
+}
 use Text::ParseWords;
+BEGIN {
+    delete @::{grep {
+        /^(?:\d+|[`'&])$/ && !$main_symbols_before_parsewords{$_}
+    } keys %::};
+}
 
 our $DEBUG = 0;
 
