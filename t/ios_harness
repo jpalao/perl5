@@ -35,17 +35,10 @@ my @ios_blacklist = qw (
     ../cpan/Test-Simple/t/Legacy/exit.t
 
     ../cpan/ExtUtils-MakeMaker/t/02-xsdynamic.t
-    ../cpan/ExtUtils-MakeMaker/t/basic.t
-    ../cpan/ExtUtils-MakeMaker/t/FIRST_MAKEFILE.t
-    ../cpan/ExtUtils-MakeMaker/t/INSTALL_BASE.t
     ../cpan/ExtUtils-MakeMaker/t/min_perl_version.t
     ../cpan/ExtUtils-MakeMaker/t/miniperl.t
-    ../cpan/ExtUtils-MakeMaker/t/PL_FILES.t
-    ../cpan/ExtUtils-MakeMaker/t/pm_to_blib.t
-    ../cpan/ExtUtils-MakeMaker/t/recurs.t
     ../cpan/ExtUtils-MakeMaker/t/several_authors.t
     ../cpan/ExtUtils-MakeMaker/t/split_command.t
-    ../cpan/ExtUtils-MakeMaker/t/unicode.t
 );
 
 my @simul_blacklist = qw(
