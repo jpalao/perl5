@@ -51,9 +51,6 @@ our @EXPORT_OK = @methods;
 require XSLoader;
 XSLoader::load('ios', $VERSION);
 
-# auto-flush on socket
-$| = 1;
-
 sub _require {
     my ($module) = @_;
     no warnings 'redefine';
