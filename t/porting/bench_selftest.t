@@ -9,7 +9,7 @@ require './t/test.pl';
 
 if ($^O =~ /darwin-ios/) {
     exec_perl({
-        pwd => Cwd::getcwd(),
+        pwd => ios::getcwd(),
         switches => ["-I.", "-MTestInit"], 
         progfile => "Porting/bench.pl",
         args => ["--action=selftest"]

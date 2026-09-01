@@ -20,10 +20,7 @@ BEGIN {
             }
             $? = defined $code ? $code >> 8 : -1;
             if ($list_context && defined $result) {
-                open my $output, '<', \$result or die "Cannot read captured output: $!";
-                my @records = <$output>;
-                close $output;
-                return @records;
+                return _readpipe_records($result);
             }
             return $result;
         };
@@ -57,33 +54,90 @@ XSLoader::load('ios', $VERSION);
 # auto-flush on socket
 $| = 1;
 
-use open ":std", ":encoding(UTF-8)";
-use JSON::PP;
-use Data::Dumper;
-use Cwd qw(abs_path chdir getcwd);
-use File::Basename qw(basename);
-use File::Copy qw(copy);
-use File::Path qw(remove_tree);
-our %main_symbols_before_parsewords;
-BEGIN {
-    %main_symbols_before_parsewords = map { $_ => 1 } keys %::;
+sub _require {
+    my ($module) = @_;
+    no warnings 'redefine';
+    local *CORE::GLOBAL::require;
+    return require $module;
 }
-use Text::ParseWords;
-BEGIN {
-    delete @::{grep {
-        /^(?:\d+|[`'&])$/ && !$main_symbols_before_parsewords{$_}
-    } keys %::};
+
+sub Dumper {
+    _require('Data/Dumper.pm');
+    return Data::Dumper::Dumper(@_);
+}
+
+sub abs_path {
+    _require('Cwd.pm');
+    return Cwd::abs_path(@_);
+}
+
+sub _chdir {
+    _require('Cwd.pm');
+    return Cwd::chdir(@_);
+}
+
+sub getcwd {
+    _require('Cwd.pm');
+    return Cwd::getcwd();
+}
+
+sub basename {
+    _require('File/Basename.pm');
+    return File::Basename::basename(@_);
+}
+
+sub copy {
+    _require('File/Copy.pm');
+    return File::Copy::copy(@_);
+}
+
+sub remove_tree {
+    _require('File/Path.pm');
+    return File::Path::remove_tree(@_);
+}
+
+our $parsewords_loaded;
+sub quotewords {
+    if (!$parsewords_loaded) {
+        my %main_symbols = map { $_ => 1 } keys %::;
+        _require('Text/ParseWords.pm');
+        delete @::{grep {
+            /^(?:\d+|[`'&])$/ && !$main_symbols{$_}
+        } keys %::};
+        $parsewords_loaded = 1;
+    }
+    return Text::ParseWords::quotewords(@_);
 }
 
 our $DEBUG = 0;
 
 our $capture = 1;
 
+sub _readpipe_records {
+    my ($output) = @_;
+    return ($output) if !defined $/ || ref $/ || $/ eq '';
+
+    my @records;
+    my $offset = 0;
+    while ((my $end = index($output, $/, $offset)) >= 0) {
+        $end += length $/;
+        push @records, substr($output, $offset, $end - $offset);
+        $offset = $end;
+    }
+    push @records, substr($output, $offset) if $offset < length $output;
+    return @records;
+}
+
 use constant DARWIN_O_WRONLY => 0x0001;
 use constant DARWIN_O_CREAT => 0x0200;
 use constant IOS_MAKE_DEFER => 125;
 
-my $json = JSON::PP->new->convert_blessed(1);
+my $json;
+sub _json {
+    _require('JSON/PP.pm');
+    $json ||= JSON::PP->new->convert_blessed(1);
+    return $json;
+}
 our $make_recursion_state;
 
 sub check_error {
@@ -138,13 +192,13 @@ sub exec_perl {
         verbose => $req->{verbose},
         pwd => $req->{pwd},
     };
-    my $exec = $json->utf8->canonical->pretty->encode($runPerl);
+    my $exec = _json()->utf8->canonical->pretty->encode($runPerl);
     print "\$exec: $exec\n" if $DEBUG;
-    chdir $pwd or die "Could not chdir to $pwd: $!"
+    _chdir($pwd) or die "Could not chdir to $pwd: $!"
         if defined $pwd && $pwd ne '';
     my $t = eval { CBRunPerl($exec) };
     my $error = $@;
-    chdir $old_pwd or die "Could not restore directory $old_pwd: $!";
+    _chdir($old_pwd) or die "Could not restore directory $old_pwd: $!";
     die $error if $error ne '';
     print "\$t: $t\n" if $DEBUG;
     return int($t);
@@ -171,7 +225,7 @@ sub exec_perl_capture {
         verbose => $req->{verbose},
         pwd => $req->{pwd},
     };
-    my $exec = $json->utf8->canonical->pretty->encode($runPerl);
+    my $exec = _json()->utf8->canonical->pretty->encode($runPerl);
     print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
     my ($exit_code, $result);
     local $@;
@@ -281,7 +335,7 @@ sub parse_cli {
 
 sub exec_test {
     my ($pwd, $test) = @_;
-    die ('Could not chdir to $pwd') if ($pwd && ! chdir $pwd);
+    die ('Could not chdir to $pwd') if ($pwd && ! _chdir($pwd));
     print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
     my $json = parse_test($pwd, $test);
     print  Dumper("json", $json) if $DEBUG;
@@ -334,11 +388,11 @@ sub _make_capture_once {
 
     $pwd = $old_pwd if !defined $pwd || $pwd eq '';
     eval {
-        chdir $pwd or die "Could not chdir to $pwd: $!";
+        _chdir($pwd) or die "Could not chdir to $pwd: $!";
         ($result) = CBRunMakeCapture(@args);
         1;
     } or $error = $@;
-    chdir $old_pwd or die "Could not restore directory $old_pwd: $!";
+    _chdir($old_pwd) or die "Could not restore directory $old_pwd: $!";
     if (defined $old_env_pwd) {
         $ENV{PWD} = $old_env_pwd;
     } else {
@@ -405,11 +459,11 @@ sub make {
 
     $pwd = $old_pwd if !defined $pwd || $pwd eq '';
     eval {
-        chdir $pwd or die "Could not chdir to $pwd: $!";
+        _chdir($pwd) or die "Could not chdir to $pwd: $!";
         $status = CBRunMake(@args);
         1;
     } or $error = $@;
-    chdir $old_pwd or die "Could not restore directory $old_pwd: $!";
+    _chdir($old_pwd) or die "Could not restore directory $old_pwd: $!";
     if (defined $old_env_pwd) {
         $ENV{PWD} = $old_env_pwd;
     } else {
