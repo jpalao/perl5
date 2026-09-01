@@ -171,6 +171,7 @@ static Boolean perlInitialized = false;
                 putenv(pwdEnvCstring);
             }
         }
+        emb[embSize++] = "perl";
         NSArray * perlIncludes = [self getDefaultPerlIncludes];
 
         for (NSString * perlInclude in perlIncludes){
