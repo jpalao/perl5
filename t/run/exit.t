@@ -17,7 +17,7 @@ sub run {
     if ($^O =~ /darwin-ios/) {
         my $result = exec_perl ({
             switches => ['-e', $code],
-            pwd => Cwd::getcwd(),
+            pwd => ios::getcwd(),
             stderr => 1,
         });
         $? = $result;
