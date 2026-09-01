@@ -142,7 +142,7 @@ static Boolean perlInitialized = false;
 {
     int embSize = 0;
     int dirChanged = -1;
-    char *emb[32];
+    char *emb[128] = { NULL };
     int result;
 
     @synchronized(perlInstanceDict)
