@@ -804,7 +804,8 @@ sub runperl {
             ($result) = exec_perl_capture(\%args);
         };
         $? = $result->[0];
-        utf8::encode($result->[1]) if defined $result->[1];
+        utf8::encode($result->[1])
+            if defined $result->[1] && utf8::is_utf8($result->[1]);
         return $result->[1] ? $result->[1] : $@;
     }
 

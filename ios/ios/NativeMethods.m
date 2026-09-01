@@ -376,7 +376,7 @@ CBRunPerlCaptureStdout (char * json) {
     [stdoutPipeOut closeFile];
     [stderrPipeOut closeFile];
 
-    stdout_result = newSVpvn_flags([combinedOutput bytes], [combinedOutput length], SVf_UTF8);
+    stdout_result = newSVpvn([combinedOutput bytes], [combinedOutput length]);
 
     av_push(results, exit_code);
     av_push(results, stdout_result);
