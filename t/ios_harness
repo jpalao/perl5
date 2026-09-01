@@ -36,10 +36,6 @@ my @ios_blacklist = qw (
     ../cpan/Test-Simple/t/Legacy/exit.t
 
     ../cpan/ExtUtils-MakeMaker/t/02-xsdynamic.t
-    ../cpan/ExtUtils-MakeMaker/t/min_perl_version.t
-    ../cpan/ExtUtils-MakeMaker/t/miniperl.t
-    ../cpan/ExtUtils-MakeMaker/t/several_authors.t
-    ../cpan/ExtUtils-MakeMaker/t/split_command.t
 );
 
 my @simul_blacklist = qw(
