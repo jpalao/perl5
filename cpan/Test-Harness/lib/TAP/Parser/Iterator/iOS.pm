@@ -91,6 +91,7 @@ sub _initialize {
         chomp @$command_parts;
         ($exit_code, $tap) = exec_test($workdir, $command_parts);
         $teardown->() if $teardown;
+        utf8::encode($tap) if defined $tap && utf8::is_utf8($tap);
         $self->{array} = array_ref_from($tap);
         $self->{exit}  = $exit_code;
     }
