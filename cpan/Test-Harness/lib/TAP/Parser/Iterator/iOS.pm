@@ -96,20 +96,17 @@ sub _initialize {
             utf8::decode($tap) unless utf8::is_utf8($tap);
         }
         $self->{array} = array_ref_from($tap);
-        $self->{exit}  = $exit_code;
+        $self->{wait}  = $exit_code;
+        $self->{exit}  = $exit_code >> 8;
     }
     chdir $workdir;
     $self->{idx}   = 0;
     return $self;
 }
 
-sub wait { shift->exit }
+sub wait { shift->{wait} }
 
-sub exit {
-    my $self = shift;
-    return 0 if $self->{array} && $self->{idx} >= @{ $self->{array} };
-    return;
-}
+sub exit { shift->{exit} }
 
 sub next_raw {
     my $self = shift;
