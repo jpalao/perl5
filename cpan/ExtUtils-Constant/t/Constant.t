@@ -1,6 +1,10 @@
 #!/usr/bin/perl -w
 
 use Config;
+if ($^O eq 'darwin-ios') {
+  print "1..0 # SKIP Runtime extension compilation is unavailable on iOS\n";
+  exit 0;
+}
 unless ($Config{usedl}) {
     print "1..0 # no usedl, skipping\n";
     exit 0;
