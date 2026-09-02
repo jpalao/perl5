@@ -142,6 +142,7 @@ static Boolean perlInitialized = false;
 {
     int embSize = 0;
     int dirChanged = -1;
+    char perlProgramName[] = "perl";
     char *emb[128] = { NULL };
     int result;
 
@@ -171,7 +172,7 @@ static Boolean perlInitialized = false;
                 putenv(pwdEnvCstring);
             }
         }
-        emb[embSize++] = "perl";
+        emb[embSize++] = perlProgramName;
         NSArray * perlIncludes = [self getDefaultPerlIncludes];
 
         for (NSString * perlInclude in perlIncludes){
@@ -246,6 +247,7 @@ static Boolean perlInitialized = false;
             @try
             {
                 perl_construct(_PerlCtrlInterpreter);
+                PL_origalen = 1;
             }
             @catch (NSException * exception )
             {
