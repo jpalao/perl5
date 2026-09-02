@@ -88,6 +88,11 @@ sub copy {
     return File::Copy::copy(@_);
 }
 
+sub move {
+    _require('File/Copy.pm');
+    return File::Copy::move(@_);
+}
+
 sub remove_tree {
     _require('File/Path.pm');
     return File::Path::remove_tree(@_);
@@ -625,6 +630,10 @@ sub _run_make_recipe {
 
     if ($name eq 'cp' && @words == 2) {
         return copy($words[0], $words[1]) ? 0 : 1;
+    }
+
+    if ($name eq 'mv' && @words == 2) {
+        return move($words[0], $words[1]) ? 0 : 1;
     }
 
     warn "Unsupported iOS make recipe: $command\n";
