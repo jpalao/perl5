@@ -765,27 +765,22 @@ test_perl_device() {
 
     pushd "$WORKDIR/perl-$PERL_VERSION/"
 
-    echo 'substitute @INC = (...) with use lib (...). Patching files...'
+    echo 'substitute @INC = (...) with use lib (...), excluding .t files...'
 
     perl -0777 -p -i -e 's/(\@INC\s*=\s*)((?:(?!.*map.*)))/use lib \2/g' TestInit.pm
 
-    find . -name "*.t" -o -name "TEST" -o -name "harness" -type f | \
+    find . -type f \( -name "TEST" -o -name "harness" \) | \
         xargs grep -EL 'local\s*@INC\s*=' | \
         xargs grep -EL '\\@INC\s*=' | \
         xargs grep -El '^\s*[^#]*\s*\s*@INC\s*=' | \
         xargs perl -0777 -p -i -e 's|(\s*(?:(?!#))\s*)(?:(?!local))\s*\@INC\s*=(?:(?!>))\s*(?!.*if.*)|\1use lib |g'
 
-    find . -type f | grep -E "\.(pl|pm|t)$" | \
+    find . -type f \( -name "*.pl" -o -name "*.pm" \) | \
         xargs grep -EL 'local\s*@INC\s*=' | \
         xargs grep -EL '\\@INC\s*=' | \
         xargs grep -El "^\s*[^#]*\s*@INC\s*=.*if.*" | \
         xargs perl -0777 -p -i -e \
         's|(\s*(?:(?!#))\s*)(?:(?!local)\s*)\@INC\s*=(?:(?!>))\s*(.*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
-
-    # exceptions
-    git checkout ext/File-Find/t/find.t
-    git checkout ext/File-Find/t/taint.t
-    git checkout t/op/inccode-tie.t
 
     echo 'Patched files:'
     git --no-pager diff --name-only
