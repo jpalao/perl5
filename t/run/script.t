@@ -23,7 +23,8 @@ $x = `$Perl $filename`;
 
 is($x, "ok\n", "Got expected output of command from script");
 
-$x = `$Perl <$filename`;
-
-skip('iOS: no shell redirection') if ($^O =~ /darwin-ios/);
-is($x, "ok\n", "Got expected output of command read from script");
+SKIP: {
+    skip('iOS: no shell redirection') if $^O =~ /darwin-ios/;
+    $x = `$Perl <$filename`;
+    is($x, "ok\n", "Got expected output of command read from script");
+}

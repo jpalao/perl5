@@ -118,16 +118,18 @@ for (qw(system qx popen)) {
     ++$t;
 }
 
-my $cmd = _create_runperl(
-			  switches => ['-l'],
-			  prog =>
-			  sprintf('print qq[ok $_] for (%d..%d)', $t, $t+2));
-print "# cmd = '$cmd'\n";
-open my $CMD, "$cmd |" or die "Can't open pipe to '$cmd': $!";
-while (<$CMD>) {
-    system("$runperl -e 0");
-    print;
+if ($^O !~ /darwin-ios/) {
+    my $cmd = _create_runperl(
+			      switches => ['-l'],
+			      prog =>
+			      sprintf('print qq[ok $_] for (%d..%d)', $t, $t+2));
+    print "# cmd = '$cmd'\n";
+    open my $CMD, "$cmd |" or die "Can't open pipe to '$cmd': $!";
+    while (<$CMD>) {
+        system("$runperl -e 0");
+        print;
+    }
+    close $CMD;
+    $t += 3;
+    curr_test($t);
 }
-close $CMD;
-$t += 3;
-curr_test($t);
