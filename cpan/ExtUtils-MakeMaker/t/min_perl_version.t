@@ -26,6 +26,7 @@ my $CM = eval { require CPAN::Meta; };
 my $DIRNAME = 'Min-PerlVers';
 my %FILES = (
     'Makefile.PL'   => <<'END',
+BEGIN { delete $ENV{PERL_CORE} if $^O eq 'darwin-ios' }
 use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME             => 'Min::PerlVers',
