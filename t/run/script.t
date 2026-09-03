@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    $^O =~ /darwin-ios/ ? unshift @INC, '../lib' : (@INC = '../lib');
     require './test.pl';	# for which_perl() etc
     plan(3);
 }
