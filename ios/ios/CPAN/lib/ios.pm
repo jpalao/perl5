@@ -287,20 +287,31 @@ sub parse_cli {
     my ($pwd, $cli) = @_;
     print Dumper("parse_test pwd", $pwd) if $DEBUG;
     print Dumper("parse_test t", $cli) if $DEBUG;
-    my ($file, $arg, $switch, $stderr, @args, @switches);
-
-    my ($cmd) = $cli =~ s/[^\s]*(perl|harness)["']?\s*([^\s]+.*$)/$2/r;
-
-    print Dumper("cmd", $cmd) if $DEBUG;
+    my ($file, $stderr, @args, @switches);
 
     $stderr = 0;
-    $cmd =~ s/2>&1//;
+    $cli =~ s/2>&1//;
+
+    my @cmd_words = grep { defined && $_ !~ /^\s*$/ }
+        &quotewords('\s+', 0, $cli);
+    shift @cmd_words while @cmd_words
+        && basename($cmd_words[0]) !~ /^(?:perl(?:5(?:\.\d+)*)?|harness)$/;
+    shift @cmd_words if @cmd_words;
+    print Dumper("\@cmd_words", "@cmd_words") if $DEBUG;
+
+    my $separator_index;
+    for my $index (0 .. $#cmd_words) {
+        if ($cmd_words[$index] eq '--') {
+            $separator_index = $index;
+            last;
+        }
+    }
+    if (defined $separator_index) {
+        @args = splice @cmd_words, $separator_index + 1;
+    }
 
     my $file_index = -1;
-    my @cmd_words = &quotewords('\s+', 0, $cmd);
-    @cmd_words = grep defined, @cmd_words;
-    print Dumper("\@cmd_words", "@cmd_words") if $DEBUG;
-    if ($cmd !~ /\-[l]?e['" ]+/) {
+    if (!grep { $_ eq '-e' || /^-[A-Za-z]*e[A-Za-z]*$/ } @cmd_words) {
         for (my $i = 0; $i < scalar @cmd_words; $i++) {
             print Dumper("trying word", $cmd_words[$i]) if $DEBUG;
             if (-f $cmd_words[$i]) {
@@ -313,7 +324,7 @@ sub parse_cli {
     }
 
     if ($file) {
-        @args = splice @cmd_words, $file_index +1, @cmd_words -1;
+        push @args, splice @cmd_words, $file_index + 1;
         print Dumper("\@args", @args) if $DEBUG && @switches;
         @switches = splice @cmd_words, 0, $file_index;
         print Dumper("\@switches", @switches) if $DEBUG && @switches;
