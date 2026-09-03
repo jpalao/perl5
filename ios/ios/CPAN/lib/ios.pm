@@ -287,7 +287,7 @@ sub parse_cli {
     my ($pwd, $cli) = @_;
     print Dumper("parse_test pwd", $pwd) if $DEBUG;
     print Dumper("parse_test t", $cli) if $DEBUG;
-    my ($file, $stderr, @args, @switches);
+    my ($file, $prog, $stderr, @args, @switches);
 
     $stderr = 0;
     $cli =~ s/2>&1//;
@@ -299,19 +299,22 @@ sub parse_cli {
     shift @cmd_words if @cmd_words;
     print Dumper("\@cmd_words", "@cmd_words") if $DEBUG;
 
-    my $separator_index;
+    my $eval_index;
     for my $index (0 .. $#cmd_words) {
-        if ($cmd_words[$index] eq '--') {
-            $separator_index = $index;
+        if ($cmd_words[$index] eq '-e') {
+            $eval_index = $index;
             last;
         }
     }
-    if (defined $separator_index) {
-        @args = splice @cmd_words, $separator_index + 1;
+    if (defined $eval_index) {
+        @switches = splice @cmd_words, 0, $eval_index;
+        shift @cmd_words;
+        $prog = shift @cmd_words;
+        @args = @cmd_words;
     }
 
     my $file_index = -1;
-    if (!grep { $_ eq '-e' || /^-[A-Za-z]*e[A-Za-z]*$/ } @cmd_words) {
+    if (!defined $prog) {
         for (my $i = 0; $i < scalar @cmd_words; $i++) {
             print Dumper("trying word", $cmd_words[$i]) if $DEBUG;
             if (-f $cmd_words[$i]) {
@@ -323,19 +326,22 @@ sub parse_cli {
         }
     }
 
-    if ($file) {
-        push @args, splice @cmd_words, $file_index + 1;
-        print Dumper("\@args", @args) if $DEBUG && @switches;
-        @switches = splice @cmd_words, 0, $file_index;
-        print Dumper("\@switches", @switches) if $DEBUG && @switches;
-    } else {
-        @switches = @cmd_words;
+    if (!defined $prog) {
+        if ($file) {
+            push @args, splice @cmd_words, $file_index + 1;
+            print Dumper("\@args", @args) if $DEBUG && @switches;
+            @switches = splice @cmd_words, 0, $file_index;
+            print Dumper("\@switches", @switches) if $DEBUG && @switches;
+        } else {
+            @switches = @cmd_words;
+        }
     }
 
     @args = grep defined, @args;
     @switches = grep defined, @switches;
 
     my $result = {
+        prog => $prog,
         progfile => $file,
         pwd => $pwd,
         switches => \@switches,
