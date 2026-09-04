@@ -174,11 +174,15 @@ static Boolean perlInitialized = false;
         }
         emb[embSize++] = perlProgramName;
         NSArray * perlIncludes = [self getDefaultPerlIncludes];
+        NSString * runtimeLibraryPath = [NSString stringWithFormat:@"%@/perl5/%@/darwin-thread-multi-2level",
+                                          [[NSBundle mainBundle] resourcePath], self.perlVersionString];
+        NSString * runtimeLibraryOption = [NSString stringWithFormat:@"-MDynaLoader=%@", runtimeLibraryPath];
 
         for (NSString * perlInclude in perlIncludes){
             if (perlInclude != nil)
                 emb[embSize++] = (char *)[perlInclude UTF8String];
         }
+        emb[embSize++] = (char *)[runtimeLibraryOption UTF8String];
 
         if (options != nil){
             for (NSString * option in options)
