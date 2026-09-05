@@ -136,8 +136,8 @@ use constant IOS_MAKE_DEFER => 125;
 
 my $json;
 sub _json {
-    _require('JSON/PP.pm');
-    $json ||= JSON::PP->new->convert_blessed(1);
+    _require('Cpanel/JSON/XS.pm');
+    $json ||= Cpanel::JSON::XS->new->convert_blessed(1);
     return $json;
 }
 our $make_recursion_state;
