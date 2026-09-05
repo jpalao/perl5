@@ -30,6 +30,9 @@ my $not_installed = qr{^(?:
                                /MB-[\w\d]+/Simple/(?:test_install/)?bin/.*
 )\z}ix;
 
+# The iOS runtime embeds Cpanel::JSON::XS but does not ship its optional CLI.
+my $ios_not_installed = qr{^\.\./ext/Cpanel-JSON-XS/bin/cpanel_json_xs\z};
+
 my %dist_dir_exe;
 
 $dist_dir_exe{lc "podselect.PL"} = "../cpan/Pod-Parser/podselect";
@@ -64,6 +67,7 @@ find(
 for my $f ( sort @programs ) {
   $f =~ s/\.\z// if $^O eq 'VMS';
   next if $f =~ $not_installed;
+  next if $^O =~ /darwin-ios/ && $f =~ $ios_not_installed;
   my $bn = basename($f);
   if(grep { /\A(?i:$bn)\z/ } keys %dist_dir_exe) {
     my $exe_file = "$dist_dir_exe{lc $bn}$ext";

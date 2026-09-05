@@ -9,6 +9,7 @@ ppport.h
 README
 t/00-ios.t
 t/01-embedded-make.t
+t/02-json-compat.t
 t/fixtures/Perla-Pure/Makefile.PL
 t/fixtures/Perla-Pure/lib/Perla/Pure.pm
 typemap

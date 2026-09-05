@@ -2084,6 +2084,12 @@ if ($regen) {
 foreach my $filename (@files) {
     my $canonical = canonicalize($filename);
     SKIP: {
+        # Cpanel::JSON::XS is vendored only for the iOS runtime and its POD
+        # links to optional CPAN modules outside the core POD inventory.
+        skip('iOS: Cpanel::JSON::XS POD is not part of the core inventory', 1)
+            if ($^O =~ /darwin-ios/
+                && $filename =~ m{^ext/Cpanel-JSON-XS/});
+
         my $skip = $filename_to_checker{$filename}->get_skip // "";
 
         if ($regen) {
