@@ -18,3 +18,4 @@ dist/threads
 dist/threads-shared
 dist/Time-HiRes
 dist/Unicode-Normalize
+ext/Cpanel-JSON-XS
