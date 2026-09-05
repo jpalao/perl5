@@ -710,7 +710,7 @@ install_harness() {
 
     case "$TRANSFER_TRANSPORT" in
         ios-deploy)
-            capture_command_output ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+            capture_command_output ios-deploy -i "$IOS_DEVICE_UUID" --bundle "$app_path"
             return $?
             ;;
         *)
@@ -721,7 +721,7 @@ install_harness() {
                 status=$?
                 if [ "$status" -ne 0 ] && [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
                     echo "devicectl install failed; retrying with ios-deploy" >&2
-                    capture_command_output ios-deploy -r -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+                    capture_command_output ios-deploy -i "$IOS_DEVICE_UUID" --bundle "$app_path"
                     return $?
                 fi
                 return "$status"
@@ -735,6 +735,8 @@ test_perl_device() {
     pushd "perl-$PERL_VERSION/ios/test"
     check_exit_code
 
+    local install_root="$PWD/Build/Install"
+
     BUILD_CAMELBONES_BOOLEAN="NO"
     if [ $BUILD_CAMELBONES -eq 1 ]; then
         BUILD_CAMELBONES_BOOLEAN="YES"
@@ -746,12 +748,14 @@ test_perl_device() {
         IOS_FRAMEWORK_PATH="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ios/ios/build/Products/$IOS_BUILD_CONFIGURATION-$IOS_TARGET" \
         PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
         LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
-        PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO -allowProvisioningUpdates -scheme harness
+        PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
+        DSTROOT="$install_root" -configuration "$HARNESS_BUILD_CONFIGURATION" \
+        -allowProvisioningUpdates -scheme harness clean install
     check_exit_code
 
     # install the app so it can receive files in Documents
     simulator_build=`echo "$ARCHS" | grep -c "x86_64"` # x86_64 simulator
-    test_app="Build/Products/$HARNESS_BUILD_CONFIGURATION-$HARNESS_TARGET/harness.app"
+    test_app="$install_root/Applications/harness.app"
     HARNESS_APP_PATH="$test_app"
 
     if [ "$simulator_build" -eq "0" ]; then
@@ -764,26 +768,6 @@ test_perl_device() {
     fi
 
     pushd "$WORKDIR/perl-$PERL_VERSION/"
-
-    echo 'substitute @INC = (...) with use lib (...), excluding .t files...'
-
-    perl -0777 -p -i -e 's/(\@INC\s*=\s*)((?:(?!.*map.*)))/use lib \2/g' TestInit.pm
-
-    find . -type f \( -name "TEST" -o -name "harness" \) | \
-        xargs grep -EL 'local\s*@INC\s*=' | \
-        xargs grep -EL '\\@INC\s*=' | \
-        xargs grep -El '^\s*[^#]*\s*\s*@INC\s*=' | \
-        xargs perl -0777 -p -i -e 's|(\s*(?:(?!#))\s*)(?:(?!local))\s*\@INC\s*=(?:(?!>))\s*(?!.*if.*)|\1use lib |g'
-
-    find . -type f \( -name "*.pl" -o -name "*.pm" \) | \
-        xargs grep -EL 'local\s*@INC\s*=' | \
-        xargs grep -EL '\\@INC\s*=' | \
-        xargs grep -El "^\s*[^#]*\s*@INC\s*=.*if.*" | \
-        xargs perl -0777 -p -i -e \
-        's|(\s*(?:(?!#))\s*)(?:(?!local)\s*)\@INC\s*=(?:(?!>))\s*(.*)\s*if\s*([^;]*);|${1}if (${3}) { use lib ${2} }|g'
-
-    echo 'Patched files:'
-    git --no-pager diff --name-only
 
     popd
 
