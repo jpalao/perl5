@@ -7,7 +7,9 @@ use warnings;
 use lib 't/lib';
 
 use Test::More (
-    $^O eq 'VMS'
+  $^O =~ /darwin-ios/
+  ? ( skip_all => 'nested process TAP is unsupported on iOS' )
+  : $^O eq 'VMS'
     ? ( skip_all => 'VMS' )
     : ( tests => 1 )
 );
