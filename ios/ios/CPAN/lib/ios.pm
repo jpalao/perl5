@@ -30,6 +30,7 @@ BEGIN {
 use strict;
 use warnings;
 use Config;
+use Cpanel::JSON::XS ();
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -136,7 +137,6 @@ use constant IOS_MAKE_DEFER => 125;
 
 my $json;
 sub _json {
-    _require('Cpanel/JSON/XS.pm');
     $json ||= Cpanel::JSON::XS->new->convert_blessed(1);
     return $json;
 }
@@ -154,6 +154,12 @@ sub yield {
 sub _perl_switches_with_environment {
         my ($switches) = @_;
         my @result = @{$switches || []};
+
+        if ($^O =~ /darwin-ios/
+                && !grep { /^-Mios(?:=|\z)/ } @result) {
+                my $index = @result && $result[0] =~ /^-[Tt]\z/ ? 1 : 0;
+                splice @result, $index, 0, '-Mios';
+        }
 
         return \@result if grep { $_ eq '-T' || $_ eq '-t' } @result;
         return \@result if !defined $ENV{PERL5LIB};
@@ -382,9 +388,10 @@ sub exec_test {
         eval {
             ($result) = exec_perl_capture($json);
         };
+        $result = _normalize_capture_result($result, $@);
         print  Dumper("code", $result->[0]) if $DEBUG;
         print  Dumper("output", $result->[1]) if $DEBUG;
-        return ($result->[0], $result->[1] ? $result->[1] : $@);
+        return ($result->[0], defined $result->[1] ? $result->[1] : '');
     } else {
         eval {
             ($result) = exec_perl($json);
@@ -411,9 +418,10 @@ sub exec_cli {
     eval {
         ($result) = exec_perl_capture($json);
     };
+    $result = _normalize_capture_result($result, $@);
     print  Dumper("code", $result->[0]) if $DEBUG;
     print  Dumper("output", $result->[1]) if $DEBUG;
-    return ($result->[0], $result->[1] ? $result->[1] : $@);
+    return ($result->[0], defined $result->[1] ? $result->[1] : '');
 }
 
 sub _make_capture_once {
