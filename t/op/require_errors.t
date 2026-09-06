@@ -16,16 +16,13 @@ my $nonfile = tempfile();
 # The tests for ' ' and '.h' never did fail, but previously the error reporting
 # code would read memory before the start of the SV's buffer
 
-SKIP: {
-    skip ('iOS: #TODO fix regex', 2) if $^O =~ /darwin-ios/;
-    for my $file ($nonfile, ' ') {
-        eval {
-        require $file;
-        };
+for my $file ($nonfile, ' ') {
+    eval {
+	require $file;
+    };
 
-        like $@, qr/^Can't locate $file in \@INC \(\@INC contains: @INC\) at/,
-        "correct error message for require '$file'";
-    }
+    like $@, qr/^Can't locate $file in \@INC \(\@INC contains: @INC\) at/,
+	"correct error message for require '$file'";
 }
 
 # Check that the "(you may need to install..) hint is included in the
@@ -132,29 +129,28 @@ eval "require ::$nonfile";
 like $@, qr/^Bareword in require must not start with a double-colon:/,
         "correct error message for require ::$nonfile";
 
-SKIP: {
-    skip ('iOS: #TODO fix regex', 5) if $^O =~ /darwin-ios/;
+eval {
+    require "$nonfile.ph";
+};
+
+like $@, qr/^Can't locate $nonfile\.ph in \@INC \(did you run h2ph\?\) \(\@INC contains: @INC\) at/;
+
+for my $file ("$nonfile.h", ".h") {
     eval {
-        require "$nonfile.ph";
+	require $file
     };
 
-    like $@, qr/^Can't locate $nonfile\.ph in \@INC \(did you run h2ph\?\) \(\@INC contains: @INC\) at/;
+    like $@, qr/^Can't locate \Q$file\E in \@INC \(change \.h to \.ph maybe\?\) \(did you run h2ph\?\) \(\@INC contains: @INC\) at/,
+	"correct error message for require '$file'";
+}
 
-    for my $file ("$nonfile.h", ".h") {
-        eval {
-        require $file
-        };
-        like $@, qr/^Can't locate \Q$file\E in \@INC \(change \.h to \.ph maybe\?\) \(did you run h2ph\?\) \(\@INC contains: @INC\) at/,
-        "correct error message for require '$file'";
-    }
+for my $file ("$nonfile.ph", ".ph") {
+    eval {
+	require $file
+    };
 
-    for my $file ("$nonfile.ph", ".ph") {
-        eval {
-        require $file
-        };
-        like $@, qr/^Can't locate \Q$file\E in \@INC \(did you run h2ph\?\) \(\@INC contains: @INC\) at/,
-        "correct error message for require '$file'";
-    }
+    like $@, qr/^Can't locate \Q$file\E in \@INC \(did you run h2ph\?\) \(\@INC contains: @INC\) at/,
+	"correct error message for require '$file'";
 }
 
 eval 'require <foom>';

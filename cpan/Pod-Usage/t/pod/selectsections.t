@@ -1,7 +1,5 @@
 use Test::More tests => 2;
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 use strict;
 use warnings;
 

@@ -159,13 +159,10 @@ for my $test (@schedule) {
             is $got, $expect, "$name: '$expect' OK";
         }
         else {
-            SKIP: {
-                skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
-                ok @$stash == 0, "$name: EOF OK";
+            ok @$stash == 0, "$name: EOF OK";
 
-                # Make sure we only get one EOF per stream
-                push @$stash, ' expect no more ';
-            }
+            # Make sure we only get one EOF per stream
+            push @$stash, ' expect no more ';
         }
     }
     is $mux->parsers, 0, "$name: All used up";

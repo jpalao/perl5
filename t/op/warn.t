@@ -108,24 +108,20 @@ $@ = $ea;
 warn;
 ok @warnings==1 && ref($warnings[0]) eq "ARRAY" && $warnings[0] == $ea;
 
-SKIP: {
-    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
-    fresh_perl_like(
-     '
-       $a = "\xee\n";
-       print STDERR $a; warn $a;
-       utf8::upgrade($a);
-       print STDERR $a; warn $a;
-     ',
-      qr/^\xee(?:\r?\n\xee){3}/,
-      { switches => [ "-C0" ] },
-     'warn emits logical characters, not internal bytes [perl #45549]'
-    );
-}
+fresh_perl_like(
+ '
+   $a = "\xee\n";
+   print STDERR $a; warn $a;
+   utf8::upgrade($a);
+   print STDERR $a; warn $a;
+ ',
+  qr/^\xee(?:\r?\n\xee){3}/,
+  { switches => [ "-C0" ] },
+ 'warn emits logical characters, not internal bytes [perl #45549]'  
+);
 
 SKIP: {
-   skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
-   skip_if_miniperl('miniperl ignores -C', 1);
+    skip_if_miniperl('miniperl ignores -C', 1);
    $ee = uni_to_native("\xee");
    $bytes = byte_utf8a_to_utf8n("\xc3\xae");
 fresh_perl_like(
@@ -141,16 +137,13 @@ fresh_perl_like(
 );
 }
 
-SKIP: {
-    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
-    $bytes = byte_utf8a_to_utf8n("\xc4\xac");
-    fresh_perl_like(
-     'warn chr 300',
-      qr/^Wide character in warn .*\n$bytes at /,
-      { switches => [ "-C0" ] },
-     'Wide character in warn (not print)'
-    );
-}
+$bytes = byte_utf8a_to_utf8n("\xc4\xac");
+fresh_perl_like(
+ 'warn chr 300',
+  qr/^Wide character in warn .*\n$bytes at /,
+  { switches => [ "-C0" ] },
+ 'Wide character in warn (not print)'
+);
 
 fresh_perl_like(
  'warn []',
