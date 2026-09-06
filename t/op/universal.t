@@ -138,13 +138,10 @@ ok ! (eval { aversion->VERSION(2.719) });
 like $@, qr/^Invalid version format/;
 
 my $subs = join ' ', sort grep { defined &{"UNIVERSAL::$_"} } keys %UNIVERSAL::;
-SKIP: {
-    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
-    if ('a' lt 'A') {
-        is $subs, "can isa DOES VERSION";
-    } else {
-        is $subs, "DOES VERSION can isa";
-    }
+if ('a' lt 'A') {
+    is $subs, "can isa DOES VERSION";
+} else {
+    is $subs, "DOES VERSION can isa";
 }
 
 ok $a->isa("UNIVERSAL");
@@ -164,13 +161,10 @@ ok $a->isa("UNIVERSAL");
 
 my $sub2 = join ' ', sort grep { defined &{"UNIVERSAL::$_"} } keys %UNIVERSAL::;
 # XXX import being here is really a bug
-SKIP: {
-    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
-    if ('a' lt 'A') {
-        is $sub2, "can import isa DOES VERSION";
-    } else {
-        is $sub2, "DOES VERSION can import isa";
-    }
+if ('a' lt 'A') {
+    is $sub2, "can import isa DOES VERSION";
+} else {
+    is $sub2, "DOES VERSION can import isa";
 }
 
 eval 'sub UNIVERSAL::sleep {}';
