@@ -58,6 +58,7 @@ $result = runperl( progfile => $extracted_program,
 like($result, qr/Complete configuration data/,
      'full config information dumped with -d -v');
 
+
 # check that we need -t
 $result = runperl( progfile => $extracted_program,
                    stderr   => 1, # perlbug dies with "\n";
@@ -74,43 +75,46 @@ like(_slurp($testreport), qr/Perl reported to build OK on this system/,
      'build report looks sane');
 unlink $testreport;
 
+SKIP: {
+    skip('iOS: no stdin', 3);
+    # test -nokay (a bit more interactive)
+    $result = runperl( progfile => $extracted_program,
+                       stdin    => 'f', # save to File
+                       args     => ['-t',
+                                    '-nokay',
+                                    '-e', 'file',
+                                    '-F', $testreport] );
+    like($result, qr/Report saved/, 'build failure report saved');
+    like(_slurp($testreport), qr/This is a build failure report for perl/,
+         'build failure report looks sane');
+    unlink $testreport;
+}
 
-# test -nokay (a bit more interactive)
-$result = runperl( progfile => $extracted_program,
-                   stdin    => 'f', # save to File
-                   args     => ['-t',
-                                '-nokay',
-                                '-e', 'file',
-                                '-F', $testreport] );
-like($result, qr/Report saved/, 'build failure report saved');
-like(_slurp($testreport), qr/This is a build failure report for perl/,
-     'build failure report looks sane');
-unlink $testreport;
-
-
-# test a regular report
-$result = runperl( progfile => $extracted_program,
-                   # no CLI options for these
-                   stdin    => "\n" # Module
-                             . "\n" # Category
-                             . "\n" # Severity
-                             . "\n" # Editor
-                             . "f", # save to File
-                   args     => ['-t',
-                                # runperl has trouble with whitespace
-                                '-s', "testingperlbug",
-                                '-r', 'username@example.com',
-                                '-c', 'none',
-                                '-b', 'testreportbody',
-                                '-e', 'file',
-                                '-F', $testreport] );
-like($result, qr/Report saved/, 'fake bug report saved');
-my $contents = _slurp($testreport);
-like($contents, qr/Subject: testingperlbug/,
-     'Subject included in fake bug report');
-like($contents, qr/testreportbody/, 'body included in fake bug report');
-unlink $testreport;
-
+SKIP: {
+    skip('iOS: no stdin', 4);
+    # test a regular report
+    $result = runperl( progfile => $extracted_program,
+                       # no CLI options for these
+                       stdin    => "\n" # Module
+                                 . "\n" # Category
+                                 . "\n" # Severity
+                                 . "\n" # Editor
+                                 . "f", # save to File
+                       args     => ['-t',
+                                    # runperl has trouble with whitespace
+                                    '-s', "testingperlbug",
+                                    '-r', 'username@example.com',
+                                    '-c', 'none',
+                                    '-b', 'testreportbody',
+                                    '-e', 'file',
+                                    '-F', $testreport] );
+    like($result, qr/Report saved/, 'fake bug report saved');
+    my $contents = _slurp($testreport);
+    like($contents, qr/Subject: testingperlbug/,
+         'Subject included in fake bug report');
+    like($contents, qr/testreportbody/, 'body included in fake bug report');
+    unlink $testreport;
+}
 
 # test wrapping of long lines
 my $body = 'body.txt';
@@ -123,36 +127,39 @@ unlink $attachment;
 my $B = 'B'x9;
 ok(_dump($attachment, ("$B "x120)), 'wrote 1200-char attachment to file');
 
-$result = runperl( progfile => $extracted_program,
-                   stdin    => "testing perlbug\n" # Subject
-                             . "\n" # Module
-                             . "\n" # Category
-                             . "\n" # Severity
-                             . "f", # save to File
-                   args     => ['-t',
-                                '-r', 'username@example.com',
-                                '-c', 'none',
-                                '-f', $body,
-                                '-p', $attachment,
-                                '-e', 'file',
-                                '-F', $testreport] );
-like($result, qr/Report saved/, 'fake bug report saved');
-my $contents = _slurp($testreport);
-unlink $testreport, $body, $attachment;
-like($contents, qr/Subject: testing perlbug/,
-     'Subject included in fake bug report');
-like($contents, qr/$A/, 'body included in fake bug report');
-like($contents, qr/$B/, 'attachment included in fake bug report');
+SKIP: {
+    skip('iOS: no stdin', 7);
+    $result = runperl( progfile => $extracted_program,
+                       stdin    => "testing perlbug\n" # Subject
+                                 . "\n" # Module
+                                 . "\n" # Category
+                                 . "\n" # Severity
+                                 . "f", # save to File
+                       args     => ['-t',
+                                    '-r', 'username@example.com',
+                                    '-c', 'none',
+                                    '-f', $body,
+                                    '-p', $attachment,
+                                    '-e', 'file',
+                                    '-F', $testreport] );
+    like($result, qr/Report saved/, 'fake bug report saved');
+    my $contents = _slurp($testreport);
+    unlink $testreport, $body, $attachment;
+    like($contents, qr/Subject: testing perlbug/,
+         'Subject included in fake bug report');
+    like($contents, qr/$A/, 'body included in fake bug report');
+    like($contents, qr/$B/, 'attachment included in fake bug report');
 
-my $maxlen1 = 0; # body
-my $maxlen2 = 0; # attachment
-for (split(/\n/, $contents)) {
-        my $len = length;
-        $maxlen1 = $len if $len > $maxlen1 and !/$B/;
-        $maxlen2 = $len if $len > $maxlen2 and  /$B/;
+    my $maxlen1 = 0; # body
+    my $maxlen2 = 0; # attachment
+    for (split(/\n/, $contents)) {
+            my $len = length;
+            $maxlen1 = $len if $len > $maxlen1 and !/$B/;
+            $maxlen2 = $len if $len > $maxlen2 and  /$B/;
+    }
+    ok($maxlen1 < 1000, "[perl #128020] long body lines are wrapped: maxlen $maxlen1");
+    ok($maxlen2 > 1000, "long attachment lines are not wrapped: maxlen $maxlen2");
 }
-ok($maxlen1 < 1000, "[perl #128020] long body lines are wrapped: maxlen $maxlen1");
-ok($maxlen2 > 1000, "long attachment lines are not wrapped: maxlen $maxlen2");
 
 $result = runperl( progfile => $extracted_program, stderr => 1, args => ['-o'] ); # Invalid option
 like($result, qr/^\s*This program is designed/, "No leading error messages with help from invalid arg.");

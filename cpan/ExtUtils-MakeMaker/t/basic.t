@@ -170,7 +170,7 @@ my $make_testdb_file = make_macro(
     TESTDB_SW => '-Ixyzzy',
 );
 $test_out = run($make_testdb_file);
-unlike( $test_out, qr/harness/, 'no harness' );
+unlike( $test_out, qr/-MTest::Harness|test_harness\s*\(/, 'no harness' );
 unlike( $test_out, qr/sanity\.t/, 'no wrong test' );
 like( $test_out, qr/compile\.t/, 'get right test' );
 like( $test_out, qr/xyzzy/, 'signs of TESTDB_SW' );

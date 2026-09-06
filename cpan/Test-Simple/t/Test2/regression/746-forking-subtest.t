@@ -9,6 +9,9 @@ BEGIN {
     skip_all "System cannot fork" unless CAN_FORK;
 }
 
+skip_all "iOS: System cannot fork"
+    if $^O =~ /darwin-ios/;
+
 my $events = intercept {
     Test2::API::run_subtest("this subtest forks" => sub {
         if (fork) {

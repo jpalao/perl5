@@ -251,7 +251,6 @@ sub _scan_test {
 	    $testswitch = '-I.. -MTestInit';  # -T will remove . from @INC
 	}
     }
-
     my $utf8 = ($::with_utf8 || $::with_utf16) ? "-I$lib -Mutf8" : '';
 
     my %options = (

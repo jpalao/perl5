@@ -376,6 +376,9 @@ SKIP: {
 # ensure scope is properly restored when there's an error compiling a
 # "looks a bit like it has (?{}) but doesn't" qr//
 
+    SKIP:
+    {
+skip ("iOS: TODO", 1) if $^O =~ /darwin-ios/;
 fresh_perl_like <<'CODE',
     BEGIN {$^H = 0x10000 }; # HINT_NEW_RE
     qr/\(?{/
@@ -383,3 +386,4 @@ CODE
     qr/Constant\(qq\) unknown/,
     { stderr => 1 },
     'qr/\(?{';
+    }

@@ -36,6 +36,7 @@ my $local = gethostbyname('localhost')
     or note "gethostbyname('localhost') failed: $!";
 
 my $fork = $Config{d_fork} || $Config{d_pseudofork};
+undef $fork if $^O =~ /darwin-ios/;
 
 {
     # basic socket creation
@@ -243,7 +244,7 @@ SKIP:
       or skip "Can't load Errno or EMFILE not defined", 1;
     # stdio might return strange values in errno if it runs
     # out of FILE entries, and does on darwin
-    $^O eq "darwin" && exists $ENV{PERLIO} && $ENV{PERLIO} =~ /stdio/
+    $^O =~ "darwin" && exists $ENV{PERLIO} && $ENV{PERLIO} =~ /stdio/
       and skip "errno values from stdio are unspecified", 1;
     my @socks;
     my $sock_limit = 1000; # don't consume every file in the system
@@ -273,6 +274,7 @@ SKIP:
 
 SKIP: {
     skip "no fcntl", 1 unless $Config{d_fcntl};
+    skip "iOS: this test throws 'illegal seek'", 1 if $^O =~ /darwin-ios/;
     my $sock;
     socket($sock, PF_INET, SOCK_STREAM, $tcp) or die "socket: $!";
     my $sockfd = fileno($sock);

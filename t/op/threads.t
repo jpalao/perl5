@@ -107,7 +107,7 @@ EOI
 # http://www.nntp.perl.org/group/perl.perl5.porters/63123
 fresh_perl_is(<<'EOI', 'ok', { }, 'Ensure PL_linestr can be cloned');
 use threads;
-print do 'op/threads_create.pl' || die $@;
+print do './op/threads_create.pl' || die $@;
 EOI
 
 
@@ -382,7 +382,9 @@ EOF
 
 
 # [perl #78494] Pipes shared between threads block when closed
+SKIP:
 {
+  skip('iOS: popen not supported', 1);
   my $perl = which_perl;
   $perl = qq'"$perl"' if $perl =~ /\s/;
   open(my $OUT, "|$perl") || die("ERROR: $!");

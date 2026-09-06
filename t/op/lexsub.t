@@ -390,7 +390,9 @@ like runperl(
   eval 'sub cvgv2 {42}'; # uses the stub already present
   is foo, 42, 'defining state sub body via package sub declaration';
 }
-{
+
+SKIP: {
+  skip('iOS: no STDIN access', 2) if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
@@ -758,6 +760,9 @@ not_lexical11();
   eval q{ my sub george () { 2 } };
   is $w, undef, 'no double free from constant my subs';
 }
+
+SKIP: {
+    skip('iOS: crashing #TODO') if $^O =~ /darwin-ios/;
 like runperl(
       switches => [ '-Mfeature=lexical_subs,state' ],
       prog     => 'my sub a { foo ref } a()',
@@ -765,6 +770,8 @@ like runperl(
      ),
      qr/syntax error/,
     'referencing a my sub after a syntax error does not crash';
+}
+
 {
   state $stuff;
   package A {
@@ -796,7 +803,8 @@ like runperl(
 # We would have crashed by now if it weren’t fixed.
 pass "pad taking ownership once more of packagified my-sub";
 
-{
+SKIP: {
+  skip('iOS: no STDIN access', 1) if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(

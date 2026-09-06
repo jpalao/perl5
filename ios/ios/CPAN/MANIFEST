@@ -1,0 +1,16 @@
+ios.xs
+cb_common.pl
+lib/ios.pm
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+META.yml
+ppport.h
+README
+t/00-ios.t
+t/01-embedded-make.t
+t/02-json-compat.t
+t/03-exec-error.t
+t/fixtures/Perla-Pure/Makefile.PL
+t/fixtures/Perla-Pure/lib/Perla/Pure.pm
+typemap

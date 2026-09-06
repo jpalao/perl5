@@ -28,6 +28,8 @@ BEGIN {
 use Config;
 use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 
+if ($^O =~ /darwin-ios/) { use ios }
+
 if ( $Config{usecrosscompile} ) {
     print "1..0 # Not all files are available during cross-compilation\n";
     exit 0;
@@ -38,4 +40,8 @@ if ( ord("A") == 193) {
     exit 0;
 }
 
-system "$^X ext/Pod-Functions/Functions_pm.PL --tap pod/perlfunc.pod";
+if ($^O =~ /darwin-ios/) {
+    print `$^X  ext/Pod-Functions/Functions_pm.PL --tap pod/perlfunc.pod`
+} else  {
+    system "$^X ext/Pod-Functions/Functions_pm.PL --tap pod/perlfunc.pod";
+}

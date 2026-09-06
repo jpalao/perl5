@@ -11,14 +11,17 @@ use strict;
 use warnings;
 use bytes;
 
-use Test::More ;
+use Test::More;
 use CompTestUtils;
-use IO::Uncompress::Unzip 'unzip' ;
+use IO::Uncompress::Unzip 'unzip';
 
 BEGIN
 {
     plan(skip_all => "Needs Perl 5.005 or better - you have Perl $]" )
         if $] < 5.005 ;
+
+    plan(skip_all => "iOS: no shell redirection" )
+        if $^O =~ /darwin-ios/;
 
     # use Test::NoWarnings, if available
     my $extra = 0 ;

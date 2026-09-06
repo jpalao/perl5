@@ -52,7 +52,8 @@ BEGIN {
 skip_all_without_config('d_fork');
 skip_all("NO_PERL_HASH_ENV or NO_PERL_HASH_SEED_DEBUG set")
     if $Config{ccflags} =~ /-DNO_PERL_HASH_ENV\b/
-    || $Config{ccflags} =~ /-DNO_PERL_HASH_SEED_DEBUG\b/;
+    || $Config{ccflags} =~ /-DNO_PERL_HASH_SEED_DEBUG\b/
+    || $^O =~ /darwin-ios/;
 use strict;
 use warnings;
 

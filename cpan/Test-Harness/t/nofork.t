@@ -12,7 +12,7 @@ use warnings;
 
 use Config;
 use Test::More (
-    $Config{d_fork}
+    $Config{d_fork} && $^O !~ /darwin-ios/
     ? 'no_plan'
     : ( 'skip_all' => 'your system already has no fork' )
 );

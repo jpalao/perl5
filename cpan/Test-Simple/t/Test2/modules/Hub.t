@@ -125,7 +125,7 @@ tests IPC => sub {
         ok($_->{hubs}, "Set the hubs") for @$old;
     };
 
-    if (CAN_REALLY_FORK) {
+    if (CAN_REALLY_FORK && $^O !~ /darwin-ios/) {
         my $pid = fork();
         die "Could not fork!" unless defined $pid;
 

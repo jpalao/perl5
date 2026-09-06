@@ -18,7 +18,8 @@ sub ok($;$) {
     $ctx->release;
 }
 
-plan(0, skip_all => 'System cannot fork') unless CAN_REALLY_FORK();
+plan(0, skip_all => 'System cannot fork')
+    unless (CAN_REALLY_FORK() && $^O !~ /darwin-ios/);
 
 plan(6);
 

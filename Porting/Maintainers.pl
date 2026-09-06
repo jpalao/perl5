@@ -1482,6 +1482,7 @@ use File::Glob qw(:case);
                 lib/h2ph.t
                 lib/h2xs.t
                 lib/integer.{pm,t}
+                lib/ios.pm
                 lib/less.{pm,t}
                 lib/locale.{pm,t}
                 lib/locale_threads.t

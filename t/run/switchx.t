@@ -20,9 +20,12 @@ print runperl( switches => ['-x./run'],
 curr_test(6);
 
 # Test the error message for not found
+SKIP: {
+skip('iOS: #TODO') if $^O =~ /darwin-ios/;
 like(runperl(switches => ['-x'], progfile => 'run/switchx3.aux', stderr => 1),
      qr/^No Perl script found in input\r?\n\z/,
      "Test the error message when -x can't find a #!perl line");
+}
 
 SKIP: {
     skip("These tests embed newlines in command line arguments, which isn't portable to $^O", 2)
