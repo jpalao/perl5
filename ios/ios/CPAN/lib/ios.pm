@@ -229,13 +229,30 @@ sub exec_perl_capture {
     };
     my $exec = _json()->utf8->canonical->pretty->encode($runPerl);
     print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
-    my ($exit_code, $result);
+    my ($capture_result, $error);
     local $@;
     eval {
-        ($exit_code, $result) = CBRunPerlCaptureStdout($exec);
-    };
-    print "exec_perl_capture \$result: $result:\n" if ($result && $DEBUG);
-    return ($exit_code, $result ? $result : $@);
+        ($capture_result) = CBRunPerlCaptureStdout($exec);
+        1;
+    } or $error = $@;
+
+    $capture_result = _normalize_capture_result($capture_result, $error);
+
+    print "exec_perl_capture \$result: $capture_result->[1]:\n"
+        if ($capture_result->[1] && $DEBUG);
+    return ($capture_result);
+}
+
+sub _normalize_capture_result {
+    my ($capture_result, $error) = @_;
+    return $capture_result
+        if ref $capture_result eq 'ARRAY' && defined $capture_result->[0];
+
+    my $output = ref $capture_result eq 'ARRAY' ? $capture_result->[1] : undef;
+    $error ||= 'CBRunPerlCaptureStdout returned no wait status';
+    $error =~ s/\s+\z//;
+    $output = defined $output && length $output ? "$output\n" : '';
+    return [255 << 8, "${output}iOS embedded Perl failed: $error\n"];
 }
 
 sub parse_test {
