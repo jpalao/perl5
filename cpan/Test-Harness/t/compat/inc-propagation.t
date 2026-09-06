@@ -22,7 +22,9 @@ sub has_crazy_patch {
 }
 
 use Test::More (
-      $^O eq 'VMS' ? ( skip_all => 'VMS' )
+      $^O =~ /darwin-ios/
+    ? ( skip_all => 'nested process probes are unsupported on iOS' )
+    : $^O eq 'VMS' ? ( skip_all => 'VMS' )
     : has_crazy_patch() ? ( skip_all => 'Incompatible @INC patch' )
     : exists $ENV{HARNESS_PERL_SWITCHES}
     ? ( skip_all => 'Someone messed with HARNESS_PERL_SWITCHES' )
