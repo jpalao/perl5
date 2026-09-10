@@ -1123,7 +1123,7 @@ use5005threads='undef'
 [% use64bitall %]
 [% use64bitint %]
 usecbacktrace='undef'
-usecrosscompile='undef'
+usecrosscompile='define'
 usedevel='undef'
 usedl='define'
 usedtrace='undef'
