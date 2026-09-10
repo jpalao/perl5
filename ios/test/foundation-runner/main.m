@@ -66,11 +66,7 @@ int main(int argc, const char *argv[]) {
                                                                      NSUserDomainMask,
                                                                      YES) firstObject];
         NSString *fullTestScript = [documents stringByAppendingPathComponent:@"t/ios_harness"];
-        NSString *rootTestScript = [documents stringByAppendingPathComponent:@"test.pl"];
-        NSString *defaultScript = [[NSFileManager defaultManager] fileExistsAtPath:fullTestScript]
-            ? fullTestScript
-            : rootTestScript;
-        NSString *scriptPath = RunnerArgument(arguments, @"--script", defaultScript);
+        NSString *scriptPath = RunnerArgument(arguments, @"--script", fullTestScript);
         NSString *defaultOutput = [documents stringByAppendingPathComponent:@"perl-tests.txt"];
         NSString *outputPath = RunnerArgument(arguments, @"--output", defaultOutput);
         NSString *defaultStatus = [documents stringByAppendingPathComponent:@"perl-tests.status"];
