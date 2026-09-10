@@ -439,6 +439,9 @@ stage_tree_for_upload() {
     rm -Rf "$upload_dir"
     mkdir -p "$upload_dir"
     if ! capture_command_output rsync -aL \
+        --exclude '.git/' \
+        --exclude 'Build/' \
+        --exclude 'build/' \
         --exclude '/ios/test/Build/' \
         --exclude '*.bundle' \
         "$source_dir/" "$upload_dir/"; then
@@ -696,7 +699,7 @@ prepare_ifuse_directory_tree() {
         relative_dir=${relative_dir#./}
         [ "$relative_dir" = "." ] && continue
         mkdir -p "$destination_dir/$relative_dir" || return 1
-    done < <(cd "$source_dir" && find -L . -type d -print0)
+    done < <(cd "$source_dir" && find -L . \( -name .git -o -name Build -o -name build \) -prune -o -type d -print0)
 
     while IFS= read -r -d '' relative_dir; do
         relative_dir=${relative_dir#./}
@@ -711,7 +714,7 @@ prepare_ifuse_directory_tree() {
             echo >&2 "ifuse directory is not visible after creation: $destination_dir/$relative_dir"
             return 1
         }
-    done < <(cd "$source_dir" && find -L . -type d -print0)
+    done < <(cd "$source_dir" && find -L . \( -name .git -o -name Build -o -name build \) -prune -o -type d -print0)
 }
 
 copy_tree_to_device() {
@@ -732,7 +735,9 @@ copy_tree_to_device() {
             echo >&2 "ifuse directory preparation failed; content was not copied"
             return 1
         fi
-        cp -RXvL "$source_dir/." "$build_destination_dir" 2>"$copy_errors"
+        rsync -aL --exclude '.git/' --exclude 'Build/' --exclude 'build/' \
+            --exclude '*.bundle' "$source_dir/" "$build_destination_dir/" \
+            2>"$copy_errors"
         if [ $? -ne 0 ]; then
             if ifuse_copy_has_content_errors "$copy_errors"; then
                 echo >&2 "ifuse copy failed; content may be incomplete"
