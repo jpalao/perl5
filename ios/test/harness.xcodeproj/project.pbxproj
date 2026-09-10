@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FND00000000000000000001 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FND00000000000000000011 /* main.m */; };
+		FND00000000000000000002 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FND00000000000000000012 /* Foundation.framework */; };
+		FND00000000000000000003 /* ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8227C31425DAA87F00A353EC /* ios.framework */; };
 		8227C2FF25DAA87F00A353EC /* OutputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8227C2FD25DAA87F00A353EC /* OutputViewController.m */; };
 		8227C30025DAA87F00A353EC /* OutputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8227C2FD25DAA87F00A353EC /* OutputViewController.m */; };
 		8227C30125DAA87F00A353EC /* OutputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8227C2FD25DAA87F00A353EC /* OutputViewController.m */; };
@@ -39,6 +42,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		FND00000000000000000010 /* foundation-runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = foundation-runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FND00000000000000000011 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		FND00000000000000000012 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		FND00000000000000000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = foundation-runner/Info.plist; sourceTree = "<group>"; };
 		8227C2FD25DAA87F00A353EC /* OutputViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OutputViewController.m; sourceTree = "<group>"; };
 		8227C2FE25DAA87F00A353EC /* OutputViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputViewController.h; sourceTree = "<group>"; };
 		8227C30825DAAC4400A353EC /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -70,6 +77,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FND00000000000000000020 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FND00000000000000000003 /* ios.framework in Frameworks */,
+				FND00000000000000000002 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		826A8FE725D1C54E00D5461B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -98,6 +114,8 @@
 		826A8FC625D1C54D00D5461B = {
 			isa = PBXGroup;
 			children = (
+				FND00000000000000000013 /* Info.plist */,
+				FND00000000000000000030 /* foundation-runner */,
 				8227C41525DABEF300A353EC /* libperl.dylib */,
 				8227C41625DABEF300A353EC /* libperl.dylib.dSYM */,
 				8227C41325DABECB00A353EC /* ios.framework */,
@@ -113,11 +131,20 @@
 		826A8FD025D1C54D00D5461B /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				FND00000000000000000010 /* foundation-runner.app */,
 				826A8FCF25D1C54D00D5461B /* harness.app */,
 				826A8FEA25D1C54E00D5461B /* harnessTests.xctest */,
 				826A8FF525D1C54E00D5461B /* harnessUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FND00000000000000000030 /* foundation-runner */ = {
+			isa = PBXGroup;
+			children = (
+				FND00000000000000000011 /* main.m */,
+			);
+			path = foundation-runner;
 			sourceTree = "<group>";
 		};
 		826A8FD125D1C54D00D5461B /* harness */ = {
@@ -156,6 +183,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		FND00000000000000000040 /* foundation-runner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FND00000000000000000050 /* Build configuration list for PBXNativeTarget "foundation-runner" */;
+			buildPhases = (
+				FND00000000000000000041 /* Sources */,
+				FND00000000000000000020 /* Frameworks */,
+				8227C41025DABDF300A353EC /* ShellScript */,
+				FND00000000000000000042 /* Resources */,
+				8227C41925DABF2100A353EC /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = foundation-runner;
+			productName = foundation-runner;
+			productReference = FND00000000000000000010 /* foundation-runner.app */;
+			productType = "com.apple.product-type.application";
+		};
 		826A8FCE25D1C54D00D5461B /* harness */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 826A8FFE25D1C54E00D5461B /* Build configuration list for PBXNativeTarget "harness" */;
@@ -245,6 +291,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				FND00000000000000000040 /* foundation-runner */,
 				826A8FCE25D1C54D00D5461B /* harness */,
 				826A8FE925D1C54E00D5461B /* harnessTests */,
 				826A8FF425D1C54E00D5461B /* harnessUITests */,
@@ -253,6 +300,13 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		FND00000000000000000042 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		826A8FCD25D1C54D00D5461B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -316,6 +370,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		FND00000000000000000041 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FND00000000000000000001 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		826A8FCB25D1C54D00D5461B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -665,6 +727,56 @@
 			};
 			name = Release;
 		};
+		FND00000000000000000051 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"ARCHS[sdk=iphoneos*]" = "$(ARCHS_STANDARD)";
+				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6555P83K4D;
+				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
+				HEADER_SEARCH_PATHS = ("$(LIBPERL_PATH)", "$(IOS_FRAMEWORK_PATH)/ios.framework/Headers");
+				INFOPLIST_FILE = foundation-runner/Info.plist;
+				IOS_FRAMEWORK_PATH = "$(PROJECT_DIR)/../ios/Build/Products/Debug-$(PLATFORM_NAME)";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
+				OTHER_LDFLAGS = ("-framework", ios);
+				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
+				PERL_VERSION = 5.37.2;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.foundation-runner;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FND00000000000000000052 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"ARCHS[sdk=iphoneos*]" = arm64;
+				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6555P83K4D;
+				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
+				HEADER_SEARCH_PATHS = ("$(IOS_FRAMEWORK_PATH)/ios.framework/Headers", "$(LIBPERL_PATH)");
+				INFOPLIST_FILE = foundation-runner/Info.plist;
+				IOS_FRAMEWORK_PATH = "$(PROJECT_DIR)/../ios/Build/Products/Release-$(PLATFORM_NAME)";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
+				OTHER_LDFLAGS = ("-framework", ios);
+				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
+				PERL_VERSION = 5.37.2;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.foundation-runner;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -700,6 +812,15 @@
 			buildConfigurations = (
 				826A900525D1C54E00D5461B /* Debug */,
 				826A900625D1C54E00D5461B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FND00000000000000000050 /* Build configuration list for PBXNativeTarget "foundation-runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FND00000000000000000051 /* Debug */,
+				FND00000000000000000052 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

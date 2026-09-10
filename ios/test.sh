@@ -51,6 +51,21 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 
 : "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
+: "${IOS_TEST_APP:=foundation-runner}"
+case "$IOS_TEST_APP" in
+    harness)
+        : "${HARNESS_SCHEME:=harness}"
+        : "${HARNESS_PRODUCT_NAME:=harness}"
+        ;;
+    foundation-runner|runner)
+        : "${HARNESS_SCHEME:=foundation-runner}"
+        : "${HARNESS_PRODUCT_NAME:=foundation-runner}"
+        ;;
+    *)
+        echo >&2 "IOS_TEST_APP must be harness, runner, or foundation-runner"
+        exit 1
+        ;;
+esac
 # Device transport is the real install/copy/launch mechanism.
 # Supported values are devicectl (default) and ios-deploy.
 : "${DEVICE_TRANSPORT:=devicectl}"
@@ -65,8 +80,10 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 REMOTE_DOCUMENTS_DIR="Documents"
 REMOTE_TEST_LOG="$REMOTE_DOCUMENTS_DIR/perl-tests.txt"
+REMOTE_TEST_STATUS="$REMOTE_DOCUMENTS_DIR/perl-tests.status"
 PERL_TEST_LOG=""
 TEST_LOG_SOURCE=""
+TEST_STATUS_SOURCE=""
 TRANSFER_TRANSPORT=""
 DEVICECTL_AVAILABLE=0
 DEVICECTL_CONNECTED=0
@@ -504,6 +521,19 @@ download_test_log_with_devicectl() {
     update_local_test_log "$downloaded_log"
 }
 
+download_test_log_with_ios_deploy() {
+    local download_dir="$WORKDIR/.device-transfer-download"
+    local downloaded_log="$download_dir/Documents/perl-tests.txt"
+
+    rm -Rf "$download_dir"
+    mkdir -p "$download_dir"
+    ios-deploy -i "$IOS_DEVICE_UUID" \
+        --bundle_id "$HARNESS_APP_ID" \
+        --download="/$REMOTE_TEST_LOG" \
+        --to "$download_dir" >/dev/null 2>&1 || return 1
+    update_local_test_log "$downloaded_log"
+}
+
 download_test_log() {
     if [ "$IFUSE_IN_USE" -eq 1 ]; then
         update_local_test_log "$TEST_LOG_SOURCE"
@@ -514,8 +544,61 @@ download_test_log() {
         devicectl)
             download_test_log_with_devicectl
             ;;
+        ios-deploy)
+            download_test_log_with_ios_deploy
+            ;;
         simulator)
             update_local_test_log "$TEST_LOG_SOURCE"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+download_test_status_with_devicectl() {
+    local download_dir="$WORKDIR/.device-transfer-download"
+    local downloaded_status="$download_dir/perl-tests.status"
+
+    mkdir -p "$download_dir"
+    xcrun devicectl device copy from \
+        --device "$IOS_DEVICE_UUID" \
+        --user mobile \
+        --domain-type appDataContainer \
+        --domain-identifier "$HARNESS_APP_ID" \
+        --source "$REMOTE_TEST_STATUS" \
+        --destination "$downloaded_status" >/dev/null 2>&1 || return 1
+    TEST_STATUS_SOURCE="$downloaded_status"
+}
+
+download_test_status_with_ios_deploy() {
+    local download_dir="$WORKDIR/.device-transfer-download"
+    local downloaded_status="$download_dir/Documents/perl-tests.status"
+
+    mkdir -p "$download_dir"
+    ios-deploy -i "$IOS_DEVICE_UUID" \
+        --bundle_id "$HARNESS_APP_ID" \
+        --download="/$REMOTE_TEST_STATUS" \
+        --to "$download_dir" >/dev/null 2>&1 || return 1
+    TEST_STATUS_SOURCE="$downloaded_status"
+}
+
+download_test_status() {
+    if [ "$IFUSE_IN_USE" -eq 1 ]; then
+        TEST_STATUS_SOURCE="$IOS_MOUNTPOINT/perl-tests.status"
+        [ -f "$TEST_STATUS_SOURCE" ]
+        return $?
+    fi
+
+    case "$TRANSFER_TRANSPORT" in
+        devicectl)
+            download_test_status_with_devicectl
+            ;;
+        ios-deploy)
+            download_test_status_with_ios_deploy
+            ;;
+        simulator)
+            [ -f "$TEST_STATUS_SOURCE" ]
             ;;
         *)
             return 1
@@ -671,6 +754,22 @@ copy_tree_to_device() {
         return 0
     fi
 
+    if { [ "$IOS_TEST_APP" = "foundation-runner" ] || [ "$IOS_TEST_APP" = "runner" ]; } \
+        && [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
+        local script_path="$source_dir/test.pl"
+        [ -f "$script_path" ] || {
+            echo >&2 "Foundation runner script is missing: $script_path"
+            return 1
+        }
+        build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (runner)"
+        capture_command_output ios-deploy \
+            -i "$IOS_DEVICE_UUID" \
+            --bundle_id "$HARNESS_APP_ID" \
+            --upload "$script_path" \
+            --to "/Documents/test.pl"
+        return $?
+    fi
+
     if [ "$TRANSFER_TRANSPORT" = "devicectl" ]; then
         build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
         upload_tree_with_devicectl "$source_dir"
@@ -750,12 +849,12 @@ test_perl_device() {
         LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
         PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
         DSTROOT="$install_root" -configuration "$HARNESS_BUILD_CONFIGURATION" \
-        -allowProvisioningUpdates -scheme harness clean install
+        -allowProvisioningUpdates -scheme "$HARNESS_SCHEME" clean install
     check_exit_code
 
     # install the app so it can receive files in Documents
     simulator_build=`echo "$ARCHS" | grep -c "x86_64"` # x86_64 simulator
-    test_app="$install_root/Applications/harness.app"
+    test_app="$install_root/Applications/$HARNESS_PRODUCT_NAME.app"
     HARNESS_APP_PATH="$test_app"
 
     if [ "$simulator_build" -eq "0" ]; then
@@ -800,6 +899,7 @@ test_perl_device() {
         check_exit_code
         TRANSFER_TRANSPORT="simulator"
         TEST_LOG_SOURCE="$build_destination_dir/perl-tests.txt"
+        TEST_STATUS_SOURCE="$build_destination_dir/perl-tests.status"
     fi
 
     popd
@@ -812,6 +912,7 @@ test_perl_device() {
                 check_exit_code 1
             fi
             TEST_LOG_SOURCE="$IOS_MOUNTPOINT/perl-tests.txt"
+            TEST_STATUS_SOURCE="$IOS_MOUNTPOINT/perl-tests.status"
             sleep 2
             # needed for scrolling to keep in sync w/ device's ifuse fs
             perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
@@ -843,7 +944,11 @@ test_perl_device() {
     tail -n 3000 -f "$PERL_TEST_LOG" &
     TAIL_PID=$!
     while kill -0 "$TAIL_PID" >/dev/null 2>&1; do
-        if tail -n 1 "$PERL_TEST_LOG" | grep -q '^Result: '; then
+        if [ "$IOS_TEST_APP" = "foundation-runner" ] || [ "$IOS_TEST_APP" = "runner" ]; then
+            if download_test_status && grep -Eq '^-?[0-9]+$' "$TEST_STATUS_SOURCE"; then
+                break
+            fi
+        elif tail -n 1 "$PERL_TEST_LOG" | grep -q '^Result: '; then
             break
         fi
         if ! kill -0 "$REFRESH_PID" >/dev/null 2>&1; then
