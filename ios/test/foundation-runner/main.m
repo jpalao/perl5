@@ -31,10 +31,12 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
             perlResult = result;
         }];
 
-        if (error != nil && perlResult == 0) {
-            perlResult = (int)error.code;
+        if (error != nil) {
             if (perlResult == 0) {
-                perlResult = 255;
+                perlResult = (int)error.code;
+                if (perlResult == 0) {
+                    perlResult = 255;
+                }
             }
             fprintf(stderr, "%s\n", [[error localizedDescription] UTF8String]);
         }
