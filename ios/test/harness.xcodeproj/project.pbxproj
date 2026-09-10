@@ -365,7 +365,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\necho \"removing libperl.dylib from default location:\"\necho \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\nrm -f \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\n\nchmod +w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n\nif [ \"$EMBED_CAMELBONES_FRAMEWORK\" == \"YES\" ]; then\n    echo \"YEESSS\"\n    export \"LIBRARY_SEARCH_PATHS=$LIBRARY_SEARCH_PATHS $CAMELBONES_FRAMEWORK_PATH\"\n    cp -Rv \"$CAMELBONES_FRAMEWORK_PATH/CamelBones.framework\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\nfi\n\nif [ -z \"$MACOS_PERL_PATH\" ]; then\n    MACOS_PERL_PATH=\"$(command -v perl)\"\nfi\nif [ -z \"$MACOS_PERL_PATH\" ]; then\n    echo \"No host perl found for fix_ios_dylibs.pl\" >&2\n    exit 1\nfi\n\"$MACOS_PERL_PATH\" \"$PROJECT_DIR/fix_ios_dylibs.pl\" \"$PRODUCT_NAME\" \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\" \"$PERL_INSTALL_PREFIX\" \"$EXPANDED_CODE_SIGN_IDENTITY\"\nstatus=$?\nchmod -w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\nexit $status\n";
+			shellScript = "#!/bin/bash\necho \"removing libperl.dylib from default location:\"\necho \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\nrm -f \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib\"\n\nchmod +w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n\nif [ \"$EMBED_CAMELBONES_FRAMEWORK\" == \"YES\" ]; then\n    echo \"YEESSS\"\n    export \"LIBRARY_SEARCH_PATHS=$LIBRARY_SEARCH_PATHS $CAMELBONES_FRAMEWORK_PATH\"\n    cp -Rv \"$CAMELBONES_FRAMEWORK_PATH/CamelBones.framework\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/\"\nfi\n\nexec \"$MACOS_PERL_PATH\" \"$PROJECT_DIR/fix_ios_dylibs.pl\" \"$PRODUCT_NAME\" \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\" \"$PERL_INSTALL_PREFIX\" \"$EXPANDED_CODE_SIGN_IDENTITY\"\n\nchmod -w \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks/libperl.dylib\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -741,6 +741,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
 				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
+				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
 				OTHER_LDFLAGS = ("-framework", ios);
 				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
@@ -766,6 +767,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
 				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
+				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
 				OTHER_LDFLAGS = ("-framework", ios);
 				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
