@@ -13,6 +13,7 @@ static NSString *RunnerArgument(NSArray *arguments, NSString *name, NSString *fa
 static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *statusPath) {
     __block int normalizedResult = 255;
     @autoreleasepool {
+        setenv("PERL_FOUNDATION_RUNNER", "1", 1);
         __block NSError *error = nil;
         NSURL *scriptURL = [NSURL fileURLWithPath:scriptPath];
         NSString *workingDirectory = [[scriptURL URLByDeletingLastPathComponent] path];
@@ -64,10 +65,12 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
                 [controller initWithFileName:scriptPath
                              withAbsolutePwd:workingDirectory
                                 withDebugger:0
-                                 withOptions:nil
+                                 withOptions:@[]
                                withArguments:nil
                                        error:&error
                                   completion:^(int result) {
+                    fflush(stdout);
+                    fflush(stderr);
                     perlResult = result;
                 }];
             }
