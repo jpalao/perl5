@@ -7,24 +7,35 @@ ios - supporting XS code for iOS and derivatives
 =cut
 
 BEGIN {
-    if ($^O =~ /darwin-ios/) {
-        *CORE::GLOBAL::readpipe = sub {
-            my $list_context = wantarray;
-            my ($code, $result);
-            eval {
-                ($code, $result) = exec_cli(getcwd(), "@_")
-            };
-            if ($@ ne '') {
-                warn $@;
-                $result = $@;
-            }
-            $? = defined $code ? $code >> 8 : -1;
-            if ($list_context && defined $result) {
-                return _readpipe_records($result);
-            }
-            return $result;
+    die "ios.pm is only available on iOS\n" if $^O !~ /darwin-ios/;
+
+    *CORE::GLOBAL::readpipe = sub {
+        my $list_context = wantarray;
+        my ($code, $result);
+        my $command = "@_";
+        _require('Scalar/Util.pm');
+        my $tainted_interpreter = ${^TAINT}
+            && defined $^X
+            && index($command, $^X) == 0;
+        if (Scalar::Util::tainted($command) || $tainted_interpreter) {
+            my $switch = ${^TAINT} > 0 ? '-T' : '-t';
+            my $message = "Insecure dependency in `` while running with $switch switch";
+            die "$message\n" if ${^TAINT} > 0;
+            warn "$message\n";
+        }
+        eval {
+            ($code, $result) = exec_cli(getcwd(), $command)
         };
-    }
+        if ($@ ne '') {
+            warn $@;
+            $result = $@;
+        }
+        $? = defined $code ? $code >> 8 : -1;
+        if ($list_context && defined $result) {
+            return _readpipe_records($result);
+        }
+        return $result;
+    };
 }
 
 use strict;
@@ -155,6 +166,18 @@ sub _perl_switches_with_environment {
         my ($switches) = @_;
         my @result = @{$switches || []};
 
+        if ($^O =~ /darwin-ios/) {
+            my $index = @result && $result[0] =~ /^-[Tt]\z/ ? 1 : 0;
+            my @preloads = grep {
+                my $preload = $_;
+                !grep { /^\Q$preload\E(?:=|\z)/ } @result;
+            } grep { defined } (
+                $DEBUG ? '-MData::Dumper' : undef,
+                qw(-MJSON::PP -Mios),
+            );
+            splice @result, $index, 0, @preloads;
+        }
+
         return \@result if grep { $_ eq '-T' || $_ eq '-t' } @result;
         return \@result if !defined $ENV{PERL5LIB};
 
@@ -209,13 +232,16 @@ sub exec_perl {
 sub exec_perl_capture {
     my ($req) = @_;
 
+    my @switches = @{$req->{switches} || []};
+    push @switches, '-Mios' unless grep { $_ eq '-Mios' } @switches;
+
     # prevent NSNumber encoding
     foreach (@{$req->{args}}) {
         $_ .= "" if $_ =~ /\d*/;
     }
 
     my $runPerl = {
-        switches => $req->{switches},
+        switches => \@switches,
         nolib => $req->{nolib},
         non_portable => $req->{non_portable},
         prog => $req->{prog},
@@ -229,13 +255,30 @@ sub exec_perl_capture {
     };
     my $exec = _json()->utf8->canonical->pretty->encode($runPerl);
     print "exec_perl_capture \$exec: $exec\n" if $DEBUG;
-    my ($exit_code, $result);
+    my ($capture_result, $error);
     local $@;
     eval {
-        ($exit_code, $result) = CBRunPerlCaptureStdout($exec);
-    };
-    print "exec_perl_capture \$result: $result:\n" if ($result && $DEBUG);
-    return ($exit_code, $result ? $result : $@);
+        ($capture_result) = CBRunPerlCaptureStdout($exec);
+        1;
+    } or $error = $@;
+
+    $capture_result = _normalize_capture_result($capture_result, $error);
+
+    print "exec_perl_capture \$result: $capture_result->[1]:\n"
+        if ($capture_result->[1] && $DEBUG);
+    return ($capture_result);
+}
+
+sub _normalize_capture_result {
+    my ($capture_result, $error) = @_;
+    return $capture_result
+        if ref $capture_result eq 'ARRAY' && defined $capture_result->[0];
+
+    my $output = ref $capture_result eq 'ARRAY' ? $capture_result->[1] : undef;
+    $error ||= 'CBRunPerlCaptureStdout returned no wait status';
+    $error =~ s/\s+\z//;
+    $output = defined $output && length $output ? "$output\n" : '';
+    return [255 << 8, "${output}iOS embedded Perl failed: $error\n"];
 }
 
 sub parse_test {
@@ -365,9 +408,10 @@ sub exec_test {
         eval {
             ($result) = exec_perl_capture($json);
         };
-        print  Dumper("code", $result->[0]) if $DEBUG;
-        print  Dumper("output", $result->[1]) if $DEBUG;
-        return ($result->[0], $result->[1] ? $result->[1] : $@);
+        $result = _normalize_capture_result($result, $@);
+        print Dumper("code", $result->[0]) if $DEBUG;
+        print Dumper("output", $result->[1]) if $DEBUG;
+        return ($result->[0], defined $result->[1] ? $result->[1] : '');
     } else {
         eval {
             ($result) = exec_perl($json);
@@ -394,9 +438,10 @@ sub exec_cli {
     eval {
         ($result) = exec_perl_capture($json);
     };
+    $result = _normalize_capture_result($result, $@);
     print  Dumper("code", $result->[0]) if $DEBUG;
     print  Dumper("output", $result->[1]) if $DEBUG;
-    return ($result->[0], $result->[1] ? $result->[1] : $@);
+    return ($result->[0], defined $result->[1] ? $result->[1] : '');
 }
 
 sub _make_capture_once {

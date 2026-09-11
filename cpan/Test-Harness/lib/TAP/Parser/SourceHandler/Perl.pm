@@ -9,10 +9,12 @@ use constant IS_VMS => ( $^O eq 'VMS' );
 use constant IS_IOS => ( $^O =~ /darwin-ios/ );
 
 use TAP::Parser::IteratorFactory               ();
-if (IS_IOS) {
-    use TAP::Parser::Iterator::iOS             ();
-} else {
-    use TAP::Parser::Iterator::Process         ();
+BEGIN {
+    if (IS_IOS) {
+        require TAP::Parser::Iterator::iOS;
+    } else {
+        require TAP::Parser::Iterator::Process;
+    }
 }
 use Text::ParseWords qw(shellwords);
 

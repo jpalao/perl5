@@ -36,8 +36,6 @@ our $TODO = 0;
 our $NO_ENDING = 0;
 our $Tests_Are_Passing = 1;
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 # Use this instead of print to avoid interference while testing globals.
 sub _print {
     local($\, $", $,) = (undef, ' ', '');
@@ -113,7 +111,7 @@ sub is_miniperl {
 
 sub set_up_inc {
     # Don’t clobber @INC under miniperl
-    @INC = () unless (is_miniperl || $^O =~ /darwin-ios/);
+    @INC = () unless is_miniperl;
     unshift @INC, @_;
 }
 
@@ -798,15 +796,21 @@ sub runperl {
 
     if ($is_ios) {
         my %args = @_;
-        my ($exit_status, $result);
+        my $result;
         local $@;
-        eval {
-            ($result) = exec_perl_capture(\%args);
+        my $ok = eval {
+            require ios;
+            ($result) = ios::exec_perl_capture(\%args);
+            1;
         };
+        if (!$ok) {
+            $? = 255 << 8;
+            return $@;
+        }
         $? = $result->[0];
         utf8::encode($result->[1])
             if defined $result->[1] && utf8::is_utf8($result->[1]);
-        return $result->[1] ? $result->[1] : $@;
+        return defined $result->[1] ? $result->[1] : '';
     }
 
     my $runperl = &_create_runperl;

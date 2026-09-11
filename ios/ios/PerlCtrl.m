@@ -272,11 +272,12 @@ static Boolean perlInitialized = false;
         }
     }
 
-    @try {
-        int perl_run_result = perl_run(_PerlCtrlInterpreter);
-        result = result ? result : perl_run_result;
-    } @catch (NSException *exception) {
-        * error = [[NSError alloc] initWithDomain:@"dev.perla.run" code:05 userInfo:@{@"reason":[NSString stringWithFormat:@"Unspecified error\n"]}];
+    if (result == 0) {
+        @try {
+            result = perl_run(_PerlCtrlInterpreter);
+        } @catch (NSException *exception) {
+            * error = [[NSError alloc] initWithDomain:@"dev.perla.run" code:05 userInfo:@{@"reason":[NSString stringWithFormat:@"Unspecified error\n"]}];
+        }
     }
 
     if (result || *error != nil)
