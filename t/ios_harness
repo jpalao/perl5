@@ -133,4 +133,11 @@ sub exclude_tests {
 	@tests = grep(/^(?:(?!\.\.\/cpan\/DB_File))/, @tests);
 };
 
+BEGIN {
+    *CORE::GLOBAL::exit = sub {
+        $::ios_harness_status = shift // 0;
+    };
+}
+
 do './harness';
+CORE::exit($::ios_harness_status // 0);
