@@ -57,15 +57,19 @@ ok( $b, "got CBuilder object" ) or diag $@;
 }
 
 # test found compiler
-{
-my $b3 = ExtUtils::CBuilder->new(quiet => 1);
-configure_fake_present_compilers($b3);
-is( $b3->have_compiler, 1, "have_compiler: fake present cc" );
-}
-{
-my $b4 = ExtUtils::CBuilder->new(quiet => 1);
-configure_fake_present_compilers($b4);
-is( $b4->have_cplusplus, 1, "have_cpp_compiler: fake present c++" );
+SKIP: {
+    skip "process execution is unavailable on iOS", 2
+        if $^O eq 'darwin-ios';
+    {
+        my $b3 = ExtUtils::CBuilder->new(quiet => 1);
+        configure_fake_present_compilers($b3);
+        is( $b3->have_compiler, 1, "have_compiler: fake present cc" );
+    }
+    {
+        my $b4 = ExtUtils::CBuilder->new(quiet => 1);
+        configure_fake_present_compilers($b4);
+        is( $b4->have_cplusplus, 1, "have_cpp_compiler: fake present c++" );
+    }
 }
 
 # test missing cpp compiler

@@ -39,6 +39,8 @@ package TestInit;
 
 $VERSION = 1.04;
 
+BEGIN { require ios if $^O =~ /darwin-ios/ }
+
 # Let tests know they're running in the perl core.  Useful for modules
 # which live dual lives on CPAN.
 # Don't interfere with the taintedness of %ENV, this could perturbate tests.
@@ -61,6 +63,7 @@ sub import {
 	    $setopt = 1;
 	} elsif ($_ eq 'U1') {
 	    @INC = '../lib';
+	    if ($^O =~ /darwin-ios/) { use lib '../../t' }
 	    $setopt = 1;
 	} elsif ($_ eq 'NC') {
 	    delete $ENV{PERL_CORE}
@@ -95,6 +98,7 @@ sub import {
 	    } else {
 		$chdir = 't';
 		@INC = '../lib';
+		if ($^O =~ /darwin-ios/) { use lib '../../lib' }
 		$setopt = $0 =~ m!^lib/!;
 	    }
 	} else {

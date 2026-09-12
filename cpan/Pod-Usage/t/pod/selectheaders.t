@@ -3,6 +3,8 @@ use Test::More tests => 2;
 use strict;
 use warnings;
 
+if ($^O =~ /darwin-ios/) { use ios }
+
 my $blib = $ENV{PERL_CORE} ? '-I../../lib' : '-Mblib';
 
 my $pl = $0;

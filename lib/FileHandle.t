@@ -60,7 +60,7 @@ ok($|, "handle auto-flushing current output channel");
 {
     my ($rd,$wr) = FileHandle::pipe;
     my $non_forking = (
-        $^O eq 'VMS' || $^O eq 'os2' || $^O eq 'amigaos' ||
+        $^O eq 'VMS' || $^O eq 'os2' || $^O eq 'amigaos' || $^O =~ 'darwin-ios' ||
         $^O eq 'MSWin32' || $Config{d_fork} ne 'define'
     );
     my $content = "Writing to one end of a pipe, reading from the other\n";

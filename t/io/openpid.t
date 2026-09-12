@@ -10,6 +10,7 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
+    skip_all("iOS: openpid() not supported") if $^O =~ /darwin-ios/;
     set_up_inc('../lib');
 }
 

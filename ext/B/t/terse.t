@@ -9,6 +9,8 @@ BEGIN {
 	}
 }
 
+if ($^O =~ /darwin-ios/) { use ios }
+
 use Test::More tests => 16;
 
 use_ok( 'B::Terse' );
@@ -92,6 +94,9 @@ sub bar {
 # Schwern's example of finding an RV
 my $path = join " ", map { qq["-I$_"] } @INC;
 my $items = qx{$^X $path "-MO=Terse" -le "print \\42" 2>&1};
+# needs double escape on iOS
+$items = qx{$^X $path "-MO=Terse" -le "print \\\\42" 2>&1}
+    if $^O =~ /darwin-ios/;
 like( $items, qr/IV $hex \\42/, 'RV (but now stored in an IV)' );
 
 package TieOut;

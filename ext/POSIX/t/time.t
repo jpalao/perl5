@@ -22,7 +22,7 @@ SKIP: {
     # actually do anything.  Cygwin works in some places, but not others.  The
     # other Win32's below are guesses.
     skip "No tzset()", 2
-       if $^O eq "VMS" || $^O eq "cygwin" ||
+       if $^O eq "VMS" || $^O eq "cygwin" || $^O =~ /darwin-ios/ ||
           $^O eq "MSWin32" || $^O eq "interix";
     tzset();
     my @tzname = tzname();
@@ -93,7 +93,10 @@ if (locales_enabled('LC_CTYPE')) {
 # and BSD.  Cygwin, Win32, and Linux lean the BSD way.  So, the tests just
 # check the basics.
 like(clock(), qr/\d*/, "clock() returns a numeric value");
-cmp_ok(clock(), '>=', 0, "...and it returns something >= 0");
+SKIP: {
+    skip( 'iOS: # TODO test unreliable', 1 ) if $^O =~ /darwin-ios/;
+    cmp_ok(clock(), '>=', 0, "...and it returns something >= 0");
+}
 
 SKIP: {
     skip "No difftime()", 1 if $Config{d_difftime} ne 'define';

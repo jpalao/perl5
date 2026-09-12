@@ -13,8 +13,10 @@ my @tfiles_bak = map "$_$^I", @tfiles;
 END { unlink_all(@tfiles_bak); }
 
 for my $file (@tfiles) {
-    runperl( prog => 'print qq(foo\n);', 
-             args => ['>', $file] );
+    my $result = runperl( prog => 'print qq(foo\n);' );
+    open my $fh, '>', $file or die "Cannot open >$file: $!";
+    print $fh $result;
+    close $fh;
 }
 
 @ARGV = @tfiles;
@@ -38,8 +40,10 @@ our @ifiles = ( tempfile(), tempfile(), tempfile() );
 
 {
     for my $file (@ifiles) {
-        runperl( prog => 'print qq(bar\n);',
-                 args => [ '>', $file ] );
+        my $result = runperl( prog => 'print qq(bar\n);');
+        open my $fh, '>', $file or die "Cannot open >$file: $!";
+        print $fh $result;
+        close $fh;
     }
 
     local $^I = '';
@@ -63,8 +67,10 @@ our @ifiles = ( tempfile(), tempfile(), tempfile() );
 # test * equivalence RT #70802
 {
     for my $file (@ifiles) {
-        runperl( prog => 'print qq(bar\n);',
-        args => [ '>', $file ] );
+        my $result = runperl( prog => 'print qq(bar\n);' );
+        open my $fh, '>', $file or die "Cannot open >$file: $!";
+        print $fh $result;
+        close $fh;
     }
 
     local $^I = '*';

@@ -2,7 +2,7 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';
+    $^O =~ /darwin-ios/ ? unshift @INC, '../lib' : (@INC = '../lib');
     require './test.pl';	# for which_perl() etc
     plan(3);
 }
@@ -23,6 +23,8 @@ $x = `$Perl $filename`;
 
 is($x, "ok\n", "Got expected output of command from script");
 
-$x = `$Perl <$filename`;
-
-is($x, "ok\n", "Got expected output of command read from script");
+SKIP: {
+    skip('iOS: no shell redirection') if $^O =~ /darwin-ios/;
+    $x = `$Perl <$filename`;
+    is($x, "ok\n", "Got expected output of command read from script");
+}

@@ -26,6 +26,10 @@ use Test::More;
 use File::Spec;
 use File::Find;
 use ExtUtils::Manifest;
+use Config;
+
+if ($^O =~ /darwin-ios/) { use ios }
+
 # Don't want its diagnostics getting in the way of ours.
 $ExtUtils::Manifest::Quiet=1;
 my $up = File::Spec->updir();
@@ -178,6 +182,7 @@ while (my ($args, $version, $expectation) = splice @tests, 0, 3) {
   is ($result, $expectation, "running $prog");
 
   my (%got);
+  chdir ($up) if $^O =~ /darwin-ios/;
   find (sub {$got{$File::Find::name}++ unless -d $_}, $name);
 
   foreach ($expectation =~ /Writing\s+(\S+)/gm) {

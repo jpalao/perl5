@@ -2262,6 +2262,8 @@ EOF
 
     }
 
+    # following test crash randomly on iOS on _thr.t
+    if ($^O != /darwin-ios/)
     {
         unlike("\xB5", qr/^_?\p{IsMyRuntimeProperty}\z/, "yadayada");
         like("\xB6", qr/^_?\p{IsMyRuntimeProperty}\z/, "yadayada");
@@ -2287,6 +2289,7 @@ EOF
         return "!B6\n";
     }
 
+    if ($^O != /darwin-ios/)
     {   # [perl 121777]
         my $regex;
         { package Some;

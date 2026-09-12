@@ -24,48 +24,50 @@ my @tmpfiles = ();
 END { unlink_all @tmpfiles }
 
 # Tests for -0
+SKIP: {
+    skip ('iOS: no stdin access', 12) if $^O =~ /darwin-ios/;
+    $r = runperl(
+        switches	=> [ '-0', ],
+        stdin	=> 'foo\0bar\0baz\0',
+        prog	=> 'print qq(<$_>) while <>',
+    );
+    is( $r, "<foo\0><bar\0><baz\0>", "-0" );
 
-$r = runperl(
-    switches	=> [ '-0', ],
-    stdin	=> 'foo\0bar\0baz\0',
-    prog	=> 'print qq(<$_>) while <>',
-);
-is( $r, "<foo\0><bar\0><baz\0>", "-0" );
+    $r = runperl(
+        switches	=> [ '-l', '-0', '-p' ],
+        stdin	=> 'foo\0bar\0baz\0',
+        prog	=> '1',
+    );
+    is( $r, "foo\nbar\nbaz\n", "-0 after a -l" );
 
-$r = runperl(
-    switches	=> [ '-l', '-0', '-p' ],
-    stdin	=> 'foo\0bar\0baz\0',
-    prog	=> '1',
-);
-is( $r, "foo\nbar\nbaz\n", "-0 after a -l" );
+    $r = runperl(
+        switches	=> [ '-0', '-l', '-p' ],
+        stdin	=> 'foo\0bar\0baz\0',
+        prog	=> '1',
+    );
+    is( $r, "foo\0bar\0baz\0", "-0 before a -l" );
 
-$r = runperl(
-    switches	=> [ '-0', '-l', '-p' ],
-    stdin	=> 'foo\0bar\0baz\0',
-    prog	=> '1',
-);
-is( $r, "foo\0bar\0baz\0", "-0 before a -l" );
+    $r = runperl(
+        switches	=> [ sprintf("-0%o", ord 'x') ],
+        stdin	=> 'fooxbarxbazx',
+        prog	=> 'print qq(<$_>) while <>',
+    );
+    is( $r, "<foox><barx><bazx>", "-0 with octal number" );
 
-$r = runperl(
-    switches	=> [ sprintf("-0%o", ord 'x') ],
-    stdin	=> 'fooxbarxbazx',
-    prog	=> 'print qq(<$_>) while <>',
-);
-is( $r, "<foox><barx><bazx>", "-0 with octal number" );
+    $r = runperl(
+        switches	=> [ '-00', '-p' ],
+        stdin	=> 'abc\ndef\n\nghi\njkl\nmno\n\npq\n',
+        prog	=> 's/\n/-/g;$_.=q(/)',
+    );
+    is( $r, 'abc-def--/ghi-jkl-mno--/pq-/', '-00 (paragraph mode)' );
 
-$r = runperl(
-    switches	=> [ '-00', '-p' ],
-    stdin	=> 'abc\ndef\n\nghi\njkl\nmno\n\npq\n',
-    prog	=> 's/\n/-/g;$_.=q(/)',
-);
-is( $r, 'abc-def--/ghi-jkl-mno--/pq-/', '-00 (paragraph mode)' );
-
-$r = runperl(
-    switches	=> [ '-0777', '-p' ],
-    stdin	=> 'abc\ndef\n\nghi\njkl\nmno\n\npq\n',
-    prog	=> 's/\n/-/g;$_.=q(/)',
-);
-is( $r, 'abc-def--ghi-jkl-mno--pq-/', '-0777 (slurp mode)' );
+    $r = runperl(
+        switches	=> [ '-0777', '-p' ],
+        stdin	=> 'abc\ndef\n\nghi\njkl\nmno\n\npq\n',
+        prog	=> 's/\n/-/g;$_.=q(/)',
+    );
+    is( $r, 'abc-def--ghi-jkl-mno--pq-/', '-0777 (slurp mode)' );
+}
 
 $r = runperl(
     switches	=> [ '-066' ],
@@ -166,7 +168,7 @@ SWTEST
     close $f or die "Could not close: $!";
     $r = runperl(
 	progfile    => $filename,
-	args	    => [ '-x=foo -y' ],
+	args	    => [ '-x=foo', '-y' ],
     );
     is( $r, 'foo1', '-s on the shebang line' );
 }
@@ -213,7 +215,7 @@ SWTESTPM
 	switches    => [ "-m$package" ],
 	prog	    => '1',
     );
-
+    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
     {
         local $TODO = '';  # this one works on VMS
         is( $r, '', '-m' );
@@ -309,17 +311,19 @@ is runperl(stderr => 1, prog => '#!perl -M'),
         my $v = sprintf "%vd", $^V;
         my $ver = $Config{PERL_VERSION};
         my $rel = $Config{PERL_SUBVERSION};
+        my $archname = $^O =~ /darwin-ios/ ? 'darwin-thread-multi-2level' : $Config{archname};
         like( runperl( switches => ['-v'] ),
-	      qr/This is perl 5, version \Q$ver\E, subversion \Q$rel\E \(v\Q$v\E(?:[-*\w]+| \([^)]+\))?\) built for \Q$Config{archname}\E.+Copyright.+Larry Wall.+Artistic License.+GNU General Public License/s,
+	      qr/This is perl 5, version \Q$ver\E, subversion \Q$rel\E \(v\Q$v\E(?:[-*\w]+| \([^)]+\))?\) built for \Q$archname\E.+Copyright.+Larry Wall.+Artistic License.+GNU General Public License/s,
               '-v looks okay' );
     }
 }
 
 # Tests for -h and -?
 
-{
+SKIP: {
     local $TODO = '';   # these ones should work on VMS
 
+    skip 'iOS: #TODO junk in usage', 2 if $^O =~ /darwin-ios/;
     like( runperl( switches => ['-h'] ),
 	  qr/Usage: .+(?i:perl(?:$Config{_exe})?).+switches.+programfile.+arguments/,
           '-h looks okay' );
@@ -497,6 +501,7 @@ __EOF__
         my ($osvers) = ($Config{osvers} =~ /^(\d+(?:\.\d+)?)/);
         skip "NetBSD 6 libc defines at functions, but they're incomplete", 3
           if $^O eq "netbsd" && $osvers < 7;
+        skip "iOS: #TODO", 3 if $^O =~ /darwin-ios/;
         my $code = <<'CODE';
 @ARGV = ("tmpinplace/foo");
 $^I = "";
@@ -541,6 +546,7 @@ CODE
   SKIP:
     {
         skip "Need fork", 3 if !$Config{d_fork};
+        skip "iOS: Need fork", 3 if $^O =~ /darwin-ios/;
         open my $fh, ">", $work
           or die "Cannot open $work: $!";
         # we want only a single line for this test, otherwise

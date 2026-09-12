@@ -23,9 +23,24 @@ BEGIN {
 }
 use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 use strict;
-
+use Cwd;
 require './t/test.pl';
 my $source = find_git_or_skip('all');
+
+my $oldpwd = getcwd();
 chdir $source or die "Can't chdir to $source: $!";
 
-system "$^X Porting/cmpVERSION.pl --tap";
+if ($^O =~ /darwin-ios/) {
+    warn "getcwd(): " . getcwd() ."\n";
+    exec_perl({
+        pwd => getcwd(), 
+        switches => [], 
+        progfile => "Porting/cmpVERSION.pl",
+        args => ["--tap"]
+    });
+    chdir $oldpwd && $^O =~ /darwin-ios/;
+    chdir 't' if -d 't' && $^O =~ /darwin-ios/;
+} else {
+    system "$^X Porting/cmpVERSION.pl --tap";
+}
+

@@ -34,6 +34,17 @@ BEGIN {
     'Time::HiRes' => q| ::is( ref Time::HiRes->can('usleep'),'CODE' ) |,  # 5.7.3
 );
 
+my %ios_modules = (
+     'Data::Dumper'     => q| ::is( ref Data::Dumper->can('dump'),'CODE' ) |,
+     'Storable'         => q| ::is( ref Storable->can('nstore'),'CODE' ) |,
+     'Encode'           => q| ::is( ref Encode->can('decode'),'CODE' ) |,
+     'Fcntl'            => q| ::is( ref Fcntl->can('flock'),'CODE' ) |,
+     'PerlIO::encoding' => q| ::is( ref PerlIO::encoding->can('fallback'),'CODE' ) |,
+     'ios'              => q| ::is( ref ios->can('cat'),'CODE' ) |,
+);
+
+%modules = (%modules, %ios_modules) if $^O =~ /darwin-ios/;
+
 plan (26 + keys(%modules) * 3);
 
 # Try to load the module
@@ -132,6 +143,7 @@ SKIP: {
 # Now try to load well known XS modules
 my $extensions = $Config{'dynamic_ext'};
 $extensions =~ s|/|::|g;
+$extensions .= " ios" if $^O =~ /darwin-ios/;
 
 for my $module (sort keys %modules) {
     SKIP: {
