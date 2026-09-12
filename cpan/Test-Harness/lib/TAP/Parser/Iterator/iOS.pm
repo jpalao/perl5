@@ -92,7 +92,8 @@ sub _initialize {
         ($exit_code, $tap) = exec_test($workdir, $command_parts);
         $teardown->() if $teardown;
         if (defined $tap) {
-            print STDOUT $tap if $ENV{PERL_FOUNDATION_RUNNER};
+            print STDOUT $tap if $ENV{PERL_FOUNDATION_RUNNER}
+                && $ENV{PERL_FOUNDATION_RUNNER_VERBOSE};
             utf8::downgrade($tap, 1) if utf8::is_utf8($tap);
             utf8::decode($tap) unless utf8::is_utf8($tap);
         }
