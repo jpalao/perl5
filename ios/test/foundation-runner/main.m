@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <ios/ios.h>
 #import <unistd.h>
 
@@ -119,18 +120,35 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
     return normalizedResult;
 }
 
+@interface FoundationRunnerDelegate : UIResponder <UIApplicationDelegate>
+@end
+
+@implementation FoundationRunnerDelegate
+
+- (BOOL)application:(UIApplication *)application
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+    NSString *documents = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
+                                                                 NSUserDomainMask,
+                                                                 YES) firstObject];
+    NSString *fullTestScript = [documents stringByAppendingPathComponent:@"t/ios_harness"];
+    NSString *scriptPath = RunnerArgument(arguments, @"--script", fullTestScript);
+    NSString *defaultOutput = [documents stringByAppendingPathComponent:@"perl-tests.txt"];
+    NSString *outputPath = RunnerArgument(arguments, @"--output", defaultOutput);
+    NSString *defaultStatus = [documents stringByAppendingPathComponent:@"perl-tests.status"];
+    NSString *statusPath = RunnerArgument(arguments, @"--status", defaultStatus);
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        int result = RunPerlScript(scriptPath, outputPath, statusPath);
+        exit(result);
+    });
+    return YES;
+}
+
+@end
+
 int main(int argc, const char *argv[]) {
     @autoreleasepool {
-        NSArray *arguments = [[NSProcessInfo processInfo] arguments];
-        NSString *documents = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
-                                                                     NSUserDomainMask,
-                                                                     YES) firstObject];
-        NSString *fullTestScript = [documents stringByAppendingPathComponent:@"t/ios_harness"];
-        NSString *scriptPath = RunnerArgument(arguments, @"--script", fullTestScript);
-        NSString *defaultOutput = [documents stringByAppendingPathComponent:@"perl-tests.txt"];
-        NSString *outputPath = RunnerArgument(arguments, @"--output", defaultOutput);
-        NSString *defaultStatus = [documents stringByAppendingPathComponent:@"perl-tests.status"];
-        NSString *statusPath = RunnerArgument(arguments, @"--status", defaultStatus);
-        return RunPerlScript(scriptPath, outputPath, statusPath);
+        return UIApplicationMain(argc, (char **)argv, nil,
+                                  NSStringFromClass([FoundationRunnerDelegate class]));
     }
 }
