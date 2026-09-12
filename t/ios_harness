@@ -139,7 +139,7 @@ sub exclude_tests {
 	@tests = grep(/^(?:(?!\.\.\/cpan\/DB_File))/, @tests);
 };
 
-@ARGV = ('base/cond.t');
+# @ARGV = ('base/cond.t');
 
 do './harness';
 
