@@ -473,7 +473,7 @@ SKIP: {
 
 SKIP: {
     skip("fork required to test pipe copying", 2)
-        if (!$Config{'d_fork'} || $^O =~ /darwin-ios/);
+        if (!$Config{'d_fork'});
 
     open(my $IN, "-|") || exec $^X, '-e', 'print "Hello, world!\n"';
     open(my $OUT, "|-") || exec $^X, '-ne', 'exit(/Hello/ ? 55 : 0)';

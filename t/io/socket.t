@@ -36,7 +36,6 @@ my $local = gethostbyname('localhost')
     or note "gethostbyname('localhost') failed: $!";
 
 my $fork = $Config{d_fork} || $Config{d_pseudofork};
-undef $fork if $^O =~ /darwin-ios/;
 
 {
     # basic socket creation
