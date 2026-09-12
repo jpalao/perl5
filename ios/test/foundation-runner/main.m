@@ -132,12 +132,21 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
 }
 
 @interface FoundationRunnerDelegate : UIResponder <UIApplicationDelegate>
+@property(nonatomic, assign) BOOL testRunStarted;
 @end
 
 @implementation FoundationRunnerDelegate
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    return YES;
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    if (self.testRunStarted) {
+        return;
+    }
+    self.testRunStarted = YES;
     NSArray *arguments = [[NSProcessInfo processInfo] arguments];
     NSString *documents = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                                                  NSUserDomainMask,
@@ -148,11 +157,11 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
     NSString *outputPath = RunnerArgument(arguments, @"--output", defaultOutput);
     NSString *defaultStatus = [documents stringByAppendingPathComponent:@"perl-tests.status"];
     NSString *statusPath = RunnerArgument(arguments, @"--status", defaultStatus);
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)),
+                    dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
         int result = RunPerlScript(scriptPath, outputPath, statusPath);
         exit(result);
     });
-    return YES;
 }
 
 @end
