@@ -7,6 +7,12 @@ use warnings;
 use Config;
 use Cwd qw/getcwd/;
 
+BEGIN {
+    *CORE::GLOBAL::exit = sub {
+        $::ios_harness_status = shift // 0;
+    };
+}
+
 $ENV{LC_ALL} = 'C';
 $ENV{LC_CTYPE} = 'C';
 $ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 0;
@@ -133,11 +139,10 @@ sub exclude_tests {
 	@tests = grep(/^(?:(?!\.\.\/cpan\/DB_File))/, @tests);
 };
 
-BEGIN {
-    *CORE::GLOBAL::exit = sub {
-        $::ios_harness_status = shift // 0;
-    };
-}
+$ENV{PERL_FOUNDATION_RUNNER_VERBOSE} = 1
+    if $ENV{PERL_FOUNDATION_RUNNER} && grep { $_ eq '-v' } @ARGV;
 
 do './harness';
+
 CORE::exit($::ios_harness_status // 0);
+
