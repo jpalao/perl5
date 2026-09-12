@@ -36,13 +36,15 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
         }
         close(stdoutPipe.fileHandleForWriting.fileDescriptor);
         close(stderrPipe.fileHandleForWriting.fileDescriptor);
+        setvbuf(stdout, NULL, _IONBF, 0);
+        setvbuf(stderr, NULL, _IONBF, 0);
 
         void (^drainPipe)(NSPipe *, int) = ^(NSPipe *pipe, int outputDescriptor) {
             dispatch_group_enter(pipeReaders);
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
                 @autoreleasepool {
                     while (YES) {
-                        NSData *data = [pipe.fileHandleForReading readDataOfLength:4096];
+                        NSData *data = pipe.fileHandleForReading.availableData;
                         if (data.length == 0) {
                             break;
                         }
@@ -50,7 +52,16 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
                         @synchronized (capturedOutput) {
                             [capturedOutput appendString:text];
                         }
-                        write(outputDescriptor, data.bytes, data.length);
+                        const uint8_t *bytes = data.bytes;
+                        size_t remaining = data.length;
+                        while (remaining > 0) {
+                            ssize_t written = write(outputDescriptor, bytes, remaining);
+                            if (written <= 0) {
+                                break;
+                            }
+                            bytes += written;
+                            remaining -= (size_t)written;
+                        }
                     }
                 }
                 dispatch_group_leave(pipeReaders);

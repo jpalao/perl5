@@ -166,18 +166,6 @@ sub _perl_switches_with_environment {
         my ($switches) = @_;
         my @result = @{$switches || []};
 
-        if ($^O =~ /darwin-ios/) {
-            my $index = @result && $result[0] =~ /^-[Tt]\z/ ? 1 : 0;
-            my @preloads = grep {
-                my $preload = $_;
-                !grep { /^\Q$preload\E(?:=|\z)/ } @result;
-            } grep { defined } (
-                $DEBUG ? '-MData::Dumper' : undef,
-                qw(-MJSON::PP -Mios),
-            );
-            splice @result, $index, 0, @preloads;
-        }
-
         return \@result if grep { $_ eq '-T' || $_ eq '-t' } @result;
         return \@result if !defined $ENV{PERL5LIB};
 
