@@ -719,71 +719,31 @@ prepare_ifuse_directory_tree() {
 
 copy_tree_to_device() {
     local source_dir="$1"
-    local copy_errors="$WORKDIR/.device-copy-errors.log"
+    local upload_dir="$WORKDIR/.device-transfer-upload"
 
-    if ifuse_requested; then
-        if ! mount_harness_documents; then
-            echo >&2 "ifuse could not mount Documents; content was not copied"
-            return 1
-        fi
-        IFUSE_IN_USE=1
-        build_destination_dir="$IOS_MOUNTPOINT"
-        echo "Copying $source_dir to mounted Documents at $build_destination_dir (verbose)"
-        rm -f "$copy_errors"
-        echo "Preparing directory tree on mounted Documents"
-        if ! prepare_ifuse_directory_tree "$source_dir" "$build_destination_dir"; then
-            echo >&2 "ifuse directory preparation failed; content was not copied"
-            return 1
-        fi
-        rsync -aL --exclude '.git/' --exclude 'Build/' --exclude 'build/' \
-            --exclude '*.bundle' "$source_dir/" "$build_destination_dir/" \
-            2>"$copy_errors"
-        if [ $? -ne 0 ]; then
-            if ifuse_copy_has_content_errors "$copy_errors"; then
-                echo >&2 "ifuse copy failed; content may be incomplete"
-                echo >&2 "Copy diagnostics: $copy_errors"
-                return 1
-            fi
-            echo >&2 "ifuse copy completed with metadata warnings; continuing"
-            echo >&2 "Copy diagnostics: $copy_errors"
+    if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
+        stage_tree_for_upload "$source_dir" "$upload_dir"
+        echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with ios-deploy..."
+        local status
+        if capture_command_output ios-deploy \
+                -i "$IOS_DEVICE_UUID" \
+                --bundle_id "$HARNESS_APP_ID" \
+                --upload "$upload_dir" \
+                --to "/$REMOTE_DOCUMENTS_DIR"; then
+            status=0
         else
-            rm -f "$copy_errors"
+            status=$?
         fi
-        refresh_generated_config_timestamps "$build_destination_dir" || return 1
-        rm -Rf "$build_destination_dir/ios/test/Build"
-        echo "Cleaning bundle artifacts under $build_destination_dir"
-        if ! capture_command_output find "$build_destination_dir" -name "*.bundle" -type f -delete; then
-            echo >&2 "bundle cleanup failed in $build_destination_dir"
-            return 1
-        fi
+        rm -Rf "$upload_dir"
+        [ "$status" -eq 0 ] || return "$status"
+        build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (ios-deploy)"
         return 0
-    fi
-
-    if { [ "$IOS_TEST_APP" = "foundation-runner" ] || [ "$IOS_TEST_APP" = "runner" ]; } \
-        && [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
-        local script_path="$source_dir/test.pl"
-        [ -f "$script_path" ] || {
-            echo >&2 "Foundation runner script is missing: $script_path"
-            return 1
-        }
-        build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (runner)"
-        capture_command_output ios-deploy \
-            -i "$IOS_DEVICE_UUID" \
-            --bundle_id "$HARNESS_APP_ID" \
-            --upload "$script_path" \
-            --to "/Documents/test.pl"
-        return $?
     fi
 
     if [ "$TRANSFER_TRANSPORT" = "devicectl" ]; then
         build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
         upload_tree_with_devicectl "$source_dir"
         return $?
-    fi
-
-    if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
-        echo >&2 "ios-deploy is the active transport, but bulk tree copy is not available without the ifuse mount. Enable USE_IFUSE=1 or switch to devicectl for a visible device."
-        return 1
     fi
 
     build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
@@ -910,12 +870,13 @@ test_perl_device() {
     popd
 
     if [ "$simulator_build" -eq "0" ]; then
-        if [ "$IFUSE_IN_USE" -eq 1 ]; then
-            echo "Remounting harness Documents to follow the test log"
+        if ifuse_requested; then
+            echo "Mounting harness Documents to follow the test log"
             if ! run_with_timeout "$IFUSE_MOUNT_TIMEOUT" mount_harness_documents; then
                 echo >&2 "ifuse remount failed or timed out after ${IFUSE_MOUNT_TIMEOUT}s while preparing the test log"
                 check_exit_code 1
             fi
+            IFUSE_IN_USE=1
             TEST_LOG_SOURCE="$IOS_MOUNTPOINT/perl-tests.txt"
             TEST_STATUS_SOURCE="$IOS_MOUNTPOINT/perl-tests.status"
             sleep 2
