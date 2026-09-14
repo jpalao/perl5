@@ -67,11 +67,11 @@ case "$IOS_TEST_APP" in
         ;;
 esac
 # Device transport is the real install/copy/launch mechanism.
-# Supported values are devicectl (default) and ios-deploy.
-: "${DEVICE_TRANSPORT:=devicectl}"
+# Supported values are devicectl and ios-deploy (ios-deploy is the pipeline default).
+: "${DEVICE_TRANSPORT:=ios-deploy}"
 # USE_IFUSE is a separate developer convenience for mounted Documents access.
-# It is optional and not assumed to be present in the general open-source user environment.
-: "${USE_IFUSE:=auto}"
+# The pipeline mounts Documents after copying; app-update.sh opts out by default.
+: "${USE_IFUSE:=1}"
 : "${AUTO_LAUNCH:=1}"
 : "${TEST_LOG_PREFIX:=perl-tests}"
 : "${IFUSE_MOUNT_TIMEOUT:=30}"
