@@ -174,7 +174,9 @@ build_perl() {
   perl -0777 -i.bak.2 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) \$perl\\\$\(EXE_EXT\)|RUN_PERL = \\\$(LDLIBPTH) \\\$(RUN) ./miniperl\\\$(EXE_EXT)|' Makefile.SH
   perl -0777 -i.bak.3 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./perl\\\$\(EXE_EXT\) \-Ilib \-I\.|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./miniperl\\\$\(EXE_EXT\) -Ilib -I.|' Makefile.SH
 
-  ./Configure -es -Dusedevel \
+  cp "$PERLBREW_SOURCE/generate_uudmap" generate_uudmap
+
+  ./Configure -des -Dusedevel \
     -Dtargethost=physical-device \
     -Dtargetrun=darwin-ios \
     -Dcc=/usr/bin/clang \
@@ -182,8 +184,6 @@ build_perl() {
     -Dldflags="$LINK_FLAGS" \
     -Dlibs='-lm -lc' \
     -Dprefix="$PREFIX"
-
-  cp "$PERLBREW_SOURCE/generate_uudmap" generate_uudmap
 
   make depend
   check_exit_code
