@@ -3078,7 +3078,6 @@ case "$targethost" in
 			: "${IOS_SDKROOT:=$(xcrun --sdk "$IOS_PLATFORM" --show-sdk-path 2>/dev/null)}"
 			ccflags=`echo "$ccflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
 			ldflags=`echo "$ldflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
-			lddlflags=`echo "$lddlflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
 			case "$IOS_SDKROOT" in
 			'') echo "Cannot determine the iOS SDK path; set IOS_SDKROOT." >&4
 				exit 1

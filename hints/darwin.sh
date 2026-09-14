@@ -364,6 +364,11 @@ EOM
     fi
 
    lddlflags="${ldflags} -bundle -undefined dynamic_lookup"
+  case "$targetrun" in
+  darwin-ios)
+    lddlflags=`echo "$lddlflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
+    ;;
+  esac
    ;;
 esac
 
