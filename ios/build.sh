@@ -167,11 +167,6 @@ build_perl() {
     export IPHONEOS_DEPLOYMENT_TARGET="$MIN_VERSION"
   fi
 
-  # patch Makefile.SH #
-
-  # use host generate_uudmap
-  perl -0777 -i.bak.0 -pe 's|bitcount.h: generate_uudmap\\\$\(HOST_EXE_EXT\)|bitcount.h: generate_uudmap\\\$(HOST_EXE_EXT)\n\tcp "\$PERLBREW_SOURCE/generate_uudmap" .|' Makefile.SH
-
   # use host miniperl
   SUB_S="cp $PERLBREW_SOURCE/miniperl ." perl -i.bak.1 -pe 's|(    \$\(miniperl_objs\) \$\(libs\))|$1\n\t$ENV{SUB_S}|' Makefile.SH
 
@@ -187,6 +182,8 @@ build_perl() {
     -Dldflags="$LINK_FLAGS" \
     -Dlibs='-lm -lc' \
     -Dprefix="$PREFIX"
+
+  cp "$PERLBREW_SOURCE/generate_uudmap" generate_uudmap
 
   make depend
   check_exit_code
