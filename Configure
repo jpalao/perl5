@@ -3076,6 +3076,8 @@ case "$targethost" in
 			: "${IOS_ARCH:=arm64}"
 			: "${IOS_DEPLOYMENT_TARGET:=12.0}"
 			: "${IOS_SDKROOT:=$(xcrun --sdk "$IOS_PLATFORM" --show-sdk-path 2>/dev/null)}"
+			ccflags=`echo "$ccflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
+			ldflags=`echo "$ldflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
 			case "$IOS_SDKROOT" in
 			'') echo "Cannot determine the iOS SDK path; set IOS_SDKROOT." >&4
 				exit 1
@@ -3127,6 +3129,7 @@ case "$targethost" in
 		darwin-ios)
 			targetto=cp
 			targetfrom=cp
+			targetmkdir=mkdir
 			;;
 		esac
 		case "$targetto" in
