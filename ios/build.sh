@@ -167,30 +167,6 @@ build_perl() {
     export IPHONEOS_DEPLOYMENT_TARGET="$MIN_VERSION"
   fi
 
-  # expand config
-  cd "ios/config"
-  perl -w template.pl
-  cd ../..
-
-  # replace config
-  cp "ios/config/$PLATFORM_TAG/$PERL_ARCH/config.sh" .
-  cp "ios/config/Policy.sh" .
-
-  # patch the hardcoded build prefix in config
-  perl -0777 -i.bak.0 -pe "s|/opt/local|$PREFIX|g" config.sh
-  perl -0777 -i.bak.0 -pe "s|/opt/local|$PREFIX|g" Policy.sh
-
-  perl -0777 -i.bak.1 -pe "s|%PERL_REVISION%|$PERL_REVISION|g" Policy.sh
-  perl -0777 -i.bak.2 -pe "s|%PERL_MAJOR_VERSION%|$PERL_MAJOR_VERSION|g" Policy.sh
-  perl -0777 -i.bak.3 -pe "s|%PERL_MINOR_VERSION%|$PERL_MINOR_VERSION|g" Policy.sh
-  
-  # patch perl and os version
-  os_version=$(uname -r)
-  perl -0777 -i.bak.2 -pe "s|%PERL_REVISION%|$PERL_REVISION|g" config.sh
-  perl -0777 -i.bak.3 -pe "s|%PERL_MAJOR_VERSION%|$PERL_MAJOR_VERSION|g" config.sh
-  perl -0777 -i.bak.4 -pe "s|%PERL_MINOR_VERSION%|$PERL_MINOR_VERSION|g" config.sh
-  perl -0777 -i.bak.5 -pe "s|%DARWIN_VERSION%|$os_version|g" config.sh
-  
   # patch Makefile.SH #
 
   # use host generate_uudmap
@@ -203,83 +179,14 @@ build_perl() {
   perl -0777 -i.bak.2 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) \$perl\\\$\(EXE_EXT\)|RUN_PERL = \\\$(LDLIBPTH) \\\$(RUN) ./miniperl\\\$(EXE_EXT)|' Makefile.SH
   perl -0777 -i.bak.3 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./perl\\\$\(EXE_EXT\) \-Ilib \-I\.|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./miniperl\\\$\(EXE_EXT\) -Ilib -I.|' Makefile.SH
 
-  # Patch Configure #
-
-  # do not want db, header is detected but lib is not linkable
-  sed -i.bak.0 -e $'s/libswanted="cl pthread socket bind inet nsl ndbm gdbm dbm db malloc dl ld"/libswanted="cl pthread socket bind inet nsl ndbm dbm malloc dl ld"/' Configure
-
-  # use available extensions minus DB_File
-  perl -0777 -i.bak.1 -pe 's|rp="What extensions do you wish to load dynamically\?"\n\t\. \.\/myread|rp="What extensions do you wish to load dynamically\?"\n\tavail_ext=\$\(echo "\$avail_ext" \| sed "s/ DB_File / /g"\)\n\tans="\$avail_ext"|' Configure
-
-  # Binaries not executable in host arch. Do not abort on try tests
-  perl -0777 -i.bak.2 -pe 's/Shall I abort Configure"\n\t\t*dflt=y/Shall I abort Configure"\n\t\tdflt=n/g' Configure
-  perl -0777 -i.bak.2 -pe "s/Do you really want to continue\?'\n\s*dflt='n'/Do you really want to continue?'\n\t\tdflt='y'/g" Configure
-
-  # do not wait for press after Configure
-  perl -0777 -i.bak.3 -pe 's/rp="Press return or use a shell escape to edit config.sh:"\n\t. UU\/myread/rp="Press return or use a shell escape to edit config.sh:"/' Configure
-
-  # do not 'make depend' yet
-  perl -0777 -i.bak.4 -pe 's|rp="Run \$make depend now\?"\n\t. UU\/myread|ans=n\n\trp="Run $make depend now\?"|' Configure
-
-  # deployment target
-  min_ver_replace="-m""$PLATFORM_TAG""os-version-min=8.0"
-  perl -0777 -i.bak.4 -pe "s|$min_ver_replace|$MIN_VERSION_TAG|g" config.sh
-
-  if [ $BITCODE -eq 1 ]; then
-    perl -0777 -i.bak.5 -pe "s|\-fPIC|\-fPIC $BITCODE_BUILD_FLAGS|g" config.sh
-    perl -0777 -i.bak.6 -pe "s|\-undefined dynamic_lookup||g" config.sh
-    perl -0777 -i.bak.7 -pe "s|\-bundle|\-Xlinker \-bitcode_bundle|g" config.sh
-  fi
-
-  # Restore the direct Configure invocation; piping through sh/yes triggers the
-  # Perl guard that aborts with 'Say \'sh Configure\', not \'sh <Configure\''.
-  ./Configure -Dusedevel -f config.sh -d
-
-  # accept all defaults of our arch config
-  cp "ios/config/$PLATFORM_TAG/$PERL_ARCH/config.h" .
-
-  # patch prefix
-  perl -0777 -i.bak.0 -pe "s|/opt/local|$PREFIX|g" config.h
-
-  perl -0777 -i.bak.4 -pe "s|$min_ver_replace|$MIN_VERSION_TAG|g" config.h
-
-  if [ $PLATFORM_TAG != "iphone" ] ; then
-    # patch fork
-    perl -0777 -i.bak.0 -pe "s|d_fork='define'|d_fork='undef'|g" config.sh
-    perl -0777 -i.bak.1 -pe "s|d_vfork='define'|d_vfork='undef'|g" config.sh
-    perl -0777 -i.bak.2 -pe "s|usevfork='true'|usevfork='false'|g" config.sh
-    perl -0777 -i.bak.0 -pe "s|#define HAS_FORK\t\t/\*\*/|/*#define HAS_FORK\t\t/ \*\*/|g" config.h
-
-    # patch syscall
-    perl -0777 -i.bak.3 -pe "s|d_syscall='define'|d_syscall='undef'|g" config.sh
-    perl -0777 -i.bak.4 -pe "s|d_syscallproto='define'|d_syscallproto='undef'|g" config.sh
-    perl -0777 -i.bak.1 -pe "s|#define HAS_SYSCALL\t/\*\*/|/*#define HAS_SYSCALL\t/ \*\*/|g" config.h
-    perl -0777 -i.bak.2 -pe "s|#define	HAS_SYSCALL_PROTO\t/\*\*/|/*#define\tHAS_SYSCALL_PROTO\t/ \*\*/|g" config.h
-  fi
-
-  # remove DB_File
-  perl -0777 -i.bak.4 -pe "s|DB_File||g" config.sh
-
-  #patch arch
-  perl -0777 -i.bak.5 -pe "s/myarchname=.*/\nmyarchname='$PERL_ARCH-darwin'/g" config.sh
-  perl -0777 -i.bak.6 -pe "s|[^y]archname=.*|\narchname='$PERL_ARCH-darwin-ios-$PLATFORM_TAG-thread-multi'|" config.sh
-
-  #patch $^O
-  OSNAME='darwin-ios'
-  if [ $PERL_APPLETV -ne 0 ]; then
-    OSNAME="$OSNAME-tv"
-  elif [ $PERL_APPLEWATCH -ne 0 ]; then
-    OSNAME="$OSNAME-watch"
-  fi
-
-  perl -0777 -i.bak.5 -pe "s/(?:[^a-z])osname=.*/\nosname='$OSNAME'/g" config.sh
-  perl -0777 -i.bak.4 -pe "s|#define OSNAME \"darwin\"|#define OSNAME \"$OSNAME\"|g" config.h
-
-  # patch perl version
-  perl -0777 -i.bak.4 -pe "s|%PERL_REVISION%|$PERL_REVISION|g" config.h
-  perl -0777 -i.bak.5 -pe "s|%PERL_MAJOR_VERSION%|$PERL_MAJOR_VERSION|g" config.h
-  perl -0777 -i.bak.6 -pe "s|%PERL_MINOR_VERSION%|$PERL_MINOR_VERSION|g" config.h
-  perl -0777 -i.bak.7 -pe "s|%DARWIN_VERSION%|$os_version|g" config.h
+  ./Configure -des -Dusedevel \
+    -Dtargethost=physical-device \
+    -Dtargetrun=darwin-ios \
+    -Dcc=/usr/bin/clang \
+    -Dccflags="$BUILD_FLAGS" \
+    -Dldflags="$LINK_FLAGS" \
+    -Dlibs='-lm -lc' \
+    -Dprefix="$PREFIX"
 
   make depend
   check_exit_code

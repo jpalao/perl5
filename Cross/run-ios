@@ -1,0 +1,89 @@
+#!/bin/sh
+set -eu
+
+usage() {
+    echo "usage: $0 [-cwd DIR] [-env ENV] EXECUTABLE [ARGS...]" >&2
+    exit 2
+}
+
+cwd=""
+env_spec=""
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -cwd) [ "$#" -ge 2 ] || usage; cwd=$2; shift 2 ;;
+        -env) [ "$#" -ge 2 ] || usage; env_spec=$2; shift 2 ;;
+        *) break ;;
+    esac
+done
+
+[ "$#" -gt 0 ] || usage
+executable=$1
+shift
+[ -n "$cwd" ] && cd "$cwd"
+
+: "${IOS_PROBE_DEVICE_UDID:=${IOS_DEVICE_UUID:-}}"
+: "${IOS_PROBE_SIGNING_IDENTITY:=${CODE_SIGN_IDENTITY:-}}"
+: "${IOS_PROBE_PROVISIONING_PROFILE:=${PROVISIONING_PROFILE_PATH:-}}"
+: "${IOS_PROBE_BUNDLE_ID:=net.pytm.perl.ios-configure-probe}"
+: "${IOS_PROBE_BUILD_ROOT:=${TMPDIR:-/tmp}/perl-ios-configure-probe}"
+
+[ -n "$IOS_PROBE_DEVICE_UDID" ] || { echo "run-ios: IOS_PROBE_DEVICE_UDID is required" >&2; exit 2; }
+[ -n "$IOS_PROBE_SIGNING_IDENTITY" ] || { echo "run-ios: IOS_PROBE_SIGNING_IDENTITY is required" >&2; exit 2; }
+[ -f "$IOS_PROBE_PROVISIONING_PROFILE" ] || { echo "run-ios: IOS_PROBE_PROVISIONING_PROFILE is required" >&2; exit 2; }
+
+case "$executable" in /*) executable_path=$executable ;; *) executable_path=$PWD/$executable ;; esac
+[ -f "$executable_path" ] || { echo "run-ios: executable not found: $executable_path" >&2; exit 1; }
+architectures=$(lipo -archs "$executable_path" 2>/dev/null || true)
+case " $architectures " in *\ arm64\ *) ;; *) echo "run-ios: executable has no arm64 slice: $executable_path ($architectures)" >&2; exit 1 ;; esac
+platform=$(otool -l "$executable_path" 2>/dev/null | awk '$1 == "platform" { print $2; exit }')
+[ "$platform" = 2 ] || { echo "run-ios: executable is not an iOS Mach-O: $executable_path" >&2; exit 1; }
+
+bundle_root=$IOS_PROBE_BUILD_ROOT/probe.app
+profile_plist=$IOS_PROBE_BUILD_ROOT/profile.plist
+entitlements=$IOS_PROBE_BUILD_ROOT/entitlements.plist
+rm -Rf "$IOS_PROBE_BUILD_ROOT"
+mkdir -p "$bundle_root"
+security cms -D -i "$IOS_PROBE_PROVISIONING_PROFILE" -o "$profile_plist"
+team_identifier=$(plutil -extract TeamIdentifier.0 raw -o - "$profile_plist")
+cat > "$bundle_root/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>probe</string>
+<key>CFBundleIdentifier</key><string>$IOS_PROBE_BUNDLE_ID</string>
+<key>CFBundleName</key><string>Perl Configure Probe</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>LSRequiresIPhoneOS</key><true/>
+</dict></plist>
+EOF
+cat > "$entitlements" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>application-identifier</key><string>$team_identifier.$IOS_PROBE_BUNDLE_ID</string>
+<key>com.apple.developer.team-identifier</key><string>$team_identifier</string>
+<key>get-task-allow</key><true/>
+</dict></plist>
+EOF
+cp "$executable_path" "$bundle_root/probe"
+cp "$IOS_PROBE_PROVISIONING_PROFILE" "$bundle_root/embedded.mobileprovision"
+xattr -cr "$bundle_root" 2>/dev/null || true
+codesign --force --sign "$IOS_PROBE_SIGNING_IDENTITY" --entitlements "$entitlements" "$bundle_root"
+codesign --verify --deep --strict "$bundle_root"
+ideviceinstaller -u "$IOS_PROBE_DEVICE_UDID" -U "$IOS_PROBE_BUNDLE_ID" >/dev/null 2>&1 || true
+ideviceinstaller -u "$IOS_PROBE_DEVICE_UDID" -i "$bundle_root" >/dev/null
+idevicedebug -u "$IOS_PROBE_DEVICE_UDID" kill "$IOS_PROBE_BUNDLE_ID" >/dev/null 2>&1 || true
+
+set +e
+if [ -n "$env_spec" ]; then
+    eval "env $env_spec idevicedebug -u \"\$IOS_PROBE_DEVICE_UDID\" run \"\$IOS_PROBE_BUNDLE_ID\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
+else
+    idevicedebug -u "$IOS_PROBE_DEVICE_UDID" run "$IOS_PROBE_BUNDLE_ID" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
+fi
+status=$?
+set -e
+sed -e 's/\r$//' -e '/^Exit status: [0-9][0-9]*$/d' "$IOS_PROBE_BUILD_ROOT/output"
+rm -Rf "$IOS_PROBE_BUILD_ROOT"
+exit "$status"
