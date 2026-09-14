@@ -174,7 +174,7 @@ build_perl() {
   perl -0777 -i.bak.2 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) \$perl\\\$\(EXE_EXT\)|RUN_PERL = \\\$(LDLIBPTH) \\\$(RUN) ./miniperl\\\$(EXE_EXT)|' Makefile.SH
   perl -0777 -i.bak.3 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./perl\\\$\(EXE_EXT\) \-Ilib \-I\.|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./miniperl\\\$\(EXE_EXT\) -Ilib -I.|' Makefile.SH
 
-  ./Configure -des -Dusedevel \
+  ./Configure -es -Dusedevel \
     -Dtargethost=physical-device \
     -Dtargetrun=darwin-ios \
     -Dcc=/usr/bin/clang \
