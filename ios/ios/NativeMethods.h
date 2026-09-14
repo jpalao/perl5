@@ -14,3 +14,4 @@ extern void* CBYield(double ti);
 extern void* CBRunPerl(char * json);
 extern void* CBRunPerlCaptureStdout (char * json);
 extern id CBDerefSVtoID(void* sv);
+extern int ios_platform_check(void);

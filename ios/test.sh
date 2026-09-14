@@ -774,7 +774,7 @@ install_harness() {
 
     case "$TRANSFER_TRANSPORT" in
         ios-deploy)
-            capture_command_output ios-deploy -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+            capture_command_output ios-deploy -i "$IOS_DEVICE_UUID" --uninstall --bundle "$app_path"
             return $?
             ;;
         *)
