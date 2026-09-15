@@ -167,18 +167,11 @@ build_perl() {
     export IPHONEOS_DEPLOYMENT_TARGET="$MIN_VERSION"
   fi
 
-  # use host miniperl
-  SUB_S="cp $PERLBREW_SOURCE/miniperl ." perl -i.bak.1 -pe 's|(    \$\(miniperl_objs\) \$\(libs\))|$1\n\t$ENV{SUB_S}|' Makefile.SH
-
-  # use miniperl instead of full perl
-  perl -0777 -i.bak.2 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) \$perl\\\$\(EXE_EXT\)|RUN_PERL = \\\$(LDLIBPTH) \\\$(RUN) ./miniperl\\\$(EXE_EXT)|' Makefile.SH
-  perl -0777 -i.bak.3 -pe 's|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./perl\\\$\(EXE_EXT\) \-Ilib \-I\.|RUN_PERL = \\\$\(LDLIBPTH\) \\\$\(RUN\) ./miniperl\\\$\(EXE_EXT\) -Ilib -I.|' Makefile.SH
-
-  cp "$PERLBREW_SOURCE/generate_uudmap" generate_uudmap
-
   ./Configure -des -Dusedevel \
     -Dtargethost=physical-device \
     -Dtargetrun=darwin-ios \
+    -Dhostperl="$PERLBREW_SOURCE/miniperl" \
+    -Dhostgenerate="$PERLBREW_SOURCE/generate_uudmap" \
     -Dcc=/usr/bin/clang \
     -Dccflags="$BUILD_FLAGS" \
     -Dldflags="$LINK_FLAGS" \
