@@ -629,8 +629,8 @@ launch_harness_with_idevicedebug() {
         echo >&2 "idevicedebug is required to launch the harness on this device"
         return 1
     }
-    echo "Launching $HARNESS_APP_ID with idevicedebug --detach on $IOS_DEVICE_UUID"
-    if idevicedebug -u "$IOS_DEVICE_UUID" --detach run "$HARNESS_APP_ID"; then
+    echo "Launching $HARNESS_APP_ID with idevicedebug on $IOS_DEVICE_UUID"
+    if idevicedebug -u "$IOS_DEVICE_UUID" run "$HARNESS_APP_ID"; then
         echo "idevicedebug launch succeeded"
         return 0
     fi
