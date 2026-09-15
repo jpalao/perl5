@@ -3912,6 +3912,10 @@ for file in $loclist $trylist; do
 	eval $file="\$_$file"
 done
 
+if test "X$PERL_IOS" != X; then
+	osname=darwin-ios
+fi
+
 cat << EOM
 
 Configure uses the operating system name and version to set some defaults.
