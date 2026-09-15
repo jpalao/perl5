@@ -74,7 +74,7 @@ CBRunMake(...)
         for (index = 0; index < items; index++)
             make_argv[index + 2] = SvPV_nolen(ST(index));
         RETVAL = ios_make_run(make_argc, make_argv, iosRunMakeRecipe,
-            (void *)aTHX);
+            (void *)PERL_GET_CONTEXT);
         Safefree(make_argv);
     OUTPUT:
         RETVAL
@@ -123,7 +123,7 @@ CBRunMakeCapture(...)
         }
 
         status = ios_make_run(make_argc, make_argv, iosRunMakeRecipe,
-            (void *)aTHX);
+            (void *)PERL_GET_CONTEXT);
         Safefree(make_argv);
         PerlIO_flush(PerlIO_stdout());
         PerlIO_flush(PerlIO_stderr());
