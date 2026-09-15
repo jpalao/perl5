@@ -360,20 +360,30 @@ PERL_EXE_LDFLAGS=$exeldflags
 	;;
 esac
 
-case "$usecrosscompile$perl" in
-define?*)
+case "X$hostperl" in
+X?*)
+	$spitshell >>$Makefile <<'!GROK!THIS!'
+PERL_EXE = perl\$(EXE_EXT)
+RUN_PERL = \$(LDLIBPTH) \$(HOST_PERL) -Ilib -I.
+!GROK!THIS!
+	;;
+*)
+	case "$usecrosscompile$perl" in
+	define?*)
 	$spitshell >>$Makefile <<!GROK!THIS!
 # Macros to invoke a copy of our fully operational perl during the build.
 PERL_EXE = perl\$(EXE_EXT)
 RUN_PERL = \$(LDLIBPTH) \$(RUN) $perl\$(EXE_EXT)
 !GROK!THIS!
-	;;
-*)
+		;;
+	*)
 	$spitshell >>$Makefile <<!GROK!THIS!
 # Macros to invoke a copy of our fully operational perl during the build.
 PERL_EXE = perl\$(EXE_EXT)
 RUN_PERL = \$(LDLIBPTH) \$(RUN) ./perl\$(EXE_EXT) -Ilib -I.
 !GROK!THIS!
+		;;
+	esac
 	;;
 esac
 
