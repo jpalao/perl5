@@ -85,7 +85,6 @@ PERL_TEST_LOG=""
 TEST_LOG_SOURCE=""
 TEST_STATUS_SOURCE=""
 TRANSFER_TRANSPORT=""
-FOUNDATION_RUNNER_LOCAL_LOG=0
 DEVICECTL_AVAILABLE=0
 DEVICECTL_CONNECTED=0
 IOS_DEPLOY_AVAILABLE=0
@@ -631,16 +630,7 @@ launch_harness_with_idevicedebug() {
         return 1
     }
     echo "Launching $HARNESS_APP_ID with idevicedebug on $IOS_DEVICE_UUID"
-    if [ "$IOS_TEST_APP" = "foundation-runner" ] || [ "$IOS_TEST_APP" = "runner" ]; then
-        : > "$PERL_TEST_LOG"
-        idevicedebug -u "$IOS_DEVICE_UUID" run "$HARNESS_APP_ID" 2>&1 | tee -a "$PERL_TEST_LOG"
-        local debug_status=${PIPESTATUS[0]}
-        if [ "$debug_status" -eq 0 ]; then
-            FOUNDATION_RUNNER_LOCAL_LOG=1
-            echo "idevicedebug launch succeeded"
-            return 0
-        fi
-    elif idevicedebug -u "$IOS_DEVICE_UUID" run "$HARNESS_APP_ID"; then
+    if idevicedebug -u "$IOS_DEVICE_UUID" run "$HARNESS_APP_ID"; then
         echo "idevicedebug launch succeeded"
         return 0
     fi
@@ -741,6 +731,14 @@ copy_tree_to_device() {
 
     if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
         stage_tree_for_upload "$source_dir" "$upload_dir"
+        echo "Removing existing $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with ios-deploy..."
+        if ! capture_command_output ios-deploy \
+                -i "$IOS_DEVICE_UUID" \
+                --bundle_id "$HARNESS_APP_ID" \
+                --rmtree "/$REMOTE_DOCUMENTS_DIR"; then
+            rm -Rf "$upload_dir"
+            return 1
+        fi
         echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with ios-deploy..."
         local status
         if capture_command_output ios-deploy \
@@ -903,11 +901,6 @@ test_perl_device() {
             perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
             MOUNT_REFRESH_PID=$!
         fi
-    fi
-
-    if [ "$FOUNDATION_RUNNER_LOCAL_LOG" -eq 1 ]; then
-        echo "Foundation runner output captured on macOS: $PERL_TEST_LOG"
-        return 0
     fi
 
     rm -f "$PERL_TEST_LOG"
