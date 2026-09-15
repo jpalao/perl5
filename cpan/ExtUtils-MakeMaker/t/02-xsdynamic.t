@@ -11,6 +11,8 @@ use MakeMaker::Test::Utils;
 use MakeMaker::Test::Setup::XS;
 use Test::More;
 
+plan skip_all => 'Runtime XS compilation is unavailable on iOS'
+  if $^O eq 'darwin-ios';
 plan skip_all => 'Dynaloading not enabled' if !$Config{usedl} or $Config{usedl} ne 'define';
 plan skip_all => "ExtUtils::CBuilder not installed or couldn't find a compiler"
   unless have_compiler();

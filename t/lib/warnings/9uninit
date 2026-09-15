@@ -2202,6 +2202,9 @@ Use of uninitialized value in concatenation (.) or string at - line 3.
 # RT #123910
 # undef's arg being undef doesn't trigger warnings - any warning will be
 # from tied/magic vars
+# The iOS embedder disables argv process-title rewriting with PL_origalen = 1,
+# so $0's set magic does not stringify the undefined value and emit this warning.
+# SKIP ? $^O =~ /darwin-ios/
 use warnings 'uninitialized';
 undef $0;
 EXPECT

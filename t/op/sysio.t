@@ -219,7 +219,7 @@ close(I);
 
 unlink_all $outfile;
 
-chdir('..');
+chdir('..') if (!$^O =~ /darwin-ios/);
 
 1;
 

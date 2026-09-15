@@ -92,7 +92,7 @@ ok(close($utffh));
     SKIP: {
       skip("TMPDIR not honored on this platform", 4)
         if !$Config{d_mkstemp}
-        || $^O eq 'VMS' || $^O eq 'MSwin32' || $^O eq 'os2';
+        || $^O eq 'VMS' || $^O eq 'MSwin32' || $^O eq 'os2' || $^O =~ /darwin-ios/;
       local $ENV{TMPDIR} = $nonexistent;
 
       # hardcoded default temp path
