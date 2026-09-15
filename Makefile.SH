@@ -363,8 +363,8 @@ esac
 case "X$hostperl" in
 X?*)
 	$spitshell >>$Makefile <<'!GROK!THIS!'
-PERL_EXE = perl\$(EXE_EXT)
-RUN_PERL = \$(LDLIBPTH) \$(HOST_PERL) -Ilib -I.
+PERL_EXE = perl$(EXE_EXT)
+RUN_PERL = $(LDLIBPTH) $(HOST_PERL) -Ilib -I.
 !GROK!THIS!
 	;;
 *)
