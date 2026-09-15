@@ -495,9 +495,11 @@ update_local_test_log() {
 
     [ -f "$downloaded_log" ] || return 1
 
-    if [ -f "$PERL_TEST_LOG" ]; then
-        local_size=$(wc -c < "$PERL_TEST_LOG" | tr -d ' ')
+    if [ ! -f "$PERL_TEST_LOG" ]; then
+        : > "$PERL_TEST_LOG"
     fi
+
+    local_size=$(wc -c < "$PERL_TEST_LOG" | tr -d ' ')
     remote_size=$(wc -c < "$downloaded_log" | tr -d ' ')
 
     if [ "$remote_size" -lt "$local_size" ]; then
@@ -627,7 +629,13 @@ launch_harness_with_idevicedebug() {
         echo >&2 "idevicedebug is required to launch the harness on this device"
         return 1
     }
-    idevicedebug -u "$IOS_DEVICE_UUID" run "$HARNESS_APP_ID"
+    echo "Launching $HARNESS_APP_ID with idevicedebug --detach on $IOS_DEVICE_UUID"
+    if idevicedebug -u "$IOS_DEVICE_UUID" --detach run "$HARNESS_APP_ID"; then
+        echo "idevicedebug launch succeeded"
+        return 0
+    fi
+    echo >&2 "idevicedebug launch failed for $HARNESS_APP_ID"
+    return 1
 }
 
 try_launch_harness() {
@@ -857,8 +865,9 @@ test_perl_device() {
         if [ "$IFUSE_IN_USE" -eq 1 ]; then
             umount -f "$IOS_MOUNTPOINT"
         fi
+        echo "Starting device harness launch"
         launch_harness
-        check_exit_code
+        check_exit_code $? "device harness launch"
     else
         xcrun simctl launch "$IOS_DEVICE_UUID" "$HARNESS_APP_ID"
         check_exit_code
@@ -889,7 +898,7 @@ test_perl_device() {
     rm -f "$PERL_TEST_LOG"
     echo "Waiting up to ${TEST_LOG_WAIT_TIMEOUT}s for device test log: $REMOTE_TEST_LOG"
     test_log_waited=0
-    while ! download_test_log; do
+    while ! download_test_log || [ ! -f "$PERL_TEST_LOG" ]; do
         if [ "$test_log_waited" -ge "$TEST_LOG_WAIT_TIMEOUT" ]; then
             echo >&2 "Timed out waiting for the device test log after ${TEST_LOG_WAIT_TIMEOUT}s"
             echo >&2 "Expected source: ${TEST_LOG_SOURCE:-$REMOTE_TEST_LOG}"
