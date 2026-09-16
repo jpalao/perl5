@@ -33,6 +33,7 @@
 		829162021D4D561C006DF121 /* AppMain.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3A90C875DB7004DA7BD /* AppMain.m */; };
 		829162041D4D561C006DF121 /* NativeMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3C70C875DB7004DA7BD /* NativeMethods.m */; };
 		829162051D4D561C006DF121 /* perlxsi.c in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3CC0C875DB7004DA7BD /* perlxsi.c */; };
+		829162071D4D561C006DF121 /* ios.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3D20C875DB7004DA7BD /* ios.m */; };
 		829162061D4D561C006DF121 /* ios_platform_check.c in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3D00C875DB7004DA7BD /* ios_platform_check.c */; };
 		829162111D4D561C006DF121 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA50E4280C875FA2004DA7BD /* Foundation.framework */; };
 		829162161D4D561C006DF121 /* typemap in CopyFiles */ = {isa = PBXBuildFile; fileRef = AA83FE0E0CC9E9CF00E56F20 /* typemap */; };
@@ -48,6 +49,7 @@
 		82EAABE425EC12D1000FE2FC /* AppMain.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3A90C875DB7004DA7BD /* AppMain.m */; };
 		82EAABE625EC12D1000FE2FC /* NativeMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3C70C875DB7004DA7BD /* NativeMethods.m */; };
 		82EAABE725EC12D1000FE2FC /* perlxsi.c in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3CC0C875DB7004DA7BD /* perlxsi.c */; };
+		82EAABE925EC12D1000FE2FC /* ios.m in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3D20C875DB7004DA7BD /* ios.m */; };
 		82EAABE825EC12D1000FE2FC /* ios_platform_check.c in Sources */ = {isa = PBXBuildFile; fileRef = AA50E3D00C875DB7004DA7BD /* ios_platform_check.c */; };
 		82EAABF425EC12D1000FE2FC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA50E4280C875FA2004DA7BD /* Foundation.framework */; };
 		F20000000000000000000001 /* arch.c in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* arch.c */; };
@@ -145,6 +147,7 @@
 		AA50E3AC0C875DB7004DA7BD /* PerlCtrl.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = PerlCtrl.m; sourceTree = "<group>"; };
 		AA50E3C60C875DB7004DA7BD /* NativeMethods.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NativeMethods.h; sourceTree = "<group>"; };
 		AA50E3C70C875DB7004DA7BD /* NativeMethods.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = NativeMethods.m; sourceTree = "<group>"; };
+		AA50E3D20C875DB7004DA7BD /* ios.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ios.m; path = "$(PERL_DIST_PATH)/ext/ios/ios.m"; sourceTree = "<group>"; };
 		AA50E3C80C875DB7004DA7BD /* PerlImports.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PerlImports.h; sourceTree = "<group>"; };
 		AA50E3CC0C875DB7004DA7BD /* perlxsi.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = perlxsi.c; sourceTree = "<group>"; };
 		AA50E3D00C875DB7004DA7BD /* ios_platform_check.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ios_platform_check.c; sourceTree = "<group>"; };
@@ -244,6 +247,7 @@
 				AA50E3A90C875DB7004DA7BD /* AppMain.m */,
 				AA50E3AC0C875DB7004DA7BD /* PerlCtrl.m */,
 				AA50E3C70C875DB7004DA7BD /* NativeMethods.m */,
+				AA50E3D20C875DB7004DA7BD /* ios.m */,
 				AA50E3D00C875DB7004DA7BD /* ios_platform_check.c */,
 				AA50E3CC0C875DB7004DA7BD /* perlxsi.c */,
 			);
@@ -472,6 +476,7 @@
 				829161FD1D4D561C006DF121 /* PerlCtrl.m in Sources */,
 				829162021D4D561C006DF121 /* AppMain.m in Sources */,
 				829162041D4D561C006DF121 /* NativeMethods.m in Sources */,
+				829162071D4D561C006DF121 /* ios.m in Sources */,
 				829162061D4D561C006DF121 /* ios_platform_check.c in Sources */,
 				829162051D4D561C006DF121 /* perlxsi.c in Sources */,
 			);
@@ -506,6 +511,7 @@
 				82EAABDF25EC12D1000FE2FC /* PerlCtrl.m in Sources */,
 				82EAABE425EC12D1000FE2FC /* AppMain.m in Sources */,
 				82EAABE625EC12D1000FE2FC /* NativeMethods.m in Sources */,
+				82EAABE925EC12D1000FE2FC /* ios.m in Sources */,
 				82EAABE825EC12D1000FE2FC /* ios_platform_check.c in Sources */,
 				82EAABE725EC12D1000FE2FC /* perlxsi.c in Sources */,
 			);
@@ -542,6 +548,7 @@
 					"HAVE_CONFIG_H=1",
 					"MAKE_NATIVE=1",
 					"IOS_EMBEDDED=1",
+					"PERL_IOS=1",
 					"CLEANUP=1",
 				);
 				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
@@ -642,6 +649,7 @@
 					"HAVE_CONFIG_H=1",
 					"MAKE_NATIVE=1",
 					"IOS_EMBEDDED=1",
+					"PERL_IOS=1",
 					"CLEANUP=1",
 				);
 				GCC_VERSION = "";
@@ -741,6 +749,7 @@
 					"HAVE_CONFIG_H=1",
 					"MAKE_NATIVE=1",
 					"IOS_EMBEDDED=1",
+					"PERL_IOS=1",
 					"CLEANUP=1",
 				);
 				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
@@ -824,6 +833,7 @@
 					"HAVE_CONFIG_H=1",
 					"MAKE_NATIVE=1",
 					"IOS_EMBEDDED=1",
+					"PERL_IOS=1",
 					"CLEANUP=1",
 				);
 				GCC_VERSION = "";

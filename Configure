@@ -3939,6 +3939,9 @@ case "$ans" in
 none)  osname='' ;;
 *) osname=`echo "$ans" | $sed -e 's/[ 	][	]*/_/g' | ./tr '[A-Z]' '[a-z]'`;;
 esac
+if test "X$PERL_IOS" != X; then
+	osname=darwin-ios
+fi
 echo " "
 case "$osvers" in
 	''|' ')
