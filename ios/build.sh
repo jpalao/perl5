@@ -185,6 +185,7 @@ build_perl() {
   make
   check_exit_code
 
+  prepare_ios_module_source
   build_ios_framework
 
   mkdir -p $IOS_CPAN_EXT_DIR
@@ -257,6 +258,14 @@ build_ios_framework() {
     -scheme "$IOS_TARGET"
     check_exit_code
     popd
+}
+
+prepare_ios_module_source() {
+    mkdir -p "$WORKDIR/ext/ios"
+    "${HOST_PERL:-perl}" -MExtUtils::ParseXS -e \
+      'ExtUtils::ParseXS::process_file(filename => $ARGV[0], output => $ARGV[1])' \
+      "$IOS_FRAMEWORK_DIR/CPAN/ios.xs" "$WORKDIR/ext/ios/ios.m"
+    check_exit_code
 }
 
 build_libffi() {
