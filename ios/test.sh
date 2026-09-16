@@ -444,6 +444,17 @@ stage_tree_for_upload() {
         --exclude 'build/' \
         --exclude '/ios/test/Build/' \
         --exclude '*.bundle' \
+        --exclude '*.sh' \
+        --exclude '*.SH' \
+        --exclude 'Configure' \
+        --exclude 'plan9/' \
+        --exclude 'win32/' \
+        --exclude 'Win32/' \
+        --exclude 'vms/' \
+        --exclude 'VMS/' \
+        --exclude 'os2/' \
+        --exclude 'cygwin/' \
+        --exclude 'amigaos4/' \
         "$source_dir/" "$upload_dir/"; then
         echo >&2 "rsync staging failed for $source_dir"
         return 1
@@ -851,11 +862,10 @@ test_perl_device() {
     else # ARM device
         build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
         build_destination_dir="$build_destination_dir/Documents/"
-        cp -RL "$WORKDIR/perl-$PERL_VERSION/." "$build_destination_dir"
-        refresh_generated_config_timestamps "$build_destination_dir"
-        check_exit_code
-        rm -Rf "$build_destination_dir/ios/test/Build"
-        find "$build_destination_dir" -name "*.bundle" -type f -delete
+        simulator_stage_dir="$WORKDIR/.ios-test-stage"
+        stage_tree_for_upload "$WORKDIR/perl-$PERL_VERSION" "$simulator_stage_dir"
+        cp -RL "$simulator_stage_dir/." "$build_destination_dir"
+        rm -Rf "$simulator_stage_dir"
         check_exit_code
     fi
 
