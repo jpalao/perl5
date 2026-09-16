@@ -731,14 +731,6 @@ copy_tree_to_device() {
 
     if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
         stage_tree_for_upload "$source_dir" "$upload_dir"
-        echo "Removing existing $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with ios-deploy..."
-        if ! capture_command_output ios-deploy \
-                -i "$IOS_DEVICE_UUID" \
-                --bundle_id "$HARNESS_APP_ID" \
-                --rmtree "/$REMOTE_DOCUMENTS_DIR"; then
-            rm -Rf "$upload_dir"
-            return 1
-        fi
         echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with ios-deploy..."
         local status
         if capture_command_output ios-deploy \
