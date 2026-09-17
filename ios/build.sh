@@ -169,6 +169,7 @@ build_perl() {
   fi
 
   ./Configure -des -Dusedevel \
+    -Dusethreads \
     -Dtargethost=physical-device \
     -Dtargetrun=darwin-ios \
     -Dhostperl="$PERLBREW_SOURCE/miniperl" \
