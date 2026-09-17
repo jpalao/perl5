@@ -261,10 +261,10 @@ build_ios_framework() {
 }
 
 prepare_ios_module_source() {
-    mkdir -p "$WORKDIR/ext/ios"
+    mkdir -p "$WORKDIR/perl-$PERL_VERSION/ext/ios"
     "${HOST_PERL:-perl}" -MExtUtils::ParseXS -e \
       'ExtUtils::ParseXS::process_file(filename => $ARGV[0], output => $ARGV[1])' \
-      "$IOS_FRAMEWORK_DIR/CPAN/ios.xs" "$WORKDIR/ext/ios/ios.m"
+      "$IOS_FRAMEWORK_DIR/CPAN/ios.xs" "$WORKDIR/perl-$PERL_VERSION/ext/ios/ios.m"
     check_exit_code
 }
 
