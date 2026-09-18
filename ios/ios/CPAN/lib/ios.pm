@@ -166,12 +166,6 @@ sub _perl_switches_with_environment {
         my ($switches) = @_;
         my @result = @{$switches || []};
 
-        if ($^O =~ /darwin-ios/
-            && !grep { /^-Mios(?:=|\z)/ } @result) {
-            my $index = @result && $result[0] =~ /^-[Tt]\z/ ? 1 : 0;
-            splice @result, $index, 0, '-Mios';
-        }
-
         return \@result if grep { $_ eq '-T' || $_ eq '-t' } @result;
         return \@result if !defined $ENV{PERL5LIB};
 
@@ -226,16 +220,13 @@ sub exec_perl {
 sub exec_perl_capture {
     my ($req) = @_;
 
-    my @switches = @{$req->{switches} || []};
-    push @switches, '-Mios' unless grep { $_ eq '-Mios' } @switches;
-
     # prevent NSNumber encoding
     foreach (@{$req->{args}}) {
         $_ .= "" if $_ =~ /\d*/;
     }
 
     my $runPerl = {
-        switches => \@switches,
+        switches => $req->{switches},
         nolib => $req->{nolib},
         non_portable => $req->{non_portable},
         prog => $req->{prog},

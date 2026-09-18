@@ -20,6 +20,7 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
         NSURL *scriptURL = [NSURL fileURLWithPath:scriptPath];
         NSString *workingDirectory = [[scriptURL URLByDeletingLastPathComponent] path];
         __block int perlResult = 255;
+        dispatch_semaphore_t perlCompletion = dispatch_semaphore_create(0);
         NSPipe *stdoutPipe = [NSPipe pipe];
         NSPipe *stderrPipe = [NSPipe pipe];
         BOOL scriptExists = [[NSFileManager defaultManager] fileExistsAtPath:scriptPath];
@@ -75,7 +76,7 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
         drainPipe(stdoutPipe, savedStdout);
         drainPipe(stderrPipe, savedStderr);
 
-        dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
             @autoreleasepool {
                 PerlCtrl *controller = [[PerlCtrl alloc] init];
                 [controller initWithFileName:scriptPath
@@ -89,14 +90,37 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
                     fflush(stderr);
                     perlResult = result;
                     NSLog(@"Foundation runner Perl completion result: %d", result);
+                                        NSString *completionStatus = [NSString stringWithFormat:@"%d\n", result];
+                                        [completionStatus writeToFile:statusPath
+                                                                                atomically:YES
+                                                                                    encoding:NSUTF8StringEncoding
+                                                                                         error:nil];
+                    dispatch_semaphore_signal(perlCompletion);
+                                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC),
+                                                                        dispatch_get_main_queue(), ^{
+                                                exit(result == 0 ? 0 : 1);
+                                        });
                 }];
             }
         });
 
+        if (dispatch_semaphore_wait(
+                perlCompletion,
+                dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC)) != 0) {
+            NSLog(@"Timed out waiting for Perl completion callback");
+        }
+
         dup2(savedStdout, STDOUT_FILENO);
         dup2(savedStderr, STDERR_FILENO);
 
-        dispatch_group_wait(pipeReaders, DISPATCH_TIME_FOREVER);
+        long pipeWaitResult = dispatch_group_wait(
+            pipeReaders,
+            dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC));
+        if (pipeWaitResult != 0) {
+            NSLog(@"Timed out draining Perl stdout/stderr; closing pipe readers");
+            [stdoutPipe.fileHandleForReading closeFile];
+            [stderrPipe.fileHandleForReading closeFile];
+        }
         close(savedStdout);
         close(savedStderr);
 

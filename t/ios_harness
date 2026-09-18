@@ -141,7 +141,9 @@ sub exclude_tests {
 	@tests = grep(/^(?:(?!\.\.\/cpan\/DB_File))/, @tests);
 };
 
-# @ARGV = ('base/cond.t');
+if (defined $ENV{IOS_HARNESS_SELECTOR} && length $ENV{IOS_HARNESS_SELECTOR}) {
+    @ARGV = grep { length } split /\R+/, $ENV{IOS_HARNESS_SELECTOR};
+}
 
 do './harness';
 
