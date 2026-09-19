@@ -325,8 +325,10 @@ sub parse_cli {
 
     my @cmd_words = grep { defined && $_ !~ /^\s*$/ }
         &quotewords('\s+', 0, $cli);
+    my $interpreter_name = basename($^X // '');
     shift @cmd_words while @cmd_words
-        && basename($cmd_words[0]) !~ /^(?:perl(?:5(?:\.\d+)*)?|harness)$/;
+        && basename($cmd_words[0]) !~ /^(?:perl(?:5(?:\.\d+)*)?|harness|foundation-runner)$/
+        && basename($cmd_words[0]) ne $interpreter_name;
     shift @cmd_words if @cmd_words;
     print Dumper("\@cmd_words", "@cmd_words") if $DEBUG;
 
