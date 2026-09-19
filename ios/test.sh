@@ -297,22 +297,10 @@ stage_tree_for_upload() {
     rm -Rf "$upload_dir"
     mkdir -p "$upload_dir"
     if ! capture_command_output rsync -aL \
-        --exclude '.git/' \
         --exclude 'Build/' \
         --exclude 'build/' \
         --exclude '/ios/test/Build/' \
         --exclude '*.bundle' \
-        --exclude '*.sh' \
-        --exclude '*.SH' \
-        --exclude 'Configure' \
-        --exclude 'plan9/' \
-        --exclude 'win32/' \
-        --exclude 'Win32/' \
-        --exclude 'vms/' \
-        --exclude 'VMS/' \
-        --exclude 'os2/' \
-        --exclude 'cygwin/' \
-        --exclude 'amigaos4/' \
         "$source_dir/" "$upload_dir/"; then
         echo >&2 "rsync staging failed for $source_dir"
         return 1
