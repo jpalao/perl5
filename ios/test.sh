@@ -34,7 +34,6 @@ fi
 
 export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 
-: "${PERL5_GIT:=https://github.com/jpalao/perl5.git}"
 : "${PERL_5_BRANCH:=ios_blead_test}"
 : "${INSTALL_DIR:=local}"
 : "${ARCHS:=arm64}"
@@ -44,8 +43,6 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${CAMELBONES_PREFIX:=$WORKDIR}"
 : "${BUILD_CAMELBONES:=1}"
 
-: "${IOS_GIT:=https://github.com/jpalao/ios.git}"
-: "${IOS_BRANCH:=master}"
 : "${PERL_IOS_PREFIX:=$WORKDIR}"
 : "${IOS_MOUNTPOINT:=$WORKDIR/_ios_mount}"
 
@@ -90,7 +87,6 @@ DEVICECTL_CONNECTED=0
 IOS_DEPLOY_AVAILABLE=0
 IFUSE_AVAILABLE=0
 IFUSE_IN_USE=0
-HARNESS_APP_PATH=""
 REFRESH_PID=""
 MOUNT_REFRESH_PID=""
 TAIL_PID=""
@@ -126,27 +122,22 @@ export PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5"
 export LIBPERL_PATH="$PERL_IOS_PREFIX/perl-$PERL_VERSION"
 
 use_perlbrew() {
-    perlbrew use "perl-$PERL_VERSION"
-    if [ $? -ne 0 ]; then
+    if ! perlbrew use "perl-$PERL_VERSION"; then
         echo "perlbrew: failed to use perl for macOS, attempting to install"
         build_macos_perl
-        perlbrew use "perl-$PERL_VERSION"
-        check_exit_code
+        perlbrew use "perl-$PERL_VERSION" || check_exit_code $? "perlbrew selection"
     fi
-    check_host_perl_version
+    check_host_perl_version || check_exit_code $? "host Perl selection"
 }
 
-check_host_perl_version () {
-    macos_perl_version=`perl -v`
-    macos_perl_version_grep=`echo "$macos_perl_version" | grep -o "$PERL_VERSION"`
-    if [ "$macos_perl_version_grep" = "$PERL_VERSION" ]; then
+check_host_perl_version() {
+    if perl -e "exit(\$^V eq v$PERL_VERSION ? 0 : 1)"; then
         echo "perl $PERL_VERSION seems installed at:"
-        echo `which perl`
-        return 1
-    else
-        echo "Failed to detect perl version $PERL_VERSION"
+        command -v perl
         return 0
     fi
+    echo "Failed to detect perl version $PERL_VERSION"
+    return 1
 }
 
 devicectl_device_visible() {
@@ -250,9 +241,24 @@ check_dependencies() {
     esac
 
     echo "Device file transport: $TRANSFER_TRANSPORT"
-    if [ "$USE_IFUSE" = "1" ] || [ "$USE_IFUSE" = "auto" ] && [ "$IFUSE_AVAILABLE" -eq 1 ]; then
-        echo "ifuse facility enabled"
-    fi
+    case "$USE_IFUSE" in
+        0)
+            ;;
+        auto)
+            [ "$IFUSE_AVAILABLE" -eq 1 ] && echo "ifuse facility enabled"
+            ;;
+        1)
+            if [ "$IFUSE_AVAILABLE" -ne 1 ]; then
+                echo >&2 "USE_IFUSE=1 requires ifuse"
+                exit 1
+            fi
+            echo "ifuse facility enabled"
+            ;;
+        *)
+            echo >&2 "USE_IFUSE must be 0, 1, or auto"
+            exit 1
+            ;;
+    esac
 }
 
 check_exit_code() {
@@ -269,12 +275,8 @@ prepare_camelbones() {
     git clone --single-branch --branch "$CAMELBONES_BRANCH" "$CAMELBONES_GIT" "$WORKDIR/camelbones"
 }
 
-prepare_ios() {
-    rm -Rf "$WORKDIR/$1"
-    git clone --single-branch --branch "$IOS_BRANCH" "$IOS_GIT" "$WORKDIR/$1"
-}
-
 prepare_perl() {
+    local perl_build_dir
     local perl_revision
     local test_timestamp
 
@@ -353,10 +355,6 @@ run_with_timeout() {
         elapsed=$((elapsed + 1))
     done
     wait "$command_pid"
-}
-
-transfer_fallback_allowed() {
-    [ "$DEVICE_TRANSPORT" = "auto" ]
 }
 
 ifuse_requested() {
@@ -481,8 +479,14 @@ capture_command_output() {
 upload_tree_with_devicectl() {
     local source_dir="$1"
     local upload_dir="$WORKDIR/.device-transfer-upload"
+    local status
 
     stage_tree_for_upload "$source_dir" "$upload_dir"
+    status=$?
+    if [ "$status" -ne 0 ]; then
+        rm -Rf "$upload_dir"
+        return "$status"
+    fi
     echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with devicectl..."
     if ! capture_command_output xcrun devicectl device copy to \
         --device "$IOS_DEVICE_UUID" \
@@ -713,49 +717,19 @@ launch_harness() {
     return 1
 }
 
-ifuse_copy_has_content_errors() {
-    local copy_errors="$1"
-
-    [ -s "$copy_errors" ] || return 0
-    grep -qv '^cp: .*: fchmod failed: Function not implemented$' "$copy_errors"
-}
-
-prepare_ifuse_directory_tree() {
-    local source_dir="$1"
-    local destination_dir="$2"
-    local attempt
-    local relative_dir
-
-    while IFS= read -r -d '' relative_dir; do
-        relative_dir=${relative_dir#./}
-        [ "$relative_dir" = "." ] && continue
-        mkdir -p "$destination_dir/$relative_dir" || return 1
-    done < <(cd "$source_dir" && find -L . \( -name .git -o -name Build -o -name build \) -prune -o -type d -print0)
-
-    while IFS= read -r -d '' relative_dir; do
-        relative_dir=${relative_dir#./}
-        [ "$relative_dir" = "." ] && continue
-        for attempt in 1 2 3 4 5; do
-            [ -d "$destination_dir/$relative_dir" ] && break
-            mkdir -p "$destination_dir/$relative_dir" || return 1
-            [ -d "$destination_dir/$relative_dir" ] && break
-            sleep 1
-        done
-        [ -d "$destination_dir/$relative_dir" ] || {
-            echo >&2 "ifuse directory is not visible after creation: $destination_dir/$relative_dir"
-            return 1
-        }
-    done < <(cd "$source_dir" && find -L . \( -name .git -o -name Build -o -name build \) -prune -o -type d -print0)
-}
-
 copy_tree_to_device() {
     local source_dir="$1"
     local upload_dir="$WORKDIR/.device-transfer-upload"
+    local status
 
     if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
         stage_tree_for_upload "$source_dir" "$upload_dir"
+        status=$?
+        if [ "$status" -ne 0 ]; then
+            rm -Rf "$upload_dir"
+            return "$status"
+        fi
         echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with ios-deploy..."
-        local status
         if capture_command_output ios-deploy \
                 -i "$IOS_DEVICE_UUID" \
                 --bundle_id "$HARNESS_APP_ID" \
@@ -811,17 +785,18 @@ install_harness() {
         *)
             xcrun devicectl device uninstall app \
                 --device "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" >/dev/null 2>&1 || true
-            if ! capture_command_output xcrun devicectl device install app \
-                --device "$IOS_DEVICE_UUID" "$app_path"; then
-                status=$?
-                if [ "$status" -ne 0 ] && [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
-                    echo "devicectl install failed; retrying with ios-deploy" >&2
-                    capture_command_output ios-deploy -i "$IOS_DEVICE_UUID" --bundle "$app_path"
-                    return $?
-                fi
-                return "$status"
+            capture_command_output xcrun devicectl device install app \
+                --device "$IOS_DEVICE_UUID" "$app_path"
+            status=$?
+            if [ "$status" -eq 0 ]; then
+                return 0
             fi
-            return 0
+            if [ "$IOS_DEPLOY_AVAILABLE" -eq 1 ]; then
+                echo "devicectl install failed; retrying with ios-deploy" >&2
+                capture_command_output ios-deploy -i "$IOS_DEVICE_UUID" --bundle "$app_path"
+                return $?
+            fi
+            return "$status"
             ;;
     esac
 }
@@ -851,8 +826,6 @@ test_perl_device() {
     # install the app so it can receive files in Documents
     simulator_build=`echo "$ARCHS" | grep -c "x86_64"` # x86_64 simulator
     test_app="$install_root/Applications/$HARNESS_PRODUCT_NAME.app"
-    HARNESS_APP_PATH="$test_app"
-
     if [ "$simulator_build" -eq "0" ]; then
         install_harness "$test_app"
         check_exit_code
@@ -876,6 +849,7 @@ test_perl_device() {
         build_destination_dir="$build_destination_dir/Documents/"
         simulator_stage_dir="$WORKDIR/.ios-test-stage"
         stage_tree_for_upload "$WORKDIR/perl-$PERL_VERSION" "$simulator_stage_dir"
+        check_exit_code $? "simulator tree staging"
         cp -RL "$simulator_stage_dir/." "$build_destination_dir"
         rm -Rf "$simulator_stage_dir"
         check_exit_code
@@ -996,20 +970,6 @@ build_macos_perl() {
     # for test app build to re-link and sign binaries, see fix_ios_dylibs.sh
     cpanm File::Copy::Recursive
     cpanm File::Find::Rule
-}
-
-build_artifacts() {
-  if [ $SIMULATOR_BUILD -ne 0 ]; then
-    PLATFORM_TAG="$PLATFORM_TAG-simul"
-  fi
-  cd "$WORKDIR"
-  TIMESTAMP=$(date "+%Y%m%d-%H%M%S")
-  export COPY_EXTENDED_ATTRIBUTES_DISABLE=true
-  export COPYFILE_DISABLE=true
-  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.share.tar.bz2" "./$INSTALL_DIR/share"
-  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.bin.tar.bz2" "./$INSTALL_DIR/bin"
-  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.lib.tar.bz2" "./$INSTALL_DIR/lib/perl5"
-  tar -c --exclude='._*' --exclude='.DS_Store' --exclude='*.bak' --exclude='*~' -vjf "perl-$PERL_VERSION-$PLATFORM_TAG-$PERL_ARCH-$TIMESTAMP.build.tar.bz2" "./perl-$PERL_VERSION"
 }
 
 ####################################################################
