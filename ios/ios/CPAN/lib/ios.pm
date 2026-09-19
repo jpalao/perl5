@@ -284,7 +284,7 @@ sub parse_test {
 
     my @command = grep defined,
         ref $t eq 'ARRAY' ? @$t : &quotewords('\s+', 0, $t);
-    shift @command while @command && $command[0] !~ /(?:perl|harness)["']?$/;
+    shift @command while @command && $command[0] !~ /(?:perl|harness|foundation-runner)["']?$/;
     shift @command;
 
     my $file_index;
@@ -604,7 +604,7 @@ sub _run_make_recipe {
 
     my $program = shift @words;
     my $name = basename($program);
-    if ($name =~ /^(?:perl(?:5(?:\.\d+)*)?|harness)$/) {
+    if ($name =~ /^(?:perl(?:5(?:\.\d+)*)?|harness|foundation-runner)$/) {
         my ($redirect_mode, $redirect_file);
         if (@words >= 2 && $words[-2] =~ /^>{1,2}$/) {
             $redirect_file = pop @words;
