@@ -169,6 +169,7 @@ build_perl() {
   fi
 
   ./Configure -des -Dusedevel \
+    -Duseshrplib \
     -Dusethreads \
     -Dtargethost=physical-device \
     -Dtargetrun=darwin-ios \
