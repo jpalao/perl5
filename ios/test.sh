@@ -1024,6 +1024,8 @@ check_exit_code
 prepare_camelbones
 check_exit_code
 
+rm -Rf "$INSTALL_DIR"
+
 PERL_ARCH="$ARCHS" DEBUG=1 sh -x "perl-$PERL_VERSION/ios/build.sh"
 check_exit_code
 
