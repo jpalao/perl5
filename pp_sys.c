@@ -4565,9 +4565,7 @@ PP(pp_exec)
     I32 value;
 
 #if PERL_IOS
-    value = 1;
-    XPUSHi(value);
-    RETURN;
+    DIE(aTHX_ PL_no_func, "exec");
 #endif
 
     if (TAINTING_get) {
