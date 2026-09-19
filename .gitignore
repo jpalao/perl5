@@ -17,6 +17,8 @@ bug*.pl
 /Cross/from-*
 /Cross/mkdir
 /Cross/run-*
+!/Cross/run-ios
+!/Cross/run-darwin-ios
 /Cross/to-*
 
 # files produced by './configure.gnu' on a Linux machine

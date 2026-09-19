@@ -2068,7 +2068,7 @@ sub init_PERL {
     }
 
     # Build up a set of file names (not command names).
-    my $thisperl = $self->canonpath($^X);
+    my $thisperl = $^O =~ /darwin-ios/ ? $^X : $self->canonpath($^X);
     $thisperl .= $Config{exe_ext} unless
                 # VMS might have a file version # at the end
       $Is{VMS} ? $thisperl =~ m/$Config{exe_ext}(;\d+)?$/i
@@ -2076,6 +2076,7 @@ sub init_PERL {
 
     # We need a relative path to perl when in the core.
     $thisperl = $self->abs2rel($thisperl) if $self->{PERL_CORE};
+    $thisperl = $^X if $^O =~ /darwin-ios/;
 
     my @perls = ($thisperl);
     push @perls, map { "$_$Config{exe_ext}" }
@@ -2091,8 +2092,9 @@ sub init_PERL {
         push @perls, $miniperl;
     }
 
-    $self->{PERL} ||=
-        $self->find_perl(5.0, \@perls, \@defpath, $Verbose );
+    $self->{PERL} ||= $^O =~ /darwin-ios/
+        ? $thisperl
+        : $self->find_perl(5.0, \@perls, \@defpath, $Verbose );
 
     my $perl = $self->{PERL};
     $perl =~ s/^"//;

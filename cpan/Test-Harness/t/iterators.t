@@ -88,6 +88,8 @@ for my $test (@schedule) {
         my $need_open3 = $test->{need_open3};
         skip "No open3", $need_open3 if $need_open3 && !_can_open3();
         my $subclass = $test->{subclass};
+        skip "No process support", ($need_open3 || 13)
+            if $^O eq 'darwin-ios' && $subclass eq 'TAP::Parser::Iterator::Process';
         my $source   = $test->{source};
         my $class    = $test->{class};
         my $iterator
@@ -177,7 +179,7 @@ for my $test (@schedule) {
 }
 
 SKIP: {
-    skip "No open3", 4 unless _can_open3();
+    skip "No open3", 4 if $^O eq 'darwin-ios' || !_can_open3();
 
     # coverage testing for TAP::Parser::Iterator::Process ctor
 

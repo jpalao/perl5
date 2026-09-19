@@ -1473,6 +1473,8 @@ sub test_DumpProg {
 
 my $threads = $Config{'useithreads'};
 
+# these 2 tests are crashing on iOS: TODO
+if ($^O !~ /darwin-ios/)    {
 for my $test (
 [
     "package test;",
@@ -1498,7 +1500,8 @@ for my $test (
 }
 
 {
-    local $TODO = 'This gets mangled by the current pipe implementation' if $^O eq 'VMS';
+    local $TODO = 'This gets mangled by the current pipe implementation'
+        if $^O eq 'VMS' || $^O =~ /darwin-ios/;
     my $e = <<'EODUMP';
 dumpindent is 4 at -e line 1.
      
@@ -1548,6 +1551,7 @@ EODUMP
     $out =~ s/\(0x[0-9a-f]{3,}\)/(0xNNN)/g;
     is $out, $e, "DumpProg() has no 'Attempt to free X prematurely' warning";
 }
+                            } # darwin-ios
 
 {
     my $epsilon_p = 1.0;

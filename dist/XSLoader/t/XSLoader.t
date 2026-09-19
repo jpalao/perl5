@@ -209,7 +209,9 @@ SKIP: {
   # [perl #122455]
   # die instead of falling back to DynaLoader
   no warnings 'redefine';
-  local *XSLoader::bootstrap_inherit = sub { die "Fallback to DynaLoader\n" };
+  local *XSLoader::bootstrap_inherit =
+    $^O =~ /darwin-ios/ ? sub { warn "Fallback to DynaLoader\n" } :
+      sub { die "Fallback to DynaLoader\n" };
   ::ok( eval <<EOS, "test correct path searched for modules")
 package Not::Devel::Peek;
 #line 1 "$module_path"

@@ -4347,6 +4347,11 @@ PP(pp_system)
     PL_statusvalue = -1;
     SP = ORIGMARK;
     XPUSHi(-1);
+#elif PERL_IOS
+    PL_statusvalue = -1;
+    SP = ORIGMARK;
+    XPUSHi(-1);
+    RETURN;
 #else
     I32 value;
 # ifdef __amigaos4__
@@ -4558,6 +4563,10 @@ PP(pp_exec)
 {
     dSP; dMARK; dORIGMARK; dTARGET;
     I32 value;
+
+#if PERL_IOS
+    DIE(aTHX_ PL_no_func, "exec");
+#endif
 
     if (TAINTING_get) {
         TAINT_ENV();

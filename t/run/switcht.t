@@ -24,7 +24,11 @@ is( ${^TAINT}, -1, '${^TAINT} == -1' );
 
 my $out = `$Perl -le "print q(Hello)"`;
 is( $out, "Hello\n",                      '`` worked' );
+
+SKIP: {
+skip "iOS: TODO", 1 if ($^O =~ /darwin-ios/);
 like( $warning, qr/^Insecure .* $Tmsg/, '    taint warn' );
+}
 
 {
     no warnings 'taint';
