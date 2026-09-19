@@ -634,6 +634,8 @@ refresh_test_log() {
 }
 
 launch_harness_with_idevicedebug() {
+    local status
+
     # ios-deploy --noinstall always starts debugserver, even without --debug,
     # and therefore requires DeviceSupport Symbols that Xcode lacks for iOS 12.
     command -v idevicedebug >/dev/null 2>&1 || {
@@ -641,15 +643,19 @@ launch_harness_with_idevicedebug() {
         return 1
     }
     echo "Launching $HARNESS_APP_ID with idevicedebug on $IOS_DEVICE_UUID"
-    if idevicedebug -u "$IOS_DEVICE_UUID" run "$HARNESS_APP_ID"; then
-        echo "idevicedebug launch succeeded"
-        return 0
+    idevicedebug -u "$IOS_DEVICE_UUID" run "$HARNESS_APP_ID"
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "idevicedebug session exited successfully"
+    else
+        echo >&2 "idevicedebug exited unsuccessfully for $HARNESS_APP_ID (status $status)"
     fi
-    echo >&2 "idevicedebug launch failed for $HARNESS_APP_ID"
-    return 1
+    return "$status"
 }
 
 try_launch_harness() {
+    local status
+
     case "$TRANSFER_TRANSPORT" in
         devicectl)
             if [ "$DEVICECTL_AVAILABLE" -eq 1 ]; then
@@ -667,12 +673,18 @@ try_launch_harness() {
                 echo "devicectl launch failed; retrying with idevicedebug"
                 if launch_harness_with_idevicedebug; then
                     return 0
+                else
+                    status=$?
+                    return "$status"
                 fi
             fi
             ;;
         ios-deploy)
             if launch_harness_with_idevicedebug; then
                 return 0
+            else
+                status=$?
+                return "$status"
             fi
             ;;
     esac
@@ -680,15 +692,15 @@ try_launch_harness() {
 }
 
 launch_harness() {
+    local status
+
     if [ "$AUTO_LAUNCH" = "1" ]; then
         if try_launch_harness; then
             return 0
-        fi
-        if [ -t 0 ]; then
-            read -r -p "Automatic launch failed. Unlock the device, then press Return to retry: "
-            if try_launch_harness; then
-                return 0
-            fi
+        else
+            status=$?
+            echo >&2 "Automatic launch failed; not retrying (status $status)"
+            return "$status"
         fi
     fi
 
