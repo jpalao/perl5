@@ -44,7 +44,6 @@ export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${BUILD_CAMELBONES:=1}"
 
 : "${PERL_IOS_PREFIX:=$WORKDIR}"
-: "${IOS_MOUNTPOINT:=$WORKDIR/_ios_mount}"
 
 : "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
@@ -66,30 +65,16 @@ esac
 # Device transport is the real install/copy/launch mechanism.
 # Supported values are devicectl and ios-deploy (ios-deploy is the pipeline default).
 : "${DEVICE_TRANSPORT:=ios-deploy}"
-# USE_IFUSE is a separate developer convenience for mounted Documents access.
-# The pipeline mounts Documents after copying; app-update.sh opts out by default.
-: "${USE_IFUSE:=1}"
 : "${AUTO_LAUNCH:=1}"
-: "${TEST_LOG_PREFIX:=perl-tests}"
-: "${IFUSE_MOUNT_TIMEOUT:=30}"
 : "${TEST_LOG_WAIT_TIMEOUT:=120}"
 
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 REMOTE_DOCUMENTS_DIR="Documents"
-REMOTE_TEST_LOG="$REMOTE_DOCUMENTS_DIR/perl-tests.txt"
-REMOTE_TEST_STATUS="$REMOTE_DOCUMENTS_DIR/perl-tests.status"
-PERL_TEST_LOG=""
-TEST_LOG_SOURCE=""
 TEST_STATUS_SOURCE=""
 TRANSFER_TRANSPORT=""
 DEVICECTL_AVAILABLE=0
 DEVICECTL_CONNECTED=0
 IOS_DEPLOY_AVAILABLE=0
-IFUSE_AVAILABLE=0
-IFUSE_IN_USE=0
-REFRESH_PID=""
-MOUNT_REFRESH_PID=""
-TAIL_PID=""
 RUN_LOCK_DIR="$WORKDIR/.perl-ios-test.lock"
 RUN_LOCK_OWNED=0
 
@@ -168,10 +153,6 @@ check_dependencies() {
     if command -v ios-deploy >/dev/null 2>&1; then
         IOS_DEPLOY_AVAILABLE=1
     fi
-    if command -v ifuse >/dev/null 2>&1; then
-        IFUSE_AVAILABLE=1
-    fi
-
     DEVICECTL_CONNECTED=0
     IOS_DEPLOY_CONNECTED=0
 
@@ -241,24 +222,6 @@ check_dependencies() {
     esac
 
     echo "Device file transport: $TRANSFER_TRANSPORT"
-    case "$USE_IFUSE" in
-        0)
-            ;;
-        auto)
-            [ "$IFUSE_AVAILABLE" -eq 1 ] && echo "ifuse facility enabled"
-            ;;
-        1)
-            if [ "$IFUSE_AVAILABLE" -ne 1 ]; then
-                echo >&2 "USE_IFUSE=1 requires ifuse"
-                exit 1
-            fi
-            echo "ifuse facility enabled"
-            ;;
-        *)
-            echo >&2 "USE_IFUSE must be 0, 1, or auto"
-            exit 1
-            ;;
-    esac
 }
 
 check_exit_code() {
@@ -278,17 +241,13 @@ prepare_camelbones() {
 prepare_perl() {
     local perl_build_dir
     local perl_revision
-    local test_timestamp
 
     perl_build_dir="$WORKDIR/perl-$PERL_VERSION"
     rm -Rf "$perl_build_dir"
     git clone --no-checkout "$PERL5_SOURCE_ROOT" "$perl_build_dir"
     git -C "$perl_build_dir" checkout --detach "$PERL5_REVISION"
     perl_revision=$(git -C "$perl_build_dir" rev-parse HEAD)
-    test_timestamp=$(date -u "+%Y%m%dT%H%M%SZ")
-    PERL_TEST_LOG="$WORKDIR/$TEST_LOG_PREFIX-$test_timestamp-$perl_revision.txt"
     echo "Building perl5 revision $perl_revision"
-    echo "Test log: $PERL_TEST_LOG"
 }
 
 acquire_run_lock() {
@@ -310,110 +269,11 @@ acquire_run_lock() {
 }
 
 cleanup() {
-    if [ -n "$TAIL_PID" ]; then
-        kill -TERM "$TAIL_PID" >/dev/null 2>&1 || true
-        TAIL_PID=""
-    fi
-    if [ -n "$REFRESH_PID" ]; then
-        echo "Killing refresh process..."
-        kill -TERM "$REFRESH_PID" >/dev/null 2>&1 || true
-    fi
-    if [ -n "$MOUNT_REFRESH_PID" ]; then
-        kill -TERM "$MOUNT_REFRESH_PID" >/dev/null 2>&1 || true
-    fi
-    if [ "$IFUSE_IN_USE" -eq 1 ]; then
-        umount -f "$IOS_MOUNTPOINT" >/dev/null 2>&1 || true
-    fi
     rm -Rf "$WORKDIR/.device-transfer-download" "$WORKDIR/.device-transfer-upload"
     if [ "$RUN_LOCK_OWNED" -eq 1 ]; then
         rm -Rf "$RUN_LOCK_DIR"
         RUN_LOCK_OWNED=0
     fi
-}
-
-mount_harness_documents() {
-    umount -f "$IOS_MOUNTPOINT" >/dev/null 2>&1 || true
-    mkdir -p "$IOS_MOUNTPOINT"
-    ifuse "$IOS_MOUNTPOINT" -u "$IOS_DEVICE_UUID" -o volname=harness --documents "$HARNESS_APP_ID"
-}
-
-run_with_timeout() {
-    local timeout_seconds="$1"
-    local command_pid
-    local elapsed=0
-    shift
-
-    "$@" &
-    command_pid=$!
-    while kill -0 "$command_pid" >/dev/null 2>&1; do
-        if [ "$elapsed" -ge "$timeout_seconds" ]; then
-            kill "$command_pid" >/dev/null 2>&1 || true
-            wait "$command_pid" >/dev/null 2>&1 || true
-            return 124
-        fi
-        sleep 1
-        elapsed=$((elapsed + 1))
-    done
-    wait "$command_pid"
-}
-
-ifuse_requested() {
-    if [ "$USE_IFUSE" = "1" ]; then
-        return 0
-    fi
-    if [ "$USE_IFUSE" = "auto" ] && [ "$IFUSE_AVAILABLE" -eq 1 ]; then
-        return 0
-    fi
-    return 1
-}
-
-device_visible_for_copy() {
-    if ifuse_requested; then
-        ios_deploy_device_visible && device_unlocked_for_copy
-        return $?
-    fi
-
-    case "$TRANSFER_TRANSPORT" in
-        devicectl)
-            devicectl_device_visible && device_unlocked_for_copy
-            ;;
-        ios-deploy)
-            ios_deploy_device_visible && device_unlocked_for_copy
-            ;;
-        *)
-            return 0
-            ;;
-    esac
-}
-
-device_unlocked_for_copy() {
-    local lock_state_file="$WORKDIR/.device-lock-state.json"
-    local passcode_required
-
-    if ! devicectl_device_visible; then
-        return 0
-    fi
-    rm -f "$lock_state_file"
-    if ! xcrun devicectl device info lockState \
-            --device "$IOS_DEVICE_UUID" \
-            --json-output "$lock_state_file" \
-            --quiet >/dev/null 2>&1; then
-        rm -f "$lock_state_file"
-        return 1
-    fi
-    passcode_required=$(/usr/bin/plutil -extract result.passcodeRequired raw -o - "$lock_state_file" 2>/dev/null)
-    rm -f "$lock_state_file"
-    [ "$passcode_required" = "false" ]
-}
-
-wait_for_device_before_copy() {
-    while ! device_visible_for_copy; do
-        echo >&2 "The device is locked or unavailable for file copy. Unlock or reconnect it before continuing."
-        if [ ! -t 0 ]; then
-            return 1
-        fi
-        read -r -p "Press Return to check the device and start the copy (Ctrl-C to stop): "
-    done
 }
 
 refresh_generated_config_timestamps() {
@@ -433,7 +293,7 @@ stage_tree_for_upload() {
     local source_dir="$1"
     local upload_dir="$2"
 
-    echo "Staging Perl tree for devicectl upload (no ifuse mount)..."
+    echo "Staging Perl tree for devicectl upload ..."
     rm -Rf "$upload_dir"
     mkdir -p "$upload_dir"
     if ! capture_command_output rsync -aL \
@@ -505,138 +365,8 @@ upload_tree_with_devicectl() {
     return 0
 }
 
-update_local_test_log() {
-    local downloaded_log="$1"
-    local local_size=0
-    local remote_size
-
-    [ -f "$downloaded_log" ] || return 1
-
-    if [ ! -f "$PERL_TEST_LOG" ]; then
-        : > "$PERL_TEST_LOG"
-    fi
-
-    local_size=$(wc -c < "$PERL_TEST_LOG" | tr -d ' ')
-    remote_size=$(wc -c < "$downloaded_log" | tr -d ' ')
-
-    if [ "$remote_size" -lt "$local_size" ]; then
-        echo "Device test log reset; preserving archive: $PERL_TEST_LOG" >&2
-        return 2
-    elif [ "$remote_size" -gt "$local_size" ]; then
-        tail -c "+$((local_size + 1))" "$downloaded_log" >> "$PERL_TEST_LOG"
-    fi
-}
-
-download_test_log_with_devicectl() {
-    local download_dir="$WORKDIR/.device-transfer-download"
-    local downloaded_log="$download_dir/perl-tests.txt"
-
-    rm -Rf "$download_dir"
-    mkdir -p "$download_dir"
-    xcrun devicectl device copy from \
-        --device "$IOS_DEVICE_UUID" \
-        --user mobile \
-        --domain-type appDataContainer \
-        --domain-identifier "$HARNESS_APP_ID" \
-        --source "$REMOTE_TEST_LOG" \
-        --destination "$downloaded_log" >/dev/null 2>&1 || return 1
-    update_local_test_log "$downloaded_log"
-}
-
-download_test_log_with_ios_deploy() {
-    local download_dir="$WORKDIR/.device-transfer-download"
-    local downloaded_log="$download_dir/Documents/perl-tests.txt"
-
-    rm -Rf "$download_dir"
-    mkdir -p "$download_dir"
-    ios-deploy -i "$IOS_DEVICE_UUID" \
-        --bundle_id "$HARNESS_APP_ID" \
-        --download="/$REMOTE_TEST_LOG" \
-        --to "$download_dir" >/dev/null 2>&1 || return 1
-    update_local_test_log "$downloaded_log"
-}
-
-download_test_log() {
-    if [ "$IFUSE_IN_USE" -eq 1 ]; then
-        update_local_test_log "$TEST_LOG_SOURCE"
-        return $?
-    fi
-
-    case "$TRANSFER_TRANSPORT" in
-        devicectl)
-            download_test_log_with_devicectl
-            ;;
-        ios-deploy)
-            download_test_log_with_ios_deploy
-            ;;
-        simulator)
-            update_local_test_log "$TEST_LOG_SOURCE"
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
-download_test_status_with_devicectl() {
-    local download_dir="$WORKDIR/.device-transfer-download"
-    local downloaded_status="$download_dir/perl-tests.status"
-
-    mkdir -p "$download_dir"
-    xcrun devicectl device copy from \
-        --device "$IOS_DEVICE_UUID" \
-        --user mobile \
-        --domain-type appDataContainer \
-        --domain-identifier "$HARNESS_APP_ID" \
-        --source "$REMOTE_TEST_STATUS" \
-        --destination "$downloaded_status" >/dev/null 2>&1 || return 1
-    TEST_STATUS_SOURCE="$downloaded_status"
-}
-
-download_test_status_with_ios_deploy() {
-    local download_dir="$WORKDIR/.device-transfer-download"
-    local downloaded_status="$download_dir/Documents/perl-tests.status"
-
-    mkdir -p "$download_dir"
-    ios-deploy -i "$IOS_DEVICE_UUID" \
-        --bundle_id "$HARNESS_APP_ID" \
-        --download="/$REMOTE_TEST_STATUS" \
-        --to "$download_dir" >/dev/null 2>&1 || return 1
-    TEST_STATUS_SOURCE="$downloaded_status"
-}
-
 download_test_status() {
-    if [ "$IFUSE_IN_USE" -eq 1 ]; then
-        TEST_STATUS_SOURCE="$IOS_MOUNTPOINT/perl-tests.status"
-        [ -f "$TEST_STATUS_SOURCE" ]
-        return $?
-    fi
-
-    case "$TRANSFER_TRANSPORT" in
-        devicectl)
-            download_test_status_with_devicectl
-            ;;
-        ios-deploy)
-            download_test_status_with_ios_deploy
-            ;;
-        simulator)
-            [ -f "$TEST_STATUS_SOURCE" ]
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
-refresh_test_log() {
-    while true; do
-        download_test_log
-        status=$?
-        if [ "$status" -eq 2 ]; then
-            return 0
-        fi
-        sleep 2
-    done
+    [ -f "$TEST_STATUS_SOURCE" ]
 }
 
 launch_harness_with_idevicedebug() {
@@ -670,9 +400,6 @@ try_launch_harness() {
                         --terminate-existing \
                         "$HARNESS_APP_ID"; then
                     return 0
-                fi
-                if grep -qi "locked" "$WORKDIR/.device-command-output.log"; then
-                    echo >&2 "The device is locked; unlock it before retrying launch."
                 fi
             fi
             if command -v idevicedebug >/dev/null 2>&1; then
@@ -754,24 +481,6 @@ copy_tree_to_device() {
     upload_tree_with_devicectl "$source_dir"
 }
 
-copy_tree_to_device_with_retry() {
-    local source_dir="$1"
-
-    if ! wait_for_device_before_copy; then
-        echo >&2 "Device $IOS_DEVICE_UUID is still unavailable for file copy."
-        return 1
-    fi
-    while ! copy_tree_to_device "$source_dir"; do
-        if [ ! -t 0 ]; then
-            return 1
-        fi
-        read -r -p "Device copy failed. Unlock or reconnect the device, then press Return to retry (Ctrl-C to stop): "
-        if ! wait_for_device_before_copy; then
-            return 1
-        fi
-    done
-}
-
 install_harness() {
     local app_path="$1"
     local status
@@ -837,9 +546,9 @@ test_perl_device() {
     echo "Copy perl build directory to iOS device..."
 
     if [ "$simulator_build" -eq "0" ]; then
-        copy_tree_to_device_with_retry "$WORKDIR/perl-$PERL_VERSION"
+        copy_tree_to_device "$WORKDIR/perl-$PERL_VERSION"
         check_exit_code
-    else # ARM device
+    else
         build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
         build_destination_dir="$build_destination_dir/Documents/"
         simulator_stage_dir="$WORKDIR/.ios-test-stage"
@@ -853,94 +562,33 @@ test_perl_device() {
     echo "App Documents dir is '$build_destination_dir'"
 
     if [ "$simulator_build" -eq "0" ]; then
-        if [ "$IFUSE_IN_USE" -eq 1 ]; then
-            umount -f "$IOS_MOUNTPOINT"
-        fi
         echo "Starting device harness launch"
         launch_harness
         check_exit_code $? "device harness launch"
     else
-        xcrun simctl launch "$IOS_DEVICE_UUID" "$HARNESS_APP_ID"
-        check_exit_code
         TRANSFER_TRANSPORT="simulator"
-        TEST_LOG_SOURCE="$build_destination_dir/perl-tests.txt"
         TEST_STATUS_SOURCE="$build_destination_dir/perl-tests.status"
+        xcrun simctl launch --console "$IOS_DEVICE_UUID" "$HARNESS_APP_ID"
+        check_exit_code
     fi
 
     popd
 
     if [ "$simulator_build" -eq "0" ]; then
-        if ifuse_requested; then
-            echo "Mounting harness Documents to follow the test log"
-            if ! run_with_timeout "$IFUSE_MOUNT_TIMEOUT" mount_harness_documents; then
-                echo >&2 "ifuse remount failed or timed out after ${IFUSE_MOUNT_TIMEOUT}s while preparing the test log"
-                check_exit_code 1
-            fi
-            IFUSE_IN_USE=1
-            TEST_LOG_SOURCE="$IOS_MOUNTPOINT/perl-tests.txt"
-            TEST_STATUS_SOURCE="$IOS_MOUNTPOINT/perl-tests.status"
-            sleep 2
-            # needed for scrolling to keep in sync w/ device's ifuse fs
-            perl -e "while (1) {sleep 1; system qw (ls $IOS_MOUNTPOINT);} " > /dev/null 2>&1 &
-            MOUNT_REFRESH_PID=$!
-        fi
+        return 0
     fi
 
-    rm -f "$PERL_TEST_LOG"
-    echo "Waiting up to ${TEST_LOG_WAIT_TIMEOUT}s for device test log: $REMOTE_TEST_LOG"
-    test_log_waited=0
-    while ! download_test_log || [ ! -f "$PERL_TEST_LOG" ]; do
-        if [ "$test_log_waited" -ge "$TEST_LOG_WAIT_TIMEOUT" ]; then
-            echo >&2 "Timed out waiting for the device test log after ${TEST_LOG_WAIT_TIMEOUT}s"
-            echo >&2 "Expected source: ${TEST_LOG_SOURCE:-$REMOTE_TEST_LOG}"
-            check_exit_code 1 "test log discovery"
+    test_status_waited=0
+    while ! download_test_status || ! grep -Eq '^-?[0-9]+$' "$TEST_STATUS_SOURCE"; do
+        if [ "$test_status_waited" -ge "$TEST_LOG_WAIT_TIMEOUT" ]; then
+            echo >&2 "Timed out waiting for the simulator test status after ${TEST_LOG_WAIT_TIMEOUT}s"
+            check_exit_code 1 "simulator test status"
         fi
         sleep 2
-        test_log_waited=$((test_log_waited + 2))
-        if [ $((test_log_waited % 10)) -eq 0 ]; then
-            echo "Still waiting for the device test log (${test_log_waited}s elapsed)"
-        fi
+        test_status_waited=$((test_status_waited + 2))
     done
-    echo "Device test log found; streaming output"
-    refresh_test_log &
-    REFRESH_PID=$!
-
-    sleep 3
-
-    tail -n 3000 -f "$PERL_TEST_LOG" &
-    TAIL_PID=$!
-    while kill -0 "$TAIL_PID" >/dev/null 2>&1; do
-        if [ "$IOS_TEST_APP" = "foundation-runner" ] || [ "$IOS_TEST_APP" = "runner" ]; then
-            if download_test_status && grep -Eq '^-?[0-9]+$' "$TEST_STATUS_SOURCE"; then
-                break
-            fi
-        elif tail -n 1 "$PERL_TEST_LOG" | grep -q '^Result: '; then
-            break
-        fi
-        if ! kill -0 "$REFRESH_PID" >/dev/null 2>&1; then
-            break
-        fi
-        sleep 2
-    done
-    kill -TERM "$TAIL_PID" >/dev/null 2>&1 || true
-    wait "$TAIL_PID" >/dev/null 2>&1 || true
-    TAIL_PID=""
-
-    if [ -n "$REFRESH_PID" ]; then
-        echo "kill $REFRESH_PID"
-        kill "$REFRESH_PID" >/dev/null 2>&1 || true
-        REFRESH_PID=""
-    fi
-    if [ -n "$MOUNT_REFRESH_PID" ]; then
-        kill "$MOUNT_REFRESH_PID" >/dev/null 2>&1 || true
-        MOUNT_REFRESH_PID=""
-    fi
-    if [ "$simulator_build" -eq "0" ]; then
-        if [ "$IFUSE_IN_USE" -eq 1 ]; then
-            umount -f "$IOS_MOUNTPOINT"
-            check_exit_code
-        fi
-    fi
+    test_status=$(cat "$TEST_STATUS_SOURCE")
+    check_exit_code "$test_status" "simulator harness test"
 }
 
 build_macos_perl() {
