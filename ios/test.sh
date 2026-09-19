@@ -488,15 +488,17 @@ upload_tree_with_devicectl() {
         return "$status"
     fi
     echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with devicectl..."
-    if ! capture_command_output xcrun devicectl device copy to \
+    capture_command_output xcrun devicectl device copy to \
         --device "$IOS_DEVICE_UUID" \
         --user mobile \
         --domain-type appDataContainer \
         --domain-identifier "$HARNESS_APP_ID" \
         --source "$upload_dir" \
-        --destination "$REMOTE_DOCUMENTS_DIR"; then
+        --destination "$REMOTE_DOCUMENTS_DIR"
+    status=$?
+    if [ "$status" -ne 0 ]; then
         rm -Rf "$upload_dir"
-        return 1
+        return "$status"
     fi
     echo "devicectl Perl tree upload complete."
     rm -Rf "$upload_dir"
@@ -730,15 +732,12 @@ copy_tree_to_device() {
             return "$status"
         fi
         echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with ios-deploy..."
-        if capture_command_output ios-deploy \
-                -i "$IOS_DEVICE_UUID" \
-                --bundle_id "$HARNESS_APP_ID" \
-                --upload "$upload_dir" \
-                --to "/$REMOTE_DOCUMENTS_DIR"; then
-            status=0
-        else
-            status=$?
-        fi
+        capture_command_output ios-deploy \
+            -i "$IOS_DEVICE_UUID" \
+            --bundle_id "$HARNESS_APP_ID" \
+            --upload "$upload_dir" \
+            --to "/$REMOTE_DOCUMENTS_DIR"
+        status=$?
         rm -Rf "$upload_dir"
         [ "$status" -eq 0 ] || return "$status"
         build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (ios-deploy)"
@@ -834,10 +833,6 @@ test_perl_device() {
         xcrun simctl install "$IOS_DEVICE_UUID" "$test_app"
         check_exit_code
     fi
-
-    pushd "$WORKDIR/perl-$PERL_VERSION/"
-
-    popd
 
     echo "Copy perl build directory to iOS device..."
 
