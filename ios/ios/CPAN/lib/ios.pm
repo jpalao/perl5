@@ -428,6 +428,16 @@ sub exec_cli {
         @words = grep { $_ ne '2>&1' } @words;
         return make_capture($pwd, @words);
     }
+    if (@words && basename($words[0]) eq 'cat') {
+        shift @words;
+        return (1, '') if !@words;
+        my $output;
+        eval {
+            $output = join '', map { _cat_output($_) } @words;
+            1;
+        } or return (1, '');
+        return (0, $output);
+    }
     my $json = parse_cli($pwd, $test);
     print  Dumper("json", $json) if $DEBUG;
     my $result;
@@ -700,7 +710,7 @@ sub _run_make_recipe {
     return 127;
 }
 
-sub cat {
+sub _cat_output {
     my ($file) = @_;
     open(my $fh, '<:encoding(UTF-8)', $file)
         or die "Could not open file $file  $!";
@@ -709,7 +719,13 @@ sub cat {
         $result .= $row;
     }
     close $fh;
+    return $result;
+}
+
+sub cat {
+    my $result = _cat_output(@_);
     print $result;
+    return $result;
 }
 
 1;
