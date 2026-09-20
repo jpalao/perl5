@@ -108,6 +108,11 @@ sub remove_tree {
     return File::Path::remove_tree(@_);
 }
 
+sub make_path {
+    _require('File/Path.pm');
+    return File::Path::make_path(@_);
+}
+
 our $parsewords_loaded;
 sub quotewords {
     if (!$parsewords_loaded) {
@@ -231,13 +236,17 @@ sub exec_perl {
 sub exec_perl_capture {
     my ($req) = @_;
 
+    my @switches = @{$req->{switches} || []};
+    push @switches, '-Mios'
+        if $^O =~ /darwin-ios/ && !grep { /^-Mios(?:=|\z)/ } @switches;
+
     # prevent NSNumber encoding
     foreach (@{$req->{args}}) {
         $_ .= "" if $_ =~ /\d*/;
     }
 
     my $runPerl = {
-        switches => $req->{switches},
+        switches => \@switches,
         nolib => $req->{nolib},
         non_portable => $req->{non_portable},
         prog => $req->{prog},
@@ -481,7 +490,7 @@ sub _parse_recursive_make_recipe {
     return if @words < 4 || shift(@words) ne 'cd';
 
     my $directory = shift @words;
-    return if $directory !~ m{^[^/]+$} || $directory eq '.' || $directory eq '..';
+    return if $directory =~ m{^/} || $directory eq '.' || $directory eq '..';
     return if shift(@words) ne '&&';
 
     my $make_program = shift @words;
@@ -605,6 +614,27 @@ sub _run_make_recipe {
         &quotewords('\s+', 0, $command);
     return 0 if !@words;
 
+    if (grep { $_ eq '&&' } @words) {
+        my @commands;
+        my @current;
+        for my $word (@words) {
+            if ($word eq '&&') {
+                push @commands, join(' ', @current);
+                @current = ();
+            } else {
+                push @current, $word;
+            }
+        }
+        push @commands, join(' ', @current) if @current;
+        return 1 if grep { $_ eq '' } @commands;
+
+        for my $subcommand (@commands) {
+            my $status = _run_make_recipe($subcommand);
+            return $status if $status != 0;
+        }
+        return 0;
+    }
+
     my %environment;
     while (@words && $words[0] =~ /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/s) {
         $environment{$1} = $2;
@@ -614,6 +644,15 @@ sub _run_make_recipe {
 
     my $program = shift @words;
     my $name = basename($program);
+    if ($name eq 'cd' && @words == 1) {
+        return _chdir($words[0]) ? 0 : 1;
+    }
+    if ($name =~ /^(?:b?make|gmake)$/) {
+        my ($status, $output) = make_capture(getcwd(), @words);
+        print $output if defined $output && length $output;
+        $status = $status >> 8 if defined $status && $status > 255;
+        return defined $status ? $status : 1;
+    }
     if ($name =~ /^(?:perl(?:5(?:\.\d+)*)?|harness|foundation-runner)$/) {
         my ($redirect_mode, $redirect_file);
         if (@words >= 2 && $words[-2] =~ /^>{1,2}$/) {
@@ -668,6 +707,25 @@ sub _run_make_recipe {
                 return 1 if !utime undef, undef, $file;
             } else {
                 return 1 if !_make_touch_file($file);
+            }
+        }
+        return 0;
+    }
+
+    if ($name eq 'mkdir') {
+        my $parents = 0;
+        while (@words && $words[0] =~ /^-/) {
+            my $option = shift @words;
+            last if $option eq '--';
+            return 127 if $option ne '-p';
+            $parents = 1;
+        }
+        return 1 if !@words;
+        for my $directory (@words) {
+            if ($parents) {
+                return 1 if !make_path($directory);
+            } elsif (!mkdir $directory) {
+                return 1;
             }
         }
         return 0;
