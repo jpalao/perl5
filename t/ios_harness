@@ -132,8 +132,6 @@ sub exclude_tests {
 	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-SysV))/, @tests);
 	@tests = grep(/^(?:(?!\.\.\/ext\/IPC-Open3))/, @tests);
 	
-	# DB_File not built in
-	@tests = grep(/^(?:(?!\.\.\/cpan\/DB_File))/, @tests);
 };
 
 # @ARGV = ('base/cond.t');

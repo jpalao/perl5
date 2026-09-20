@@ -36,7 +36,6 @@ sub compare {
     # iOS: TODO
     if ($^O =~ /darwin-ios/) {
         # patch on makefile?
-        @have = grep(!/DB_File/, @have);
         # FindExt does not locate ios.pm?
         @have = grep(!/ios/, @have);
         # CamelBones is copied into ext/ after Configure has run.
