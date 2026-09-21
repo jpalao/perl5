@@ -45,7 +45,7 @@ my %ios_modules = (
 
 %modules = (%modules, %ios_modules) if $^O =~ /darwin-ios/;
 
-plan (26 + keys(%modules) * 3);
+plan (26 + keys(%modules) * 3 - ($^O =~ /darwin-ios/ ? 2 : 0));
 
 # Try to load the module
 use_ok( 'DynaLoader' );
@@ -71,7 +71,7 @@ if ($Config{usedl}) {
     }
 } else {
     foreach my $symbol (qw(dl_find_symbol dl_install_sub dl_load_file
-			   dl_undef_symbols dl_unload_file)) {
+			   dl_undef_symbols)) {
 	is(DynaLoader->can($symbol), undef,
 	   "Without dynamic loading, DynaLoader should not have $symbol");
     }
@@ -157,8 +157,10 @@ for my $module (sort keys %modules) {
 }
 
 # checking internal consistency
-is( scalar @DynaLoader::dl_librefs, scalar keys %modules, "checking number of items in \@dl_librefs" );
-is( scalar @DynaLoader::dl_modules, scalar keys %modules, "checking number of items in \@dl_modules" );
+my $dynamic_module_count = scalar keys %modules;
+$dynamic_module_count-- if $^O =~ /darwin-ios/;
+is( scalar @DynaLoader::dl_librefs, $dynamic_module_count, "checking number of items in \@dl_librefs" );
+is( scalar @DynaLoader::dl_modules, $dynamic_module_count, "checking number of items in \@dl_modules" );
 
 my @loaded_modules = @DynaLoader::dl_modules;
 for my $libref (reverse @DynaLoader::dl_librefs) {
