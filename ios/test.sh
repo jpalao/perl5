@@ -301,6 +301,9 @@ stage_tree_for_upload() {
         --exclude 'build/' \
         --exclude '/ios/test/Build/' \
         --exclude '*.bundle' \
+        --exclude '*.sh' \
+        --exclude '*.SH' \
+        --exclude 'Configure' \
         "$source_dir/" "$upload_dir/"; then
         echo >&2 "rsync staging failed for $source_dir"
         return 1
