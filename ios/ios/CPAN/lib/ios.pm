@@ -30,6 +30,7 @@ BEGIN {
             $result = $@;
         }
         $? = defined $code ? $code >> 8 : -1;
+        return $list_context ? () : undef if !defined $code || $code == -1;
         if ($list_context && defined $result) {
             return _readpipe_records($result);
         }
@@ -449,6 +450,9 @@ sub exec_cli {
     }
     my $json = parse_cli($pwd, $test);
     print  Dumper("json", $json) if $DEBUG;
+    return (-1, undef)
+        if !defined $json->{prog} && !defined $json->{progfile}
+        && !@{$json->{switches}};
     my $result;
     local $@;
 
