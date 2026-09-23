@@ -2330,7 +2330,7 @@ $define|true|[yY]*)
 
 EOH
 	rp='Do you really want to continue?'
-		       dflt='y'
+	dflt='n'
 	. ./myread
 	case "$ans" in
 	[yY]) echo >&4 "Okay, continuing."
@@ -3212,7 +3212,7 @@ $targetrun -p $targetport -l $targetuser $targethost "mkdir -p \$@"
 EOF
 	    $chmod a+rx $targetmkdir
 	    ;;
-		*)  echo "Unknown targetmkdir '$targetmkdir'" >&4
+	*)  echo "Unknown targetmkdir '$targetmkdir'" >&4
 	    exit 1
 	    ;;
 	esac
@@ -4776,7 +4776,7 @@ int main(int argc, char **argv) {
 EOCP
 c99_for=no
 for flag in '' '-std=gnu99' '-std=c99'; do
-		 if $cc -o try $flag $ccflags $ldflags try.c 2>/dev/null && $run ./try; then
+    if $cc -o try $flag $ccflags $ldflags try.c 2>/dev/null && $run ./try; then
         c99_for="$flag"
         break;
     fi
@@ -4786,7 +4786,7 @@ case "$c99_for" in
     ;;
 no) echo >&4 "Your C compiler doesn't seem to be able to compile C99 code"
     rp='Do you really want to continue?'
-			   dflt='y'
+    dflt='n'
     . ./myread
     case "$ans" in
 	[yY])	echo >&4 "Okay, continuing."	;;
@@ -5802,7 +5802,7 @@ if $sh -c "$cc -o try $optimize $ccflags $ldflags try.c $libs" >>try.msg 2>&1; t
 	else
 		echo "The program compiled OK, but exited with status $?." >>try.msg
 		rp="You have a problem.  Shall I abort Configure"
-		dflt=n
+		dflt=y
 	fi
 else
 	echo "I can't compile the test program." >>try.msg
