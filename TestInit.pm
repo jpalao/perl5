@@ -63,7 +63,6 @@ sub import {
 	    $setopt = 1;
 	} elsif ($_ eq 'U1') {
 	    @INC = '../lib';
-	    if ($^O =~ /darwin-ios/) { use lib '../../t' }
 	    $setopt = 1;
 	} elsif ($_ eq 'NC') {
 	    delete $ENV{PERL_CORE}
@@ -98,7 +97,6 @@ sub import {
 	    } else {
 		$chdir = 't';
 		@INC = '../lib';
-		if ($^O =~ /darwin-ios/) { use lib '../../lib' }
 		$setopt = $0 =~ m!^lib/!;
 	    }
 	} else {
