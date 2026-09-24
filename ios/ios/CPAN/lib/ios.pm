@@ -237,17 +237,13 @@ sub exec_perl {
 sub exec_perl_capture {
     my ($req) = @_;
 
-    my @switches = @{$req->{switches} || []};
-    push @switches, '-Mios'
-        if $^O =~ /darwin-ios/ && !grep { /^-Mios(?:=|\z)/ } @switches;
-
     # prevent NSNumber encoding
     foreach (@{$req->{args}}) {
         $_ .= "" if $_ =~ /\d*/;
     }
 
     my $runPerl = {
-        switches => \@switches,
+        switches => $req->{switches},
         nolib => $req->{nolib},
         non_portable => $req->{non_portable},
         prog => $req->{prog},
