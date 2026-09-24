@@ -768,6 +768,10 @@ sub _run_make_recipe {
         return move($words[0], $words[1]) ? 0 : 1;
     }
 
+    if ($name eq 'ln' && @words == 3 && $words[0] eq '-s') {
+        return symlink($words[1], $words[2]) ? 0 : 1;
+    }
+
     warn "Unsupported iOS make recipe: $command\n";
     return 127;
 }
