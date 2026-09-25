@@ -79,7 +79,7 @@ foreach my $test (@tests) {
     # We only get the severity bits, which boils down to 4.  See L<perlvms/$?>.
     $bang = 4 if $vms_exit_mode;
 
-    is($exit, (($bang || ($query >> 8) || 255) << ($^O !~ /darwin-ios/ ? 8 : 0)),
+    is($exit, (($bang || ($query >> 8) || 255) << 8),
        sprintf "exit = 0x%04x bang = 0x%04x query = 0x%04x", $exit, $bang, $query);
 }
 
