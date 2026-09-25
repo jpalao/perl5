@@ -29,7 +29,7 @@ BEGIN {
             warn $@;
             $result = $@;
         }
-        $? = defined $code ? $code >> 8 : -1;
+        $? = defined $code ? $code : -1;
         return $list_context ? () : undef if !defined $code || $code == -1;
         if ($list_context && defined $result) {
             return _readpipe_records($result);
