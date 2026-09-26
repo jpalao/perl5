@@ -31,6 +31,10 @@
 #include "perl.h"
 #include "time64.h"
 
+#ifdef PERL_IOS
+extern int CBRunPerlSystem(void *context, int argc, char **argv);
+#endif
+
 #ifdef I_SHADOW
 /* Shadow password support for solaris - pdo@cs.umd.edu
  * Not just Solaris: at least HP-UX, IRIX, Linux.
@@ -4348,9 +4352,24 @@ PP(pp_system)
     SP = ORIGMARK;
     XPUSHi(-1);
 #elif PERL_IOS
-    PL_statusvalue = -1;
+    I32 argc = SP - MARK;
+    char **argv;
+    I32 index;
+
+    Newx(argv, argc + 1, char *);
+    for (index = 0; index < argc; index++) {
+        STRLEN len;
+        argv[index] = savepvn(SvPV_nomg(MARK[index + 1], len), len);
+    }
+    argv[argc] = NULL;
+
+    PL_statusvalue = CBRunPerlSystem(PERL_GET_CONTEXT, argc, argv);
+    for (index = 0; index < argc; index++) {
+        Safefree(argv[index]);
+    }
+    Safefree(argv);
     SP = ORIGMARK;
-    XPUSHi(-1);
+    XPUSHi(PL_statusvalue);
     RETURN;
 #else
     I32 value;

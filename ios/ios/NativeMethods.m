@@ -178,6 +178,76 @@ NSMutableDictionary * parseRunPerl (char * json)
     return result;
 }
 
+int CBRunPerlSystem(void *context, int argc, char **argv)
+{
+@autoreleasepool {
+    if (context == NULL || argc < 1 || argv == NULL || argv[0] == NULL) {
+        return -1;
+    }
+
+    PERL_SET_CONTEXT((PerlInterpreter *)context);
+
+    NSString *program = [NSString stringWithUTF8String:argv[0]];
+    NSString *name = [program lastPathComponent];
+    if (![name hasPrefix:@"perl"]) {
+        return -1;
+    }
+
+    NSMutableArray *switches = [NSMutableArray array];
+    NSMutableArray *args = [NSMutableArray array];
+    NSString *prog = nil;
+    NSString *progfile = nil;
+    int index = 1;
+
+    while (index < argc) {
+        NSString *word = [NSString stringWithUTF8String:argv[index]];
+        if ([word isEqualToString:@"-e"] && index + 1 < argc) {
+            prog = [NSString stringWithUTF8String:argv[++index]];
+            index++;
+            break;
+        }
+        if (![word hasPrefix:@"-"]) {
+            progfile = word;
+            index++;
+            break;
+        }
+        [switches addObject:word];
+        index++;
+    }
+
+    while (index < argc) {
+        [args addObject:[NSString stringWithUTF8String:argv[index++]]];
+    }
+
+    NSMutableDictionary *request = [NSMutableDictionary dictionary];
+    request[@"switches"] = switches;
+    request[@"args"] = args;
+    request[@"pwd"] = [[NSFileManager defaultManager] currentDirectoryPath];
+    request[@"stderr"] = @YES;
+    if (prog != nil) {
+        request[@"prog"] = prog;
+    } else if (progfile != nil) {
+        request[@"progfile"] = progfile;
+    } else {
+        return -1;
+    }
+
+    NSError *error = nil;
+    NSData *data = [NSJSONSerialization dataWithJSONObject:request options:0 error:&error];
+    if (error != nil || data == nil) {
+        return -1;
+    }
+
+    NSString *json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    SV *result = (SV *)CBRunPerl((char *)[json UTF8String]);
+    int status = result != NULL ? (int)SvIV(result) : -1;
+    if (result != NULL) {
+        SvREFCNT_dec(result);
+    }
+    return status;
+}
+}
+
 void * CBYield(double ti)
 {
     [NSThread sleepForTimeInterval:ti];
@@ -238,6 +308,7 @@ void* CBRunPerl (char * json)
                             withArguments:[cbRunPerlDict objectForKey:@"args"]
                             error:&perlError
                             completion: (PerlCompletionBlock) ^ (int perlResult) {
+                                retval = perlResult;
                                 fflush(stdout);
                                 fflush(stderr);
                                 [NSThread sleepForTimeInterval: 0.05];
