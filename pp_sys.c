@@ -32,7 +32,14 @@
 #include "time64.h"
 
 #ifdef PERL_IOS
-extern int CBRunPerlSystem(void *context, int argc, char **argv);
+typedef int (*Perl_ios_system_callback)(void *context, int argc, char **argv);
+static Perl_ios_system_callback PL_ios_system_callback;
+
+void
+Perl_ios_set_system_callback(Perl_ios_system_callback callback)
+{
+    PL_ios_system_callback = callback;
+}
 #endif
 
 #ifdef I_SHADOW
@@ -4363,7 +4370,8 @@ PP(pp_system)
     }
     argv[argc] = NULL;
 
-    PL_statusvalue = CBRunPerlSystem(PERL_GET_CONTEXT, argc, argv);
+    PL_statusvalue = PL_ios_system_callback != NULL
+        ? PL_ios_system_callback(PERL_GET_CONTEXT, argc, argv) : -1;
     for (index = 0; index < argc; index++) {
         Safefree(argv[index]);
     }

@@ -15,6 +15,8 @@
 
 #import <XSUB.h>
 
+extern void Perl_ios_set_system_callback(int (*callback)(void *, int, char **));
+
 static int
 iosRunMakeRecipe(const char *command, void *context)
 {
@@ -51,6 +53,7 @@ CBInit()
     CODE:
     NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
     [[PerlCtrl alloc] initXS];
+    Perl_ios_set_system_callback(CBRunPerlSystem);
 
 AV*
 CBRunPerlCaptureStdout(json)
