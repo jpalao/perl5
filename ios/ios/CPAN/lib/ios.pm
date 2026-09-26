@@ -21,6 +21,7 @@ BEGIN {
             my $switch = ${^TAINT} > 0 ? '-T' : '-t';
             my $message = "Insecure dependency in `` while running with $switch switch";
             die "$message\n" if ${^TAINT} > 0;
+            warn "$message\n" if ${^TAINT} < 0;
         }
         eval {
             ($code, $result) = exec_cli(getcwd(), $command)
