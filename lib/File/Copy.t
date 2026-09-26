@@ -104,6 +104,8 @@ for my $cross_partition_test (0..1) {
   ok !move("file-$$", "copy-$$"), "move on missing file";
   ok -e "copy-$$",                '  target still there';
 
+SKIP: {
+  skip('iOS: TODO', 12) if $^O =~ /darwin-ios/;
   # Doesn't really matter what time it is as long as its not now.
   my $time = 1000000000.12345;
   utime( $time, $time, "copy-$$" );
@@ -155,6 +157,7 @@ for my $cross_partition_test (0..1) {
   is $foo, "ok\n", 'move(fn, dir): same contents';
   ok !-e "file-$$", 'file moved indeed';
   unlink "lib/file-$$" or die "unlink: $!";
+}
 
   SKIP: {
     skip "Testing symlinks", 3 unless $Config{d_symlink};

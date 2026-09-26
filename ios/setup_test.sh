@@ -1,0 +1,2 @@
+export IOS_DEVICE_UUID=2ec692021ee4f16a6fcc1ed86dc0433ee7d75928
+export HARNESS_APP_ID=net.pytm.perl

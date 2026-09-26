@@ -31,6 +31,17 @@
 #include "perl.h"
 #include "time64.h"
 
+#ifdef PERL_IOS
+typedef int (*Perl_ios_system_callback)(void *context, int argc, char **argv);
+static Perl_ios_system_callback PL_ios_system_callback;
+
+void
+Perl_ios_set_system_callback(Perl_ios_system_callback callback)
+{
+    PL_ios_system_callback = callback;
+}
+#endif
+
 #ifdef I_SHADOW
 /* Shadow password support for solaris - pdo@cs.umd.edu
  * Not just Solaris: at least HP-UX, IRIX, Linux.
@@ -4347,6 +4358,27 @@ PP(pp_system)
     PL_statusvalue = -1;
     SP = ORIGMARK;
     XPUSHi(-1);
+#elif PERL_IOS
+    I32 argc = SP - MARK;
+    char **argv;
+    I32 index;
+
+    Newx(argv, argc + 1, char *);
+    for (index = 0; index < argc; index++) {
+        STRLEN len;
+        argv[index] = savepvn(SvPV_nomg(MARK[index + 1], len), len);
+    }
+    argv[argc] = NULL;
+
+    PL_statusvalue = PL_ios_system_callback != NULL
+        ? PL_ios_system_callback(PERL_GET_CONTEXT, argc, argv) : -1;
+    for (index = 0; index < argc; index++) {
+        Safefree(argv[index]);
+    }
+    Safefree(argv);
+    SP = ORIGMARK;
+    XPUSHi(PL_statusvalue);
+    RETURN;
 #else
     I32 value;
 # ifdef __amigaos4__
@@ -4558,6 +4590,10 @@ PP(pp_exec)
 {
     dSP; dMARK; dORIGMARK; dTARGET;
     I32 value;
+
+#if PERL_IOS
+    DIE(aTHX_ PL_no_func, "exec");
+#endif
 
     if (TAINTING_get) {
         TAINT_ENV();

@@ -50,7 +50,13 @@ PATHNAME: for my $pathname (@files) {
     my $filename = pop @path_components;
     for my $component (@path_components) {
         if ($component =~ /\./) {
-            fail("$pathname has directory components containing '.'");
+            # iOS: TODO Xcode project is a dir and contains .xcodeproj
+            if ($pathname =~ /^ios/) {
+                pass("$pathname: iOS TODO dot in pathname");
+            } else {
+                fail("$pathname has directory components containing '.'")
+                    unless $pathname =~ /^ios/;
+            }
             next PATHNAME;
         }
         if (length $component > 32) {
