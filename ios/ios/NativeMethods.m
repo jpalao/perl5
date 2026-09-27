@@ -252,14 +252,39 @@ static NSString *CBResolveSystemPath(NSString *path)
     return path;
 }
 
+static BOOL CBSystemPathExists(NSString *path)
+{
+    return path != nil && [[NSFileManager defaultManager] fileExistsAtPath:path];
+}
+
+static int CBSystemPathError(void)
+{
+    errno = ENOENT;
+    return -1;
+}
+
+static int CBSystemArgumentError(void)
+{
+    errno = EINVAL;
+    return -1;
+}
+
+static void CBWarnMissingSystemPath(PerlInterpreter *interpreter, NSString *path)
+{
+    PERL_SET_CONTEXT(interpreter);
+    dTHX;
+    Perl_warn(aTHX_ "system: include path does not exist: %s", path.UTF8String);
+}
+
 int CBRunPerlSystem(void *context, int argc, char **argv)
 {
 @autoreleasepool {
-    if (context == NULL || argc < 1 || argv == NULL || argv[0] == NULL) {
-        return -1;
+    PerlInterpreter *parentContext = (PerlInterpreter *)context;
+    if (parentContext == NULL || argc < 1 || argv == NULL || argv[0] == NULL) {
+        return CBSystemArgumentError();
     }
-
-    PERL_SET_CONTEXT((PerlInterpreter *)context);
+    PERL_SET_CONTEXT(parentContext);
+    dTHX;
 
     NSArray *words;
     if (argc == 1) {
@@ -278,17 +303,22 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
 
     NSString *program = words[0];
     NSString *name = [program lastPathComponent];
+    if ([program rangeOfString:@"/"].location != NSNotFound &&
+        !CBSystemPathExists(CBResolveSystemPath(program))) {
+        return CBSystemPathError();
+    }
     BOOL isPerlExecutable = [name hasSuffix:@"perl"] ||
         [name hasSuffix:@"foundation-runner"] ||
         [name hasSuffix:@"harness"];
     if (!isPerlExecutable) {
-        return -1;
+        return CBSystemPathError();
     }
 
     NSMutableArray *switches = [NSMutableArray array];
     NSMutableArray *args = [NSMutableArray array];
     NSString *prog = nil;
     NSString *progfile = nil;
+    NSString *pwd = [[NSFileManager defaultManager] currentDirectoryPath];
     int index = 1;
 
     while (index < (int)words.count) {
@@ -300,8 +330,31 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
         }
         if (![word hasPrefix:@"-"]) {
             progfile = CBResolveSystemPath(word);
+            if (!CBSystemPathExists(progfile)) {
+                return CBSystemPathError();
+            }
             index++;
             break;
+        }
+        if ([word isEqualToString:@"-I"] && index + 1 < (int)words.count) {
+            NSString *includePath = words[++index];
+            NSString *resolvedInclude = CBResolveSystemPath(includePath);
+            if (!CBSystemPathExists(resolvedInclude)) {
+                CBWarnMissingSystemPath(parentContext, resolvedInclude);
+            }
+            [switches addObject:[NSString stringWithFormat:@"-I%@", resolvedInclude]];
+            index++;
+            continue;
+        }
+        if ([word hasPrefix:@"-I"] && word.length > 2) {
+            NSString *includePath = [word substringFromIndex:2];
+            NSString *resolvedInclude = CBResolveSystemPath(includePath);
+            if (!CBSystemPathExists(resolvedInclude)) {
+                CBWarnMissingSystemPath(parentContext, resolvedInclude);
+            }
+            [switches addObject:[NSString stringWithFormat:@"-I%@", resolvedInclude]];
+            index++;
+            continue;
         }
         [switches addObject:word];
         index++;
@@ -311,32 +364,66 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
         [args addObject:words[index++]];
     }
 
-    NSMutableDictionary *request = [NSMutableDictionary dictionary];
-    request[@"switches"] = switches;
-    request[@"args"] = args;
-    request[@"pwd"] = [[NSFileManager defaultManager] currentDirectoryPath];
-    request[@"stderr"] = @YES;
+    if (prog == nil && progfile == nil) {
+        return -1;
+    }
+
+    NSMutableArray *childSwitches = [switches mutableCopy];
     if (prog != nil) {
-        request[@"prog"] = prog;
-    } else if (progfile != nil) {
-        request[@"progfile"] = progfile;
-    } else {
-        return -1;
+        [childSwitches addObject:@"-e"];
+        [childSwitches addObject:prog];
     }
 
-    NSError *error = nil;
-    NSData *data = [NSJSONSerialization dataWithJSONObject:request options:0 error:&error];
-    if (error != nil || data == nil) {
-        return -1;
-    }
+    NSCondition *condition = [[NSCondition alloc] init];
+    __block BOOL finished = NO;
+    __block int childResult = -1;
+    NSString *fileName = progfile;
+    NSArray *childArguments = [args copy];
+    NSString *childPwd = [pwd copy];
 
-    NSString *json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    SV *result = (SV *)CBRunPerl((char *)[json UTF8String]);
-    int status = result != NULL ? (int)SvIV(result) : -1;
-    if (result != NULL) {
-        SvREFCNT_dec(result);
+    NSThread *worker = [[NSThread alloc] initWithBlock:^{
+        @autoreleasepool {
+            @try {
+                NSError *perlError = nil;
+                [[PerlCtrl alloc]
+                    initWithFileName:fileName
+                    withAbsolutePwd:childPwd
+                    withDebugger:FALSE
+                    withOptions:childSwitches
+                    withArguments:childArguments
+                    error:&perlError
+                    completion:^(int perlResult) {
+                        childResult = perlResult;
+                    }];
+                if (perlError != nil) {
+                    childResult = perlError.code;
+                }
+            }
+            @catch (NSException *exception) {
+                childResult = -1;
+            }
+            @finally {
+                [condition lock];
+                finished = YES;
+                [condition signal];
+                [condition unlock];
+            }
+        }
+    }];
+    [worker start];
+    [condition lock];
+    while (!finished) {
+        [condition wait];
     }
-    return status;
+    [condition unlock];
+    [worker release];
+    [childArguments release];
+    [childPwd release];
+    [childSwitches release];
+    [condition release];
+
+    PERL_SET_CONTEXT(parentContext);
+    return childResult < 0 ? -1 : ((childResult & 0xff) << 8);
 }
 }
 
