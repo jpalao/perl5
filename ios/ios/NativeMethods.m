@@ -227,6 +227,31 @@ static NSArray *CBTokenizeSystemCommand(NSString *command)
     return words;
 }
 
+static NSString *CBResolveSystemPath(NSString *path)
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *normalizedPath = [path stringByStandardizingPath];
+    if ([normalizedPath isAbsolutePath]) {
+        return [fileManager fileExistsAtPath:normalizedPath] ? normalizedPath : path;
+    }
+
+    NSString *directory = [fileManager currentDirectoryPath];
+    while (directory.length > 0) {
+        NSString *candidate = [[directory stringByAppendingPathComponent:path]
+            stringByStandardizingPath];
+        if ([fileManager fileExistsAtPath:candidate]) {
+            return candidate;
+        }
+
+        NSString *parent = [directory stringByDeletingLastPathComponent];
+        if ([parent isEqualToString:directory]) {
+            break;
+        }
+        directory = parent;
+    }
+    return path;
+}
+
 int CBRunPerlSystem(void *context, int argc, char **argv)
 {
 @autoreleasepool {
@@ -274,7 +299,7 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
             break;
         }
         if (![word hasPrefix:@"-"]) {
-            progfile = word;
+            progfile = CBResolveSystemPath(word);
             index++;
             break;
         }
