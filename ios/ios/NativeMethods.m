@@ -178,6 +178,55 @@ NSMutableDictionary * parseRunPerl (char * json)
     return result;
 }
 
+static NSArray *CBTokenizeSystemCommand(NSString *command)
+{
+    NSMutableArray *words = [NSMutableArray array];
+    NSMutableString *word = [NSMutableString string];
+    NSCharacterSet *whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+    unichar quote = 0;
+    BOOL escaped = NO;
+    BOOL hasToken = NO;
+
+    for (NSUInteger index = 0; index < command.length; index++) {
+        unichar character = [command characterAtIndex:index];
+        if (escaped) {
+            [word appendFormat:@"%C", character];
+            escaped = NO;
+            hasToken = YES;
+        } else if (character == '\\' && quote != '\'') {
+            escaped = YES;
+            hasToken = YES;
+        } else if (quote != 0) {
+            if (character == quote) {
+                quote = 0;
+            } else {
+                [word appendFormat:@"%C", character];
+            }
+            hasToken = YES;
+        } else if (character == '\'' || character == '"') {
+            quote = character;
+            hasToken = YES;
+        } else if ([whitespace characterIsMember:character]) {
+            if (hasToken) {
+                [words addObject:[word copy]];
+                [word setString:@""];
+                hasToken = NO;
+            }
+        } else {
+            [word appendFormat:@"%C", character];
+            hasToken = YES;
+        }
+    }
+
+    if (escaped || quote != 0) {
+        return nil;
+    }
+    if (hasToken) {
+        [words addObject:[word copy]];
+    }
+    return words;
+}
+
 int CBRunPerlSystem(void *context, int argc, char **argv)
 {
 @autoreleasepool {
@@ -187,9 +236,27 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
 
     PERL_SET_CONTEXT((PerlInterpreter *)context);
 
-    NSString *program = [NSString stringWithUTF8String:argv[0]];
+    NSArray *words;
+    if (argc == 1) {
+        NSString *command = [NSString stringWithUTF8String:argv[0]];
+        words = CBTokenizeSystemCommand(command);
+        if (words == nil || words.count == 0) {
+            return -1;
+        }
+    } else {
+        NSMutableArray *list = [NSMutableArray arrayWithCapacity:(NSUInteger)argc];
+        for (int index = 0; index < argc; index++) {
+            [list addObject:[NSString stringWithUTF8String:argv[index]]];
+        }
+        words = list;
+    }
+
+    NSString *program = words[0];
     NSString *name = [program lastPathComponent];
-    if (![name hasPrefix:@"perl"]) {
+    BOOL isPerlExecutable = [name hasSuffix:@"perl"] ||
+        [name hasSuffix:@"foundation-runner"] ||
+        [name hasSuffix:@"harness"];
+    if (!isPerlExecutable) {
         return -1;
     }
 
@@ -199,10 +266,10 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
     NSString *progfile = nil;
     int index = 1;
 
-    while (index < argc) {
-        NSString *word = [NSString stringWithUTF8String:argv[index]];
-        if ([word isEqualToString:@"-e"] && index + 1 < argc) {
-            prog = [NSString stringWithUTF8String:argv[++index]];
+    while (index < (int)words.count) {
+        NSString *word = words[index];
+        if ([word isEqualToString:@"-e"] && index + 1 < (int)words.count) {
+            prog = words[++index];
             index++;
             break;
         }
@@ -215,8 +282,8 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
         index++;
     }
 
-    while (index < argc) {
-        [args addObject:[NSString stringWithUTF8String:argv[index++]]];
+    while (index < (int)words.count) {
+        [args addObject:words[index++]];
     }
 
     NSMutableDictionary *request = [NSMutableDictionary dictionary];
