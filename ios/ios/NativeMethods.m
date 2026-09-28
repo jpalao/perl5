@@ -8,6 +8,8 @@
 #import "PerlCtrl.h"
 #import "NativeMethods.h"
 
+#include <stdio.h>
+
 // The BYTEORDER macro is also #defined by perl, and Perl's use
 // of it should be fully expanded by now.
 #undef BYTEORDER
@@ -377,6 +379,7 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
     NSCondition *condition = [[NSCondition alloc] init];
     __block BOOL finished = NO;
     __block int childResult = -1;
+    __block int childErrorCode = 0;
     NSString *fileName = progfile;
     NSArray *childArguments = [args copy];
     NSString *childPwd = [pwd copy];
@@ -396,10 +399,14 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
                         childResult = perlResult;
                     }];
                 if (perlError != nil) {
+                    childErrorCode = (int)perlError.code;
                     childResult = perlError.code;
                 }
             }
             @catch (NSException *exception) {
+                fprintf(stderr, "CBRunPerlSystem exception: %s\n",
+                    exception.reason.UTF8String);
+                fflush(stderr);
                 childResult = -1;
             }
             @finally {
@@ -423,6 +430,9 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
     [condition release];
 
     PERL_SET_CONTEXT(parentContext);
+    fprintf(stderr, "CBRunPerlSystem child result: %d error: %d\n",
+        childResult, childErrorCode);
+    fflush(stderr);
     return childResult < 0 ? -1 : ((childResult & 0xff) << 8);
 }
 }
