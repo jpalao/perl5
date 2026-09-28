@@ -62,6 +62,7 @@ our @EXPORT_OK = @methods;
 
 require XSLoader;
 XSLoader::load('ios', $VERSION);
+CBInit();
 
 sub _require {
     my ($module) = @_;
