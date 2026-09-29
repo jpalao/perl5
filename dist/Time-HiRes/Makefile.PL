@@ -641,7 +641,7 @@ EOD
     } elsif (has_clock_nanosleep()) {
         $has_clock_nanosleep++;
         $DEFINE .= ' -DTIME_HIRES_CLOCK_NANOSLEEP';
-    } elsif ($^O =~ 'darwin') {
+    } elsif ($^O eq 'darwin') {
         $has_clock_nanosleep++;
         $has_clock_nanosleep_emulation++;
         $DEFINE .= ' -DTIME_HIRES_CLOCK_NANOSLEEP -DTIME_HIRES_CLOCK_NANOSLEEP_EMULATION';
