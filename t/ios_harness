@@ -127,11 +127,13 @@ sub exclude_tests {
         @tests = grep(/^(?:(?!\.\.\/cpan\/Pod\-Simple))/, @tests);
     }
 
-	# most likely will never pass on iOS
-	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-Cmd))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/cpan\/IPC-SysV))/, @tests);
-	@tests = grep(/^(?:(?!\.\.\/ext\/IPC-Open3))/, @tests);
-	
+    # most likely will never pass on iOS
+    @tests = grep(/^(?:(?!\.\.\/cpan\/IPC-Cmd))/, @tests);
+    @tests = grep(/^(?:(?!\.\.\/cpan\/IPC-SysV))/, @tests);
+    @tests = grep(/^(?:(?!\.\.\/ext\/IPC-Open3))/, @tests);
+
+    # tests requiring make, unavailable on the device
+    @tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils-MakeMaker))/, @tests);
 };
 
 # @ARGV = ('base/cond.t');
