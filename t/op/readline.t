@@ -23,13 +23,15 @@ like($@, qr/Modification of a read-only value attempted/, '[perl #19566]');
   is($a .= <A>, 4, '#21628 - $a .= <A> , A closed');
 }
 
+SKIP: {
+skip( 'iOS: no STDIN access', 4 ) if $^O =~ /darwin-ios/;
 # [perl #21614]: 82 is chosen to exceed the length for sv_grow in
 # do_readline (80)
 foreach my $k (1, 82) {
   my $result
     = runperl (stdin => '', stderr => 1,
               prog => "\$x = q(k) x $k; \$a{\$x} = qw(v); \$_ = <> foreach keys %a; print qw(end)",
-	      );
+             );
   $result =~ s/\n\z// if $^O eq 'VMS';
   is ($result, "end", '[perl #21614] for length ' . length('k' x $k));
 }
@@ -39,10 +41,11 @@ foreach my $k (1, 21) {
   my $result
     = runperl (stdin => ' rules', stderr => 1,
               prog => "\$x = q(perl) x $k; \$a{\$x} = q(v); foreach (keys %a) {\$_ .= <>; print}",
-	      );
+             );
   $result =~ s/\n\z// if $^O eq 'VMS';
   is ($result, ('perl' x $k) . " rules", 'rcatline to shared sv for length ' . length('perl' x $k));
 }
+      }
 
 foreach my $l (1, 82) {
   my $k = $l;
@@ -237,6 +240,8 @@ SKIP: {
     is( $line, "\x{2080} utf8\x{2080}...\n", 'appending from utf to utf8' );
 }
 
+SKIP: {
+skip( 'iOS: TODO', 3 ) if $^O =~ /darwin-ios/;
 my $obj = bless [];
 $obj .= <DATA>;
 like($obj, qr/main=ARRAY.*world/, 'rcatline and refs');
@@ -250,6 +255,7 @@ $one .= <DATA>;
 $two .= <DATA>;
 is( $one, "A: One\n", "rcatline works with tied scalars" );
 is( $two, "B: Two\n", "rcatline works with tied scalars" );
+}
 
 # mentioned in bug #97482
 # <$foo> versus readline($foo) should not affect vivification.
