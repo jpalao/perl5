@@ -16,7 +16,9 @@ sub test_require {
     my $fileno = fileno $fh;
     if (defined $want) {
         if ($^O =~ /darwin-ios/) {
-            ok(1, "iOS: TODO file handle has correct numeric file descriptor $state");
+            local $::TODO = "iOS does not reopen README at file descriptor $want";
+            is($fileno, $want,
+               "file handle has correct numeric file descriptor $state");
         } else {
             is($fileno, $want,
                "file handle has correct numeric file descriptor $state");
@@ -32,12 +34,8 @@ sub test_require {
     isnt($INC{'test_use_14937.pm'}, undef, "test_use_14937 is loaded $state");
 
     open $fh, '<', 'README' or die "Can't open README: $!";
-        if ($^O =~ /darwin-ios/) {
-            ok(1, "iOS: TODO file handle has the same numeric file descriptor $state");
-        } else {
-            is(fileno $fh, $fileno,
-               "file handle has the same numeric file descriptor $state");
-        }
+    is(fileno $fh, $fileno,
+       "file handle has the same numeric file descriptor $state");
     close $fh or die;
 }
 
