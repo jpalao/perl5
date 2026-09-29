@@ -17,8 +17,6 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin"; # required to load filter-util.pl
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 require 'filter-util.pl';
 
 use vars qw($Inc $Perl);

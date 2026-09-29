@@ -4,8 +4,6 @@ BEGIN {
     chdir 't' if -d 't';
 }
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 print "1..7\n";
 
 # check "" interpretation

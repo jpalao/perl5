@@ -4,8 +4,6 @@ use strict;
 use Devel::SelfStubber;
 use File::Spec::Functions;
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 my $runperl = $^X;
 
 # ensure correct output ordering for system() calls

@@ -6,8 +6,6 @@
 use File::Spec;
 use lib File::Spec->catdir('t', 'lib');
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 use Test::More (-x $^X
 		? (tests => 5)
 		: (skip_all => "Can't find an executable file")

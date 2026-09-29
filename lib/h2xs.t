@@ -28,8 +28,6 @@ use File::Find;
 use ExtUtils::Manifest;
 use Config;
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 # Don't want its diagnostics getting in the way of ours.
 $ExtUtils::Manifest::Quiet=1;
 my $up = File::Spec->updir();

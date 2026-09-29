@@ -11,8 +11,6 @@ BEGIN {
     }
 }
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 use IO::Handle;
 use IO::File;
 

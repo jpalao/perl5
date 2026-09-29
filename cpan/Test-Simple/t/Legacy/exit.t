@@ -23,8 +23,6 @@ use File::Spec;
 
 my $Orig_Dir = cwd;
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 my $Perl = File::Spec->rel2abs($^X);
 if( $^O eq 'VMS' ) {
     # VMS can't use its own $^X in a system call until almost 5.8

@@ -9,8 +9,6 @@ BEGIN {
 	}
 }
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 use Test::More tests => 16;
 
 use_ok( 'B::Terse' );

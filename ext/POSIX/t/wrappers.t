@@ -4,8 +4,6 @@ use strict;
 use Test::More;
 use Config;
 
-if ($^O =~ /darwin-ios/) { use ios }
-
 plan(skip_all => "POSIX is unavailable")
     unless $Config{extensions} =~ /\bPOSIX\b/;
 

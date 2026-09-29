@@ -7,8 +7,6 @@ use File::Path qw(make_path remove_tree);
 use File::Spec;
 use Test::More;
 
-BEGIN { require ios if $^O =~ /darwin-ios/ }
-
 if ($^O !~ /darwin-ios/) {
     plan skip_all => 'embedded make is only available on iOS';
 }
