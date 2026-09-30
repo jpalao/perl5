@@ -455,7 +455,7 @@ END
 	    }
 	    if ($?) {
 	      printf "not ok: exited with error code %04X\n", $?;
-	      exit if !$^O =~ /darwin-ios/;
+	      exit if $^O !~ /darwin-ios/;
 	    }
 	    { local $/; open IN, $errfile; $errors = <IN>; close IN }
 	  }
