@@ -90,9 +90,12 @@ fresh_perl_is('BEGIN{<>}', '',
               { switches => ['-w'], stdin => '', stderr => 1 },
               'No ARGVOUT used only once warning');
 
+SKIP: {
+skip( 'iOS: no STDIN access', 1 ) if $^O =~ /darwin-ios/;
 fresh_perl_is('print readline', 'foo',
               { switches => ['-w'], stdin => 'foo', stderr => 1 },
               'readline() defaults to *ARGV');
+}
 
 # [perl #72720] Test that sv_gets clears any variables that should be
 # empty so if the read() aborts with EINTER, the TARG is actually
@@ -178,6 +181,7 @@ SKIP: {
     TODO: {
         todo_skip( 'alarm() on Windows does not interrupt system calls' ) if $^O eq 'MSWin32';
         todo_skip( 'readline not interrupted by alarm on VMS -- why?' ) if $^O eq 'VMS';
+        todo_skip( 'readline not interrupted by alarm on iOS' ) if $^O =~ /darwin-ios/;
         $twice = test_eintr_readline( $in, 1 );
         isnt( $twice, "once\n", "readline didn't re-return things when interrupted" );
     }
@@ -185,6 +189,7 @@ SKIP: {
     TODO: {
         todo_skip( 'alarm() on Windows does not interrupt system calls' ) if $^O eq 'MSWin32';
         todo_skip( 'readline not interrupted by alarm on VMS -- why?' ) if $^O eq 'VMS';
+        todo_skip( 'readline not interrupted by alarm on iOS' ) if $^O =~ /darwin-ios/;
         local our $TODO = "bad readline returns '', not undef";
         is( $twice, undef, "readline returned undef when interrupted" );
     }
