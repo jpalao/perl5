@@ -283,7 +283,8 @@ static Boolean perlInitialized = false;
     if (result == 0 && stdinBytes != nil) {
         SV *stdinScalar = newSVpvn([stdinBytes bytes], [stdinBytes length]);
         SV *stdinReference = newRV_noinc(stdinScalar);
-        bool stdinOpened = do_open6(PL_stdingv, "<", 1, NULL, &stdinReference, 1);
+        bool stdinOpened = Perl_do_open6(aTHX_ PL_stdingv, "<", 1, NULL,
+            &stdinReference, 1);
         SvREFCNT_dec(stdinReference);
         if (!stdinOpened) {
             *error = [[NSError alloc] initWithDomain:@"dev.perla.stdin"
