@@ -4,7 +4,6 @@ use Test::More;
 
 if ($^O =~ /darwin-ios/) {
     plan skip_all => 'exec() not supported';
-    done_testing();
 }
 
 plan tests => 3;
