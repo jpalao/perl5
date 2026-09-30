@@ -22,4 +22,3 @@ if ($^O =~ /darwin-ios/) {
 } else {
     system "$^X -I. -MTestInit Porting/bench.pl --action=selftest";
 }
-
