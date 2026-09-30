@@ -52,6 +52,8 @@ typedef void (^PerlCompletionBlock)(int perlRunResult);
 // init this PerlCtrl object with a new perl interpreter
 -(void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments error:(NSError **)error completion:(PerlCompletionBlock)completion;
 
+-(void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments withStdinBytes:(NSData *)stdinBytes error:(NSError **)error completion:(PerlCompletionBlock)completion;
+
 - (void) dealloc;
 
 // initXS: A version of init suitable for use within XS modules

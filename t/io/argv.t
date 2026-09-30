@@ -183,7 +183,6 @@ $x = runperl(
 );
 is($x, "bone\n", '<<>> and rcatline');
 SKIP: {
-    skip('iOS: no stdin access', 1) if $^O =~ /darwin-ios/;
     $x = runperl(
         prog	=> 'while (<<>>) { print }',
         stdin	=> "foo\n",

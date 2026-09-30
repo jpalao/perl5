@@ -158,6 +158,22 @@ sub _json {
     $json ||= JSON::PP->new->convert_blessed(1);
     return $json;
 }
+
+sub _stdin_bytes_base64 {
+    my ($bytes) = @_;
+    return undef if !defined $bytes;
+    _require('MIME/Base64.pm');
+    return MIME::Base64::encode_base64($bytes, '');
+}
+
+sub _request_stdin_bytes_base64 {
+    my ($req) = @_;
+    my $bytes = exists $req->{stdin_bytes}
+        ? $req->{stdin_bytes}
+        : $req->{stdin};
+    return _stdin_bytes_base64($bytes);
+}
+
 our $make_recursion_state;
 
 sub check_error {
@@ -219,6 +235,7 @@ sub exec_perl {
         progs => $req->{progs},
         progfile => $req->{progfile},
         stdin => $req->{stdin},
+        stdin_bytes => _request_stdin_bytes_base64($req),
         stderr => $req->{stderr},
         args => $req->{args},
         verbose => $req->{verbose},
@@ -252,6 +269,7 @@ sub exec_perl_capture {
         progs => $req->{progs},
         progfile => $req->{progfile},
         stdin => $req->{stdin},
+        stdin_bytes => _request_stdin_bytes_base64($req),
         stderr => $req->{stderr},
         args => $req->{args},
         verbose => $req->{verbose},

@@ -49,6 +49,7 @@ NSMutableDictionary * parseRunPerl (char * json)
     NSArray * progs = nil;
     NSNumber * stderrBool = nil;
     NSNumber * nolibBool = nil;
+    NSString * stdinBase64 = nil;
 
     if (!json) {
         return nil;
@@ -175,6 +176,19 @@ NSMutableDictionary * parseRunPerl (char * json)
         } @finally {
             if (args == nil || [args isEqual:[NSNull null]]) args = @[];
             [result setObject:args forKey:@"args"];
+        }
+
+        @try {
+            stdinBase64 = [jsonResponse valueForKey:@"stdin_bytes"];
+        } @finally {
+            if (stdinBase64 != nil && ![stdinBase64 isEqual:[NSNull null]]) {
+                NSData *stdinBytes = [[[NSData alloc]
+                    initWithBase64EncodedString:stdinBase64 options:0] autorelease];
+                if (stdinBytes == nil) {
+                    return nil;
+                }
+                [result setObject:stdinBytes forKey:@"stdinBytes"];
+            }
         }
     }
     return result;
@@ -495,6 +509,7 @@ void* CBRunPerl (char * json)
                             withDebugger:FALSE
                             withOptions:[cbRunPerlDict objectForKey:@"switches"]
                             withArguments:[cbRunPerlDict objectForKey:@"args"]
+                            withStdinBytes:[cbRunPerlDict objectForKey:@"stdinBytes"]
                             error:&perlError
                             completion: (PerlCompletionBlock) ^ (int perlResult) {
                                 retval = perlResult;

@@ -138,6 +138,13 @@ static Boolean perlInitialized = false;
 
 - (void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments error:(NSError **)error completion:(PerlCompletionBlock)completion
 {
+    [self initWithFileName:fileName withAbsolutePwd:pwd withDebugger:debuggerEnabled
+        withOptions:options withArguments:arguments withStdinBytes:nil
+        error:error completion:completion];
+}
+
+- (void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments withStdinBytes:(NSData *)stdinBytes error:(NSError **)error completion:(PerlCompletionBlock)completion
+{
 @autoreleasepool
 {
     int embSize = 0;
@@ -270,6 +277,18 @@ static Boolean perlInitialized = false;
            NSLog(@"perl_parse threw Exception %@", [exception description]);
            * error = [[NSError alloc] initWithDomain:@"dev.perla.parse" code:03 userInfo:@{@"reason":[NSString stringWithFormat:@"%@", [exception description]]}];
            return;
+        }
+    }
+
+    if (result == 0 && stdinBytes != nil) {
+        SV *stdinScalar = newSVpvn([stdinBytes bytes], [stdinBytes length]);
+        SV *stdinReference = newRV_noinc(stdinScalar);
+        bool stdinOpened = do_open6(PL_stdingv, "<", 1, NULL, &stdinReference, 1);
+        SvREFCNT_dec(stdinReference);
+        if (!stdinOpened) {
+            *error = [[NSError alloc] initWithDomain:@"dev.perla.stdin"
+                code:01 userInfo:@{ @"reason": @"Cannot install memory-backed STDIN" }];
+            result = 1;
         }
     }
 
