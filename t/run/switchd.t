@@ -160,7 +160,7 @@ SKIP:
     is(
       runperl(
         # nodb.pm contains *DB::DB...if 0
-        switches => [ '-Ilib', '-d:nodb' ], 
+        switches => [ '-Ilib', '-d:nodb' ],
         prog     => 'warn; sub DB::DB { print qq-ok\n-; exit }',
         stderr   => 1,
       ),
@@ -294,7 +294,7 @@ SKIP:
          print
            eval qq|sub oo\x{25f} { 42 }
                    sub ooooo\x{25f} { oo\x{25f}() }
-                   ooooo\x{25f}()| 
+                   ooooo\x{25f}()|
             || $@,
            qq|\n|;
         '

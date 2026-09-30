@@ -38,7 +38,6 @@ SKIP: {
     is($ret,"","recv returns undying empty string for local sockets");
 
 }
-
 eval {
     my $string = "now is the time...";
     open(my $fh, '<', \$string) or die("Can't open \$string for read");
@@ -70,4 +69,3 @@ TODO: {
     ok($@,'send dies on returning undef');
     isa_ok($@,'autodie::exception');
 }
-

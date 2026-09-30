@@ -5,7 +5,7 @@
 BEGIN {
       chdir 't' if -d 't';
       require './test.pl';
-      skip_all("iOS doesn't seem to be able to test signals") 
+    skip_all("iOS doesn't seem to be able to test signals")
           if $^O =~ /darwin-ios/;
 }
 
