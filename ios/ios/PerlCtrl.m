@@ -281,11 +281,15 @@ static Boolean perlInitialized = false;
     }
 
     if (result == 0 && stdinBytes != nil) {
-        SV *stdinScalar = newSVpvn([stdinBytes bytes], [stdinBytes length]);
-        SV *stdinReference = newRV_noinc(stdinScalar);
-        bool stdinOpened = Perl_do_open6(aTHX_ PL_stdingv, "<", 1, NULL,
-            &stdinReference, 1);
-        SvREFCNT_dec(stdinReference);
+        SV *stdinScalar = Perl_get_sv(aTHX_ "Perla::Embedded::stdin", GV_ADD);
+        sv_setpvn(stdinScalar, [stdinBytes bytes], [stdinBytes length]);
+        SV *stdinCode = newSVpvs(
+            "open STDIN, '<', \\$Perla::Embedded::stdin or die $!;");
+        sv_setsv(ERRSV, &PL_sv_undef);
+        (void)Perl_eval_sv(aTHX_ stdinCode, G_DISCARD | G_EVAL);
+        bool stdinOpened = !SvTRUE(ERRSV);
+        SvREFCNT_dec(stdinCode);
+        sv_setsv(stdinScalar, &PL_sv_undef);
         if (!stdinOpened) {
             *error = [[NSError alloc] initWithDomain:@"dev.perla.stdin"
                 code:01 userInfo:@{ @"reason": @"Cannot install memory-backed STDIN" }];
