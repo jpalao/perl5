@@ -10,9 +10,12 @@ use Test::More;
 if ($^O !~ /darwin-ios/) {
     plan skip_all => 'embedded make is only available on iOS';
 }
+if (!$ENV{PERL_IOS_RUN_EMBEDDED_MAKE}) {
+    plan skip_all => 'embedded make is opt-in until the iOS test submodule is split out';
+}
 
 my $fixture_source = abs_path(File::Spec->catdir(
-    getcwd(), 't', 'fixtures', 'Perla-Pure'));
+    __FILE__, File::Spec->updir(), 'fixtures', 'Perla-Pure'));
 my $fixture = File::Spec->catdir(File::Spec->tmpdir(), 'Perla-Pure-work');
 my $blib = File::Spec->catdir($fixture, 'blib');
 my $makefile = File::Spec->catfile($fixture, 'Makefile');
