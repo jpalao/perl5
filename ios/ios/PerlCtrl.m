@@ -270,32 +270,26 @@ static Boolean perlInitialized = false;
             // Wonder what happened here?
             return;
         }
-        if (stdinBytes != nil) {
-            SV *stdinScalar = Perl_get_sv(aTHX_ "Perla::Embedded::stdin", GV_ADD);
-            sv_setpvn(stdinScalar, [stdinBytes bytes], [stdinBytes length]);
-            SV *stdinCode = newSVpvs(
-                "open STDIN, '<', \\$Perla::Embedded::stdin or die $!;");
-            sv_setsv(ERRSV, &PL_sv_undef);
-            (void)Perl_eval_sv(aTHX_ stdinCode, G_DISCARD | G_EVAL);
-            bool stdinOpened = !SvTRUE(ERRSV);
-            SvREFCNT_dec(stdinCode);
-            sv_setsv(stdinScalar, &PL_sv_undef);
-            if (!stdinOpened) {
-                *error = [[NSError alloc] initWithDomain:@"dev.perla.stdin"
-                    code:01 userInfo:@{ @"reason": @"Cannot install memory-backed STDIN" }];
-                result = 1;
-            }
+        @try {
+            result = perl_parse(_PerlCtrlInterpreter, xs_init, embSize, emb, (char **)NULL);
         }
+        @catch (NSException * exception ){
+           NSLog(@"perl_parse threw Exception %@", [exception description]);
+           * error = [[NSError alloc] initWithDomain:@"dev.perla.parse" code:03 userInfo:@{@"reason":[NSString stringWithFormat:@"%@", [exception description]]}];
+           return;
+        }
+    }
 
-        if (result == 0) {
-            @try {
-                result = perl_parse(_PerlCtrlInterpreter, xs_init, embSize, emb, (char **)NULL);
-            }
-            @catch (NSException * exception ){
-               NSLog(@"perl_parse threw Exception %@", [exception description]);
-               * error = [[NSError alloc] initWithDomain:@"dev.perla.parse" code:03 userInfo:@{@"reason":[NSString stringWithFormat:@"%@", [exception description]]}];
-               return;
-            }
+    if (result == 0 && stdinBytes != nil) {
+        SV *stdinScalar = newSVpvn([stdinBytes bytes], [stdinBytes length]);
+        SV *stdinReference = newRV_noinc(stdinScalar);
+        bool stdinOpened = Perl_do_openn(aTHX_ PL_stdingv, "<", 1, 0, 0, 0,
+            NULL, &stdinReference, 1);
+        SvREFCNT_dec(stdinReference);
+        if (!stdinOpened) {
+            *error = [[NSError alloc] initWithDomain:@"dev.perla.stdin"
+                code:01 userInfo:@{ @"reason": @"Cannot install memory-backed STDIN" }];
+            result = 1;
         }
     }
 
