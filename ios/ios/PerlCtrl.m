@@ -280,7 +280,7 @@ static Boolean perlInitialized = false;
         }
     }
 
-    if (result == 0 && stdinBytes != nil) {
+    if (result == 0 && stdinBytes != nil && stdinBytes.length > 0) {
         SV *stdinScalar = newSVpvn([stdinBytes bytes], [stdinBytes length]);
         SV *stdinReference = newRV_noinc(stdinScalar);
         bool stdinOpened = Perl_do_openn(aTHX_ PL_stdingv, "<", 1, 0, 0, 0,
