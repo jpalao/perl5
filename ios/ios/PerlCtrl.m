@@ -53,6 +53,8 @@ static Boolean perlInitialized = false;
         /* only call this the first time through, as per perlembed man page */
         PERL_SYS_INIT3(&nargs, (char ***) &emb, (char***)&dummy_perl_env);
 #endif
+    if (getenv("PERLDB_OPTS") == NULL)
+        setenv("PERLDB_OPTS", "ReadLine=0 NonStop=1 noTTY=1", 1);
         perlInitialized = 1;
     }
 }
@@ -219,7 +221,7 @@ static Boolean perlInitialized = false;
 
         if (fileName) {
             if ( debuggerEnabled ) {
-                emb[embSize++] = "-d:ebug::Backend";
+                emb[embSize++] = "-d";
             }
             emb[embSize++] = (char *)[fileName UTF8String];
         }

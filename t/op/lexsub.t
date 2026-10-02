@@ -392,6 +392,7 @@ like runperl(
 }
 
 SKIP: {
+  skip 'iOS: debugger DB::sub incompatibility', 1 if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
@@ -803,6 +804,7 @@ like runperl(
 pass "pad taking ownership once more of packagified my-sub";
 
 SKIP: {
+  skip 'iOS: debugger DB::sub incompatibility', 1 if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
