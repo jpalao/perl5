@@ -266,6 +266,7 @@ static Boolean perlInitialized = false;
                 NSLog(@"perl_construct threw Exception %@", [exception description]);
                 return;
             }
+
         } else {
             // Wonder what happened here?
             return;
@@ -281,15 +282,36 @@ static Boolean perlInitialized = false;
     }
 
     if (result == 0 && stdinBytes != nil && stdinBytes.length > 0) {
+        PerlIO *stdinStream = PerlIO_stdin();
+        AV *stdinLayers = PerlIO_get_layers(aTHX_ stdinStream);
+        SV **layerName = av_fetch(stdinLayers, 0, 0);
+        SV **layerArgument = av_fetch(stdinLayers, 1, 0);
+        bool reapplyEncoding = layerName != NULL
+            && strEQ(SvPV_nolen(*layerName), "encoding")
+            && layerArgument != NULL && SvOK(*layerArgument);
+        SV *encodingLayers = NULL;
+
+        if (reapplyEncoding) {
+            encodingLayers = newSVpvs(":encoding(");
+            sv_catsv(encodingLayers, *layerArgument);
+            sv_catpvs(encodingLayers, ")");
+            PerlIO_pop(aTHX_ stdinStream);
+        }
+
         SV *stdinScalar = newSVpvn([stdinBytes bytes], [stdinBytes length]);
         SV *stdinReference = newRV_noinc(stdinScalar);
         PerlIO_funcs *scalarLayer = PerlIO_find_layer(aTHX_ "scalar", 6, 1);
-        PerlIO *stdinStream = scalarLayer != NULL
-            ? PerlIO_push(aTHX_ PerlIO_stdin(),
+        PerlIO *installedStream = scalarLayer != NULL
+            ? PerlIO_push(aTHX_ stdinStream,
                 PERLIO_FUNCS_CAST(scalarLayer), "r", stdinReference)
             : NULL;
-        bool stdinOpened = stdinStream != NULL;
+        bool stdinOpened = installedStream != NULL;
+        if (stdinOpened && reapplyEncoding)
+            stdinOpened = PerlIO_apply_layers(aTHX_ stdinStream, NULL,
+                SvPV_nolen(encodingLayers)) == 0;
+        SvREFCNT_dec(encodingLayers);
         SvREFCNT_dec(stdinReference);
+        SvREFCNT_dec(stdinLayers);
         if (!stdinOpened) {
             *error = [[NSError alloc] initWithDomain:@"dev.perla.stdin"
                 code:01 userInfo:@{ @"reason": @"Cannot install memory-backed STDIN" }];
