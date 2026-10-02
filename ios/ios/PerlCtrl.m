@@ -10,8 +10,6 @@
 
 #import "PerlCtrl.h"
 
-#include <errno.h>
-
 @interface PerlCtrl (DummyThread)
 - (void) dummyThread: (id)dummy;
 @end
@@ -285,22 +283,14 @@ static Boolean perlInitialized = false;
     if (result == 0 && stdinBytes != nil && stdinBytes.length > 0) {
         SV *stdinScalar = newSVpvn([stdinBytes bytes], [stdinBytes length]);
         SV *stdinReference = newRV_noinc(stdinScalar);
-        NSLog(@"PERLA_STDIN_OPEN byte_length=%lu scalar_length=%lu mode=<:scalar",
-            (unsigned long)stdinBytes.length,
-            (unsigned long)SvCUR(stdinScalar));
         bool stdinOpened = Perl_do_openn(aTHX_ PL_stdingv, "<:scalar", 8, 0, 0, 0,
             NULL, &stdinReference, 1);
-        NSLog(@"PERLA_STDIN_OPEN result=%d errno=%d", stdinOpened, errno);
         SvREFCNT_dec(stdinReference);
         if (!stdinOpened) {
             *error = [[NSError alloc] initWithDomain:@"dev.perla.stdin"
                 code:01 userInfo:@{ @"reason": @"Cannot install memory-backed STDIN" }];
             result = 1;
         }
-    } else {
-        NSLog(@"PERLA_STDIN_OPEN skipped present=%d byte_length=%lu",
-            stdinBytes != nil,
-            (unsigned long)stdinBytes.length);
     }
 
     if (result == 0) {

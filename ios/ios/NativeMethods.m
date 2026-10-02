@@ -10,17 +10,6 @@
 
 #include <stdio.h>
 
-static NSString *CBStdinHexPreview(NSData *data)
-{
-    NSUInteger previewLength = MIN(data.length, (NSUInteger)16);
-    NSMutableString *preview = [NSMutableString stringWithCapacity:previewLength * 2];
-    const unsigned char *bytes = data.bytes;
-    for (NSUInteger index = 0; index < previewLength; index++) {
-        [preview appendFormat:@"%02x", bytes[index]];
-    }
-    return preview;
-}
-
 // The BYTEORDER macro is also #defined by perl, and Perl's use
 // of it should be fully expanded by now.
 #undef BYTEORDER
@@ -196,14 +185,8 @@ NSMutableDictionary * parseRunPerl (char * json)
                 NSData *stdinBytes = [[[NSData alloc]
                     initWithBase64EncodedString:stdinBase64 options:0] autorelease];
                 if (stdinBytes == nil) {
-                    NSLog(@"PERLA_STDIN_DECODE invalid base64_length=%lu",
-                        (unsigned long)stdinBase64.length);
                     return nil;
                 }
-                NSLog(@"PERLA_STDIN_DECODE base64_length=%lu byte_length=%lu preview=%@",
-                    (unsigned long)stdinBase64.length,
-                    (unsigned long)stdinBytes.length,
-                    CBStdinHexPreview(stdinBytes));
                 [result setObject:stdinBytes forKey:@"stdinBytes"];
             }
         }

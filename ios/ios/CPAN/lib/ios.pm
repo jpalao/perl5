@@ -171,15 +171,7 @@ sub _request_stdin_bytes_base64 {
     my $bytes = exists $req->{stdin_bytes}
         ? $req->{stdin_bytes}
         : $req->{stdin};
-    my $encoded = _stdin_bytes_base64($bytes);
-    if ($ENV{PERLA_STDIN_DEBUG}) {
-        my $byte_length = defined $bytes ? length($bytes) : 0;
-        my $base64_length = defined $encoded ? length($encoded) : 0;
-        print STDERR "PERLA_STDIN_SERIALIZE source="
-            . (exists $req->{stdin_bytes} ? 'stdin_bytes' : 'stdin')
-            . " byte_length=$byte_length base64_length=$base64_length\n";
-    }
-    return $encoded;
+    return _stdin_bytes_base64($bytes);
 }
 
 our $make_recursion_state;
