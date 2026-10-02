@@ -76,7 +76,6 @@ like(_slurp($testreport), qr/Perl reported to build OK on this system/,
 unlink $testreport;
 
 SKIP: {
-    skip('iOS: no stdin', 3);
     # test -nokay (a bit more interactive)
     $result = runperl( progfile => $extracted_program,
                        stdin    => 'f', # save to File
@@ -91,7 +90,6 @@ SKIP: {
 }
 
 SKIP: {
-    skip('iOS: no stdin', 4);
     # test a regular report
     $result = runperl( progfile => $extracted_program,
                        # no CLI options for these
@@ -128,7 +126,6 @@ my $B = 'B'x9;
 ok(_dump($attachment, ("$B "x120)), 'wrote 1200-char attachment to file');
 
 SKIP: {
-    skip('iOS: no stdin', 7);
     $result = runperl( progfile => $extracted_program,
                        stdin    => "testing perlbug\n" # Subject
                                  . "\n" # Module

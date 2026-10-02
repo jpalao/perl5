@@ -30,8 +30,7 @@ $x = runperl(
 );
 is($x, "1a line\n2a line\n", '<> from two files');
 
-SKIP: {
-    skip('iOS: no stdin access', 6) if $^O =~ /darwin-ios/;
+{
     $x = runperl(
 	prog	=> 'while (<>) { print $_; }',
 	stdin	=> "foo\n",
@@ -62,7 +61,6 @@ SKIP: {
 
 TODO: {
         local $::TODO = "unrelated bug in redirection implementation" if $^O eq 'VMS';
-        $::TODO = "iOS: no stdin access" if $^O =~ /darwin-ios/;
         $x = runperl(
             prog	=> 'print $ARGV while <>',
             stdin	=> "foo\nbar\n",
@@ -195,11 +193,7 @@ TODO: {
         prog	=> 'print $ARGV.q/,/ for <<>>',
         stdin	=> "foo\nbar\n",
     );
-    if ($^O =~ /darwin-ios/) {
-        ok(1, "skip iOS: no stdin access");
-    } else {
-        is($x, "-,-,", '$ARGV is - for STDIN with <<>>');
-    }
+    is($x, "-,-,", '$ARGV is - for STDIN with <<>>');
 }
 
 $x = runperl(

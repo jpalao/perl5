@@ -392,7 +392,6 @@ like runperl(
 }
 
 SKIP: {
-  skip('iOS: no STDIN access', 2) if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
@@ -804,7 +803,6 @@ like runperl(
 pass "pad taking ownership once more of packagified my-sub";
 
 SKIP: {
-  skip('iOS: no STDIN access', 1) if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(

@@ -24,7 +24,6 @@ like($@, qr/Modification of a read-only value attempted/, '[perl #19566]');
 }
 
 SKIP: {
-skip( 'iOS: no STDIN access', 4 ) if $^O =~ /darwin-ios/;
 # [perl #21614]: 82 is chosen to exceed the length for sv_grow in
 # do_readline (80)
 foreach my $k (1, 82) {
@@ -91,7 +90,6 @@ fresh_perl_is('BEGIN{<>}', '',
               'No ARGVOUT used only once warning');
 
 SKIP: {
-skip( 'iOS: no STDIN access', 1 ) if $^O =~ /darwin-ios/;
 fresh_perl_is('print readline', 'foo',
               { switches => ['-w'], stdin => 'foo', stderr => 1 },
               'readline() defaults to *ARGV');

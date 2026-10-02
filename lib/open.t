@@ -73,7 +73,6 @@ SKIP: {
 
 SKIP:
 {
-    skip('iOS: no stdin access', 1);
     local $ENV{PERL_UNICODE};
     delete $ENV{PERL_UNICODE};
     local $TODO;

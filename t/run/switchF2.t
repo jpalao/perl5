@@ -4,7 +4,6 @@ BEGIN {
     chdir 't' if -d 't';
     @INC = '../lib';
     require './test.pl';
-    skip_all('iOS: stdin not supported') if $^O =~ /darwin-ios/;
 }
 
 plan(tests => 3);
