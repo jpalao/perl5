@@ -25,7 +25,6 @@ END { unlink_all @tmpfiles }
 
 # Tests for -0
 SKIP: {
-    skip ('iOS: no stdin access', 6) if $^O =~ /darwin-ios/;
     $r = runperl(
         switches	=> [ '-0', ],
         stdin	=> 'foo\0bar\0baz\0',
