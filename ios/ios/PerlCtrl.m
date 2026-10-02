@@ -283,16 +283,17 @@ static Boolean perlInitialized = false;
     if (result == 0 && stdinBytes != nil && stdinBytes.length > 0) {
         SV *stdinScalar = newSVpvn([stdinBytes bytes], [stdinBytes length]);
         SV *stdinReference = newRV_noinc(stdinScalar);
-        PerlIO *stdinStream = PerlIO_openn(aTHX_ ":scalar", "r", -1, 0, 0,
-            NULL, 1, &stdinReference);
+        PerlIO_funcs *scalarLayer = PerlIO_find_layer(aTHX_ "scalar", 6, 1);
+        PerlIO *stdinStream = scalarLayer != NULL
+            ? PerlIO_push(aTHX_ PerlIO_stdin(),
+                PERLIO_FUNCS_CAST(scalarLayer), "r", stdinReference)
+            : NULL;
         bool stdinOpened = stdinStream != NULL;
         SvREFCNT_dec(stdinReference);
         if (!stdinOpened) {
             *error = [[NSError alloc] initWithDomain:@"dev.perla.stdin"
                 code:01 userInfo:@{ @"reason": @"Cannot install memory-backed STDIN" }];
             result = 1;
-        } else {
-            IoIFP(GvIOp(PL_stdingv)) = stdinStream;
         }
     }
 
