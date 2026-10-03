@@ -436,10 +436,10 @@ sub parse_cli {
 
 sub _extract_stdin_redirection {
     my ($command) = @_;
-    if ($command =~ /\A(.*?)\s*<\s*(?:"([^"]*)"|'([^']*)'|(\S+))\s*\z/s) {
-        my $file = defined $2 ? $2 : $3;
-        $file = $4 if !defined $file;
-        return ($1, $file);
+    if ($command =~ /\A(?<prefix>.*?)\s*<\s*(?:"(?<double>[^"]*)"|'(?<single>[^']*)'|(?<bare>\S+))\s*\z/s) {
+        my $file = defined $+{double} ? $+{double} : $+{single};
+        $file = $+{bare} if !defined $file;
+        return ($+{prefix}, $file);
     }
     return ($command, undef);
 }
