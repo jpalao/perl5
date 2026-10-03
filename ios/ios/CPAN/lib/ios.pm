@@ -436,74 +436,12 @@ sub parse_cli {
 
 sub _extract_stdin_redirection {
     my ($command) = @_;
-    my $quote = '';
-    my $escaped = 0;
-    my $length = length $command;
-
-    for (my $index = 0; $index < $length; $index++) {
-        my $character = substr($command, $index, 1);
-        if ($escaped) {
-            $escaped = 0;
-            next;
-        }
-        if ($character eq '\\' && $quote ne "'") {
-            $escaped = 1;
-            next;
-        }
-        if ($quote ne '') {
-            $quote = '' if $character eq $quote;
-            next;
-        }
-        if ($character eq "'" || $character eq '"') {
-            $quote = $character;
-            next;
-        }
-        next if $character ne '<';
-        next if $index + 1 < $length
-            && substr($command, $index + 1, 1) =~ /[<>]/;
-
-        my $target_start = $index + 1;
-        $target_start++ while $target_start < $length
-            && substr($command, $target_start, 1) =~ /\s/;
-        my $target_end = $target_start;
-        my $target_quote = '';
-        my $target_escaped = 0;
-        while ($target_end < $length) {
-            my $target_character = substr($command, $target_end, 1);
-            if ($target_escaped) {
-                $target_escaped = 0;
-            } elsif ($target_character eq '\\' && $target_quote ne "'") {
-                $target_escaped = 1;
-            } elsif ($target_quote ne '') {
-                $target_quote = '' if $target_character eq $target_quote;
-            } elsif ($target_character eq "'" || $target_character eq '"') {
-                $target_quote = $target_character;
-            } elsif ($target_character =~ /\s/) {
-                last;
-            }
-            $target_end++;
-        }
-        next if $target_end == $target_start || $target_quote ne ''
-            || $target_escaped;
-
-        my @target = grep { defined && $_ ne '' }
-            &quotewords('\s+', 0,
-                substr($command, $target_start, $target_end - $target_start));
-        next if @target != 1;
-
-        my $remaining = substr($command, 0, $index)
-            . substr($command, $target_end);
-        return ($remaining, $target[0]);
+    if ($command =~ /\A(.*?)\s*<\s*(?:"([^"]*)"|'([^']*)'|(\S+))\s*\z/s) {
+        my $file = defined $2 ? $2 : $3;
+        $file = $4 if !defined $file;
+        return ($1, $file);
     }
-
     return ($command, undef);
-}
-
-sub _resolve_stdin_file {
-    my ($pwd, $file) = @_;
-    my $path = $file =~ m{^/} ? $file : "$pwd/$file";
-    die "Could not redirect stdin from $file: $!\n" if !-f $path;
-    return $path;
 }
 
 sub exec_test {
@@ -552,9 +490,9 @@ sub exec_cli {
         return (0, $output);
     }
     my ($command, $stdin_file) = _extract_stdin_redirection($test);
-    my $stdin_path = defined $stdin_file
-        ? _resolve_stdin_file($pwd, $stdin_file)
-        : undef;
+    my $stdin_path = defined $stdin_file && $stdin_file !~ m{^/}
+        ? "$pwd/$stdin_file"
+        : $stdin_file;
     my $json = parse_cli($pwd, $command);
     $json->{progfile} = $stdin_path if defined $stdin_path;
     print  Dumper("json", $json) if $DEBUG;
