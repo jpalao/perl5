@@ -392,7 +392,7 @@ like runperl(
 }
 
 SKIP: {
-  skip 'iOS: debugger DB::sub incompatibility', 1 if $^O =~ /darwin-ios/;
+  skip 'iOS: debugger DB::sub not compatible', 2 if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
