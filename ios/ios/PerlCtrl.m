@@ -53,8 +53,6 @@ static Boolean perlInitialized = false;
         /* only call this the first time through, as per perlembed man page */
         PERL_SYS_INIT3(&nargs, (char ***) &emb, (char***)&dummy_perl_env);
 #endif
-    if (getenv("PERLDB_OPTS") == NULL)
-        setenv("PERLDB_OPTS", "ReadLine=0 NonStop=1 noTTY=1", 1);
         perlInitialized = 1;
     }
 }
@@ -273,14 +271,24 @@ static Boolean perlInitialized = false;
             // Wonder what happened here?
             return;
         }
+        bool installedDebuggerOptions = false;
+        bool parseRaisedException = false;
+        if (debuggerEnabled && getenv("PERLDB_OPTS") == NULL) {
+            setenv("PERLDB_OPTS", "ReadLine=0 NonStop=1 noTTY=1", 1);
+            installedDebuggerOptions = true;
+        }
         @try {
             result = perl_parse(_PerlCtrlInterpreter, xs_init, embSize, emb, (char **)NULL);
         }
         @catch (NSException * exception ){
            NSLog(@"perl_parse threw Exception %@", [exception description]);
            * error = [[NSError alloc] initWithDomain:@"dev.perla.parse" code:03 userInfo:@{@"reason":[NSString stringWithFormat:@"%@", [exception description]]}];
-           return;
+           parseRaisedException = true;
         }
+        if (installedDebuggerOptions)
+            unsetenv("PERLDB_OPTS");
+        if (parseRaisedException)
+            return;
     }
 
     if (result == 0 && stdinBytes != nil && stdinBytes.length > 0) {
