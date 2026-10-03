@@ -351,17 +351,20 @@ static Boolean perlInitialized = false;
         }
     }
 
-    [self cleanUp];
+    int destructResult = [self cleanUp];
+    if (result == 0)
+        result = destructResult;
     if (completion) completion(result);
 }
 }
 
--(void) cleanUp {
+-(int) cleanUp {
+    int result = 0;
     @synchronized(perlInstanceDict) {
         PERL_SET_CONTEXT([PerlCtrl getPerlInterpreter]);
         PL_perl_destruct_level = 1;
         [[PerlCtrl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) _PerlCtrlInterpreter]];
-        perl_destruct(_PerlCtrlInterpreter);
+        result = perl_destruct(_PerlCtrlInterpreter);
         perl_free(_PerlCtrlInterpreter);
         // NSInteger rc = [self retainCount];
         NSArray *syms = [NSThread callStackSymbols];
@@ -377,6 +380,7 @@ static Boolean perlInitialized = false;
         }
         //      TODO: PERL_SYS_TERM will kill the app, cannot be called at least on iOS
     }
+    return result;
 }
 
 - (id) initXS {

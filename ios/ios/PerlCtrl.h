@@ -47,7 +47,7 @@ typedef void (^PerlCompletionBlock)(int perlRunResult);
 + (void) setPerlCtrl:(PerlCtrl *) cbperl forPerlInterpreter:(PerlInterpreter *) perlInterpreter;
 
 // clean up this PerlCtrl object's perl interpreter
-- (void) cleanUp;
+- (int) cleanUp;
 
 // init this PerlCtrl object with a new perl interpreter
 -(void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments error:(NSError **)error completion:(PerlCompletionBlock)completion;
