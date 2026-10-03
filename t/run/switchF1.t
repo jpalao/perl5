@@ -32,11 +32,6 @@ close F or die "Close $file: $!";
 
 $count = 5;
 $result = "ok $count - complete test of alternate delimiters in -F\n";
-if ($^O !~ /darwin-ios/) {
-    print system ($^X, $file) ? "not $result" : $result;
-} else {
-    print `$^X $file`;
-    print $? ? "not $result" : $result;
-}
+print system ($^X, $file) ? "not $result" : $result;
 
 unlink $file or die "Unlink $file: $!";
