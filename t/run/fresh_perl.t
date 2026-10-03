@@ -326,7 +326,6 @@ EXPECT
 inner peace
 ########
 -w
-# SKIP: $^O =~ /darwin-ios/ # TODO STDOUT STDERR capture race cond
 $| = 1;
 sub foo {
     print "In foo1\n";
@@ -429,7 +428,6 @@ EXPECT
 destroyed
 destroyed
 ########
-# SKIP: $^O =~ /darwin-ios/ # iOS: TODO: STDOUT STDERR capture race cond.
 BEGIN {
   $| = 1;
   $SIG{__WARN__} = sub {
@@ -441,7 +439,7 @@ BEGIN {
 EXPECT
 foo
 bar
-BEGIN failed--compilation aborted at - line 9.
+BEGIN failed--compilation aborted at - line 8.
 ########
 package X;
 @ISA='Y';

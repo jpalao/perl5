@@ -5,7 +5,6 @@ BEGIN {
     @INC = '../lib';
     require './test.pl';
 }
-
 plan(tests => 3);
 
 { # perl #116190
