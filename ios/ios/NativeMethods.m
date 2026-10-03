@@ -597,7 +597,8 @@ CBRunPerlCaptureStdout (char * json) {
         init_dispatch_queue();
     }
 
-    BOOL redirectStderr = NO;
+    NSMutableDictionary *runPerl = parseRunPerl(json);
+    BOOL redirectStderr = [[runPerl objectForKey:@"stderr"] boolValue];
 
     NSPipe * stdoutPipe = [NSPipe pipe];
     NSPipe * stderrPipe = [NSPipe pipe];

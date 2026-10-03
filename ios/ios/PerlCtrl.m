@@ -260,6 +260,7 @@ static Boolean perlInitialized = false;
             {
                 perl_construct(_PerlCtrlInterpreter);
                 PL_origalen = 1;
+                PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
             }
             @catch (NSException * exception )
             {
