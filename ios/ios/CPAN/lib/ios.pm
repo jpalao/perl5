@@ -166,11 +166,26 @@ sub _stdin_bytes_base64 {
     return MIME::Base64::encode_base64($bytes, '');
 }
 
+sub _decode_runperl_stdin {
+    my ($stdin) = @_;
+    return undef if !defined $stdin;
+
+    $stdin =~ s{\\(0|n|r|\\)}{
+        $1 eq '0' ? "\0" :
+        $1 eq 'n' ? "\n" :
+        $1 eq 'r' ? "\r" :
+        "\\"
+    }eg;
+    return $stdin;
+}
+
 sub _request_stdin_bytes_base64 {
     my ($req) = @_;
     my $bytes = exists $req->{stdin_bytes}
         ? $req->{stdin_bytes}
         : $req->{stdin};
+    $bytes = _decode_runperl_stdin($bytes)
+        if !exists $req->{stdin_bytes};
     return _stdin_bytes_base64($bytes);
 }
 
