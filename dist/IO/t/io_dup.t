@@ -51,6 +51,7 @@ $stderr->fdopen($duperr,"w");
 
 if ($^O eq 'MSWin32' || $^O eq 'NetWare' || $^O eq 'VMS') { print `type Io.dup` }
 elsif ($^O eq 'MacOS') { system 'Catenate Io.dup' }
+elsif ($^O =~ /darwin-ios/) { ios::cat(Cwd::getcwd() . '/Io.dup') }
 else                   { system 'cat Io.dup' }
 unlink 'Io.dup';
 

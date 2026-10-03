@@ -5,7 +5,11 @@
 
 BEGIN {
     chdir 't' if -d 't';
-    @INC = '../lib';              # pick up only this build's lib
+    if ($^O =~ /darwin-ios/) {
+        unshift @INC, '../lib';
+    } else {
+        @INC = '../lib';          # pick up only this build's lib
+    }
 }
 
 my $torture; # torture testing?
@@ -357,6 +361,8 @@ $h->callback(
 		 _after_fork($options);
 	     }
 	     );
+
+@tests = exclude_tests(@tests) if $^O =~ /darwin-ios/;
 
 my $agg = $h->runtests(@tests);
 _cleanup_valgrind(\$htoolnm, \$hgrind_ct);

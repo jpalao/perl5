@@ -201,11 +201,19 @@ print "ok 8\n";
 }
 
 # Check that the DATA handle stays open
-system "$runperl -w \"-I$lib\" \"-MData\" -e \"Data::ok\"";
+if ($^O =~ /darwin-ios/) {
+    print `$runperl -w -I$lib -MData -e Data::ok`;
+} else {
+    system "$runperl -w \"-I$lib\" \"-MData\" -e \"Data::ok\"";
+}
 
 # Possibly a pointless test as this doesn't really verify that it's been
 # stubbed.
-system "$runperl -w \"-I$lib\" \"-MEnd\" -e \"End::lime\"";
+if ($^O =~ /darwin-ios/) {
+    print `$runperl -w -I$lib -MEnd -e End::lime`;
+} else {
+    system "$runperl -w \"-I$lib\" \"-MEnd\" -e \"End::lime\"";
+}
 
 # But check that the documentation after the __END__ survived.
 open FH, '<', catfile(curdir(),$lib,"End.pm") or die $!;

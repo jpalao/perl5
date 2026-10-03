@@ -1,6 +1,12 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 3;
+use Test::More;
+
+if ($^O =~ /darwin-ios/) {
+    plan skip_all => 'exec() not supported';
+}
+
+plan tests => 3;
 
 eval {
     use autodie qw(exec);

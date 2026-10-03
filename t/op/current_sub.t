@@ -84,7 +84,7 @@ my $f2 = sub () { $f++ if 0; __SUB__ };
 is &$f2, $f2, 'sub(){__SUB__} anonymous closure returns self ref';
 $f = sub () { eval ""; __SUB__ };
 is &$f, $f, 'anonymous sub(){eval ""; __SUB__} returns self ref';
-{
+SKIP: {
     local $ENV{PERL5DB} = 'sub DB::DB {}';
     is runperl(
         switches => [ '-d' ],

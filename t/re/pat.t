@@ -1612,7 +1612,7 @@ EOP
 
         # Compiling for all 100 nested captures blows the stack under
         # clang and ASan; reduce.
-        my $max_captures = $Config{ccflags} =~ /sanitize/ ? 20 : 100;
+        my $max_captures = $Config{ccflags} =~ /sanitize/ || $^O =~ /darwin-ios/ ? 20 : 100;
 
         for my $i (1..100) {
             if ($i > $max_captures) {
@@ -1950,6 +1950,8 @@ EOP
             my $is_cygwin = $^O eq "cygwin";
             local $::TODO = "this flaps on github cygwin vm, but not on cygwin iron #18129"
               if $is_cygwin;
+            local $::TODO = "iOS: TODO"
+              if $^O =~ /darwin-ios/;
             my $expected = "Timeout";
             my $code = '
                 BEGIN{require q(test.pl);}

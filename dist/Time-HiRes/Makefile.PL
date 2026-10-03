@@ -566,13 +566,17 @@ EOD
             $has_clock_gettime++;
             $DEFINE .= ' -DTIME_HIRES_CLOCK_GETTIME';
         }
+    } elsif ($^O =~ /darwin-ios/) {
+       $has_clock_gettime_emulation++;
+       $has_clock_gettime++;
+       $DEFINE .= ' -DTIME_HIRES_CLOCK_GETTIME -DTIME_HIRES_CLOCK_GETTIME_EMULATION';
     } elsif (has_clock_xxx('gettime')) {
         $has_clock_gettime++;
         $DEFINE .= ' -DTIME_HIRES_CLOCK_GETTIME';
     } elsif (defined $SYSCALL_H && has_clock_xxx_syscall('gettime')) {
         $has_clock_gettime++;
         $DEFINE .= ' -DTIME_HIRES_CLOCK_GETTIME -DTIME_HIRES_CLOCK_GETTIME_SYSCALL';
-    } elsif ($^O eq 'darwin') {
+    } elsif ($^O =~ 'darwin') {
        $has_clock_gettime_emulation++;
        $has_clock_gettime++;
        $DEFINE .= ' -DTIME_HIRES_CLOCK_GETTIME -DTIME_HIRES_CLOCK_GETTIME_EMULATION';
@@ -598,13 +602,17 @@ EOD
             $has_clock_getres++;
             $DEFINE .= ' -DTIME_HIRES_CLOCK_GETRES';
         }
+    } elsif ($^O =~ /darwin-ios/) {
+       $has_clock_getres_emulation++;
+       $has_clock_getres++;
+       $DEFINE .= ' -DTIME_HIRES_CLOCK_GETRES -DTIME_HIRES_CLOCK_GETRES_EMULATION';
     } elsif (has_clock_xxx('getres')) {
         $has_clock_getres++;
         $DEFINE .= ' -DTIME_HIRES_CLOCK_GETRES';
     } elsif (defined $SYSCALL_H && has_clock_xxx_syscall('getres')) {
         $has_clock_getres++;
         $DEFINE .= ' -DTIME_HIRES_CLOCK_GETRES -DTIME_HIRES_CLOCK_GETRES_SYSCALL';
-    } elsif ($^O eq 'darwin') {
+    } elsif ($^O =~ 'darwin') {
        $has_clock_getres_emulation++;
        $has_clock_getres++;
        $DEFINE .= ' -DTIME_HIRES_CLOCK_GETRES -DTIME_HIRES_CLOCK_GETRES_EMULATION';

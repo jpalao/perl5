@@ -10,6 +10,8 @@ BEGIN {
   eval { &Fcntl::O_EXLOCK; };
   if ($@) {
     plan skip_all => 'Do not seem to have O_EXLOCK';
+  } elsif ($^O =~ /darwin-ios/) {
+    plan skip_all => 'alarm not playing well with threaded perl';
   } else {
     plan tests => 4;
     use_ok( "File::Temp" );

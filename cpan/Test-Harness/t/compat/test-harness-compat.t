@@ -602,10 +602,11 @@ if ($NoTaintSupport) {
             }
         },
         'switches' => {
+            # iOS preloads strict.pm through ios.pm, so this fixture passes there.
             'skip_if' => sub {
                 ( $ENV{PERL5OPT} || '' ) =~ m{(?:^|\s)-[dM]};
             },
-            'failed' => {
+            'failed' => $^O eq 'darwin-ios' ? {} : {
                 "$TEST_DIR/switches" => {
                     'canon'  => 1,
                     'estat'  => '',
@@ -617,12 +618,12 @@ if ($NoTaintSupport) {
             },
             'todo'   => {},
             'totals' => {
-                'bad'         => 1,
+                'bad'         => $^O eq 'darwin-ios' ? 0 : 1,
                 'bonus'       => 0,
                 'files'       => 1,
-                'good'        => 0,
+                'good'        => $^O eq 'darwin-ios' ? 1 : 0,
                 'max'         => 1,
-                'ok'          => 0,
+                'ok'          => $^O eq 'darwin-ios' ? 1 : 0,
                 'skipped'     => 0,
                 'sub_skipped' => 0,
                 'tests'       => 1,

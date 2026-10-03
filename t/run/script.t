@@ -24,5 +24,4 @@ $x = `$Perl $filename`;
 is($x, "ok\n", "Got expected output of command from script");
 
 $x = `$Perl <$filename`;
-
 is($x, "ok\n", "Got expected output of command read from script");

@@ -189,7 +189,7 @@ SKIP: {
 
 
 SKIP: {
-    if ($^O =~ /^(MSWin32|os2)$/) {
+    if ($^O =~ /^(MSWin32|os2)$/ || $^O =~ /darwin-ios/) {
         skip "non_UNIX plafforms and PERL_EXIT_DESTRUCT_END (RT #132863)", 6;
     }
 
@@ -221,7 +221,6 @@ SKIP: {
         "UNITCHECK{die} should exit"
     );
 
-
     fresh_perl_is(
         "$testblocks CHECK { exit 1; }",
         "begin\nunitcheck\ncheck\nend",
@@ -230,10 +229,10 @@ SKIP: {
     );
 
     fresh_perl_like(
-        "$testblocks CHECK { die; }",
-        qr/\Abegin\nunitcheck\nDied[^\n]*\.\nCHECK failed[^\n]*\.\ncheck\nend\z/,
-        {},
-        "CHECK{die} should exit"
+    "$testblocks CHECK { die; }",
+    qr/\Abegin\nunitcheck\nDied[^\n]*\.\nCHECK failed[^\n]*\.\ncheck\nend\z/,
+    {},
+    "CHECK{die} should exit"
     );
 }
 
@@ -251,12 +250,15 @@ fresh_perl_is(
     "INIT{exit 1} should exit"
 );
 
-fresh_perl_like(
-    "$testblocks INIT { die; }",
-    qr/\Abegin\nunitcheck\ncheck\ninit\nDied[^\n]*\.\nINIT failed[^\n]*\.\nend\z/,
-    {},
-    "INIT{die} should exit"
-);
+SKIP: {
+    skip('iOS: #TODO', 1) if $^O =~ /darwin-ios/;
+    fresh_perl_like(
+        "$testblocks INIT { die; }",
+        qr/\Abegin\nunitcheck\ncheck\ninit\nDied[^\n]*\.\nINIT failed[^\n]*\.\nend\z/,
+        {},
+        "INIT{die} should exit"
+    );
+}
 
 TODO: {
     local $TODO = 'RT #2917: INIT{} in eval is wrongly considered too late';

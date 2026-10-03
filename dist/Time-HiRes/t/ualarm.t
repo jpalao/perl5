@@ -2,7 +2,7 @@ use strict;
 
 BEGIN {
     require Time::HiRes;
-    unless(&Time::HiRes::d_ualarm) {
+    unless(&Time::HiRes::d_ualarm && $^O !~ /darwin-ios/) {
         require Test::More;
         Test::More::plan(skip_all => "no ualarm()");
     }
