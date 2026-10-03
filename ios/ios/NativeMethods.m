@@ -17,6 +17,15 @@
 static dispatch_once_t onceToken = 0;
 static dispatch_queue_t stdioQueue = nil;
 
+static BOOL debuggerEnabledForSwitches(NSArray *switches)
+{
+    for (NSString *switchValue in switches) {
+        if ([switchValue hasPrefix:@"-d"])
+            return YES;
+    }
+    return NO;
+}
+
 void init_dispatch_queue()
 {
    dispatch_once(&onceToken, ^{
@@ -405,7 +414,7 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
                 [[PerlCtrl alloc]
                     initWithFileName:fileName
                     withAbsolutePwd:childPwd
-                    withDebugger:FALSE
+                    withDebugger:debuggerEnabledForSwitches(childSwitches)
                     withOptions:childSwitches
                     withArguments:childArguments
                     error:&perlError
@@ -506,7 +515,8 @@ void* CBRunPerl (char * json)
                             [PerlCtrl alloc]
                             initWithFileName:filePath
                             withAbsolutePwd:absPwd
-                            withDebugger:FALSE
+                            withDebugger:debuggerEnabledForSwitches(
+                                [cbRunPerlDict objectForKey:@"switches"])
                             withOptions:[cbRunPerlDict objectForKey:@"switches"]
                             withArguments:[cbRunPerlDict objectForKey:@"args"]
                             withStdinBytes:[cbRunPerlDict objectForKey:@"stdinBytes"]
