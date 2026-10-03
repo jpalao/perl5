@@ -399,6 +399,8 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
         [childSwitches addObject:prog];
     }
 
+    PerlIO_flush(PerlIO_stdout());
+
     NSCondition *condition = [[NSCondition alloc] init];
     __block BOOL finished = NO;
     __block int childResult = -1;
@@ -453,9 +455,6 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
     [condition release];
 
     PERL_SET_CONTEXT(parentContext);
-    fprintf(stderr, "CBRunPerlSystem child result: %d error: %d\n",
-        childResult, childErrorCode);
-    fflush(stderr);
     return childResult < 0 ? -1 : ((childResult & 0xff) << 8);
 }
 }
