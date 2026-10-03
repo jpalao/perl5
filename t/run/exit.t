@@ -8,23 +8,11 @@ BEGIN {
     @INC = qw(. ../lib);
 }
 
-
-
 # Run some code, return its wait status.
 sub run {
     my($code) = shift;
     $code = "\"" . $code . "\"" if $^O eq 'VMS'; #VMS needs quotes for this.
-    if ($^O =~ /darwin-ios/) {
-        my $result = exec_perl ({
-            switches => ['-e', $code],
-            pwd => ios::getcwd(),
-            stderr => 1,
-        });
-        $? = $result;
-        return $result;
-    } else {
-        return system($^X, "-e", $code);
-    }
+    return system($^X, "-e", $code);
 }
 
 BEGIN {
