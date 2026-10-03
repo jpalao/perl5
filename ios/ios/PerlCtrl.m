@@ -151,7 +151,7 @@ static Boolean perlInitialized = false;
     int dirChanged = -1;
     char perlProgramName[] = "./perl";
     char *emb[128] = { NULL };
-    int result;
+    int result = 0;
 
     @synchronized(perlInstanceDict)
     {
@@ -281,7 +281,7 @@ static Boolean perlInitialized = false;
             result = perl_parse(_PerlCtrlInterpreter, xs_init, embSize, emb, (char **)NULL);
         }
         @catch (NSException * exception ){
-           NSLog(@"perl_parse threw Exception %@", [exception description]);
+           NSLog(@"perl_parse threw exception %@", [exception description]);
            * error = [[NSError alloc] initWithDomain:@"dev.perla.parse" code:03 userInfo:@{@"reason":[NSString stringWithFormat:@"%@", [exception description]]}];
            parseRaisedException = true;
         }
