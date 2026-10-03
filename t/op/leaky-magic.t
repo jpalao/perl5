@@ -23,14 +23,12 @@ ok !exists $INC{'Errno.pm'}, '$swext::! does not load Errno';
 ok !exists $INC{'Tie/Hash/NamedCapture.pm'},
   '$foo::+ and $foo::- do not load Tie::Hash::NamedCapture';
 
-SKIP: {
-    use tests 1; # ARGV
-    fresh_perl_is
-     '$count=0; ++$count while(<foo::ARGV>); print $count',
-     '0',
-      { stdin => 'swext\n' },
-     '<foo::ARGV> does not iterate through STDIN';
-}
+use tests 1; # ARGV
+fresh_perl_is
+ '$count=0; ++$count while(<foo::ARGV>); print $count',
+ '0',
+  { stdin => 'swext\n' },
+ '<foo::ARGV> does not iterate through STDIN';
 
 use tests 1; # %SIG
 ok !scalar keys %foo::SIG, "%foo::SIG";
