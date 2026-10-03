@@ -338,22 +338,20 @@ static Boolean perlInitialized = false;
         }
     }
 
-    if (result || *error != nil)
-    {
-        if ( SvTRUE(ERRSV ) )
-        {
-            char * perl_error = SvPVx_nolen(ERRSV);
-            * error = [[NSError alloc] initWithDomain:@"dev.perla.run" code:result userInfo:@{@"reason":[NSString stringWithFormat:@"%s", perl_error]}];
-        }
-        else
-        {
-            * error = [[NSError alloc] initWithDomain:@"dev.perla.run" code:result userInfo:@{@"reason":[NSString stringWithFormat:@"Unspecified error\n"]}];
-        }
-    }
+    NSString *perlErrorReason = nil;
+    if (result != 0 && SvTRUE(ERRSV))
+        perlErrorReason = [NSString stringWithUTF8String:SvPV_nolen(ERRSV)];
 
     int destructResult = [self cleanUp];
-    if (result == 0)
-        result = destructResult;
+    result = destructResult;
+    if (result != 0 || *error != nil) {
+        if (perlErrorReason != nil)
+            *error = [[NSError alloc] initWithDomain:@"dev.perla.run"
+                code:result userInfo:@{ @"reason": perlErrorReason }];
+        else if (*error == nil)
+            *error = [[NSError alloc] initWithDomain:@"dev.perla.run"
+                code:result userInfo:@{ @"reason": @"Unspecified error\n" }];
+    }
     if (completion) completion(result);
 }
 }
