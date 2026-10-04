@@ -10,15 +10,18 @@ if [ -e $HOME/perl5/perlbrew/etc/bashrc ];
     else echo "$HOME/perl5/perlbrew/etc/bashrc not found" && exit 0;
 fi
 
-if [ -e "$WORKDIR/setup_test.sh" ];
+if [ -n "${IOS_SETUP_FILE:-}" ] && [ -e "$IOS_SETUP_FILE" ];
+    then source "$IOS_SETUP_FILE";
+elif [ -e "$WORKDIR/setup_test.sh" ];
     then source "$WORKDIR/setup_test.sh";
 elif [ -e "$SCRIPT_DIR/setup_test.sh" ];
     then source "$SCRIPT_DIR/setup_test.sh";
 fi
 
-if [ -z ${IOS_DEVICE_UUID+x} ];
-    then echo "IOS_DEVICE_UUID is unset. Please set it and try again" && exit 0;
-    else echo "IOS_DEVICE_UUID is set to '$IOS_DEVICE_UUID'";
+if [ -z ${IOS_DEVICE_UUID+x} ] && [ -z ${SIMULATOR_DEVICE_UUID+x} ] && [ -z ${IOS_SIMULATOR_UUID+x} ];
+    then echo "IOS_DEVICE_UUID or SIMULATOR_DEVICE_UUID is unset. Please set one and try again" && exit 0;
+    elif [ -n "${IOS_DEVICE_UUID:-}" ]; then echo "IOS_DEVICE_UUID is set to '$IOS_DEVICE_UUID'";
+    else echo "Simulator UUID is set";
 fi
 
 if [ -z ${HARNESS_APP_ID+x} ];
@@ -34,8 +37,14 @@ fi
 
 export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 
+: "${IOS_DEPLOYMENT_TARGET:=12.0}"
+
 : "${PERL_5_BRANCH:=ios_blead_test}"
-: "${INSTALL_DIR:=local}"
+INSTALL_DIR_DEFAULTED=0
+if [ -z "${INSTALL_DIR:-}" ]; then
+    INSTALL_DIR=local
+    INSTALL_DIR_DEFAULTED=1
+fi
 : "${ARCHS:=arm64}"
 
 : "${CAMELBONES_GIT:=https://github.com/jpalao/camelbones.git}"
@@ -68,14 +77,38 @@ esac
 : "${AUTO_LAUNCH:=1}"
 : "${TEST_LOG_WAIT_TIMEOUT:=120}"
 
+SIMULATOR_BUILD=0
+if [ "$HARNESS_TARGET" = "iphonesimulator" ] || [[ "$ARCHS" == *x86_64* ]] || [[ "$ARCHS" == *i386* ]]; then
+    SIMULATOR_BUILD=1
+fi
+if [ "$SIMULATOR_BUILD" -ne 0 ]; then
+    HARNESS_TARGET=iphonesimulator
+    : "${SIMULATOR_DEVICE_UUID:=${IOS_SIMULATOR_UUID:-}}"
+    if [ -z "$SIMULATOR_DEVICE_UUID" ]; then
+        echo >&2 "SIMULATOR_DEVICE_UUID is unset. Set it to an available simulator UUID and try again"
+        exit 1
+    fi
+    IOS_DEVICE_UUID="$SIMULATOR_DEVICE_UUID"
+fi
+
+BUILD_SCOPE="$HARNESS_TARGET-$IOS_DEPLOYMENT_TARGET"
+if [ "$INSTALL_DIR_DEFAULTED" -eq 1 ] && [ "$SIMULATOR_BUILD" -ne 0 ]; then
+    INSTALL_DIR="local-$BUILD_SCOPE"
+fi
+export INSTALL_DIR
+
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
+PERL_BUILD_DIR="$WORKDIR/perl-$PERL_VERSION-$HARNESS_TARGET-$IOS_DEPLOYMENT_TARGET"
+export PERL_BUILD_DIR
 REMOTE_DOCUMENTS_DIR="Documents"
 TEST_STATUS_SOURCE=""
 TRANSFER_TRANSPORT=""
 DEVICECTL_AVAILABLE=0
 DEVICECTL_CONNECTED=0
 IOS_DEPLOY_AVAILABLE=0
-RUN_LOCK_DIR="$WORKDIR/.perl-ios-test.lock"
+RUN_LOCK_DIR="$WORKDIR/.perl-ios-test-$BUILD_SCOPE.lock"
+TRANSFER_ROOT="$WORKDIR/.ios-test-$BUILD_SCOPE"
+CAMELBONES_ROOT="$CAMELBONES_PREFIX/camelbones"
 RUN_LOCK_OWNED=0
 
 # CAMELBONES #
@@ -84,8 +117,8 @@ export CAMELBONES_TARGET=$HARNESS_TARGET
 export CAMELBONES_BUILD_CONFIGURATION=$HARNESS_BUILD_CONFIGURATION
 export CAMELBONES_CI=1
 export CAMELBONES_VERSION='1.3.0'
-export CAMELBONES_CPAN_DIR="$WORKDIR/perl-$PERL_VERSION/ext/CamelBones-$CAMELBONES_VERSION"
-export CAMELBONES_FRAMEWORK_DIR="$PERL_IOS_PREFIX/camelbones/CamelBones"
+export CAMELBONES_CPAN_DIR="$PERL_BUILD_DIR/ext/CamelBones-$CAMELBONES_VERSION"
+export CAMELBONES_FRAMEWORK_DIR="$CAMELBONES_ROOT/CamelBones"
 export BUILD_CAMELBONES="$BUILD_CAMELBONES"
 export INSTALL_CAMELBONES_FRAMEWORK=0
 export OVERWRITE_CAMELBONES_FRAMEWORK=0
@@ -95,16 +128,17 @@ export PERL_IOS_PREFIX="$PERL_IOS_PREFIX"
 export IOS_TARGET=$HARNESS_TARGET
 export IOS_BUILD_CONFIGURATION=$HARNESS_BUILD_CONFIGURATION
 export IOS_VERSION='0.0.1'
-export IOS_FRAMEWORK_DIR="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ios/ios"
-export IOS_MODULE_PATH="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ios/ios"
+export IOS_FRAMEWORK_DIR="$PERL_BUILD_DIR/ios/ios"
+export IOS_MODULE_PATH="$PERL_BUILD_DIR/ios/ios"
 export IOS_CPAN_DIR="$IOS_MODULE_PATH/CPAN"
-export IOS_CPAN_EXT_DIR="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ext/ios"
+export IOS_CPAN_EXT_DIR="$PERL_BUILD_DIR/ext/ios"
 export INSTALL_IOS_FRAMEWORK=0
 export OVERWRITE_IOS_FRAMEWORK=0
 
 export ARCHS="$ARCHS"
 export PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5"
-export LIBPERL_PATH="$PERL_IOS_PREFIX/perl-$PERL_VERSION"
+export LIBPERL_PATH="$PERL_BUILD_DIR"
+mkdir -p "$TRANSFER_ROOT"
 
 use_perlbrew() {
     if ! perlbrew use "perl-$PERL_VERSION"; then
@@ -146,6 +180,12 @@ check_dependencies() {
             exit 1
         }
     done
+
+    if [ "$SIMULATOR_BUILD" -ne 0 ]; then
+        TRANSFER_TRANSPORT="simulator"
+        echo "Using simulator $SIMULATOR_DEVICE_UUID"
+        return 0
+    fi
 
     if xcrun devicectl --version >/dev/null 2>&1; then
         DEVICECTL_AVAILABLE=1
@@ -234,18 +274,29 @@ check_exit_code() {
 }
 
 prepare_camelbones() {
-    rm -Rf "$WORKDIR/camelbones"
-    git clone --single-branch --branch "$CAMELBONES_BRANCH" "$CAMELBONES_GIT" "$WORKDIR/camelbones"
+    if [ -d "$CAMELBONES_ROOT/.git" ]; then
+        echo "Using existing CamelBones checkout at $CAMELBONES_ROOT"
+        return 0
+    fi
+    rm -Rf "$CAMELBONES_ROOT"
+    git clone --single-branch --branch "$CAMELBONES_BRANCH" "$CAMELBONES_GIT" "$CAMELBONES_ROOT"
 }
 
 prepare_perl() {
     local perl_build_dir
     local perl_revision
+    local ios_harness_source
 
-    perl_build_dir="$WORKDIR/perl-$PERL_VERSION"
+    perl_build_dir="$PERL_BUILD_DIR"
     rm -Rf "$perl_build_dir"
     git clone --no-checkout "$PERL5_SOURCE_ROOT" "$perl_build_dir"
     git -C "$perl_build_dir" checkout --detach "$PERL5_REVISION"
+    ios_harness_source="$PERL5_SOURCE_ROOT/ios/test/ios_harness"
+    if [ ! -f "$ios_harness_source" ]; then
+        echo >&2 "missing iOS harness source: $ios_harness_source"
+        return 1
+    fi
+    install -m 755 "$ios_harness_source" "$perl_build_dir/t/ios_harness"
     perl_revision=$(git -C "$perl_build_dir" rev-parse HEAD)
     echo "Building perl5 revision $perl_revision"
 }
@@ -269,7 +320,7 @@ acquire_run_lock() {
 }
 
 cleanup() {
-    rm -Rf "$WORKDIR/.device-transfer-download" "$WORKDIR/.device-transfer-upload"
+    rm -Rf "$TRANSFER_ROOT"
     if [ "$RUN_LOCK_OWNED" -eq 1 ]; then
         rm -Rf "$RUN_LOCK_DIR"
         RUN_LOCK_OWNED=0
@@ -311,7 +362,7 @@ stage_tree_for_upload() {
 }
 
 capture_command_output() {
-    local output_file="$WORKDIR/.device-command-output.log"
+    local output_file="$TRANSFER_ROOT/command-output.log"
     local status
 
     rm -f "$output_file"
@@ -326,7 +377,7 @@ capture_command_output() {
 
 upload_tree_with_devicectl() {
     local source_dir="$1"
-    local upload_dir="$WORKDIR/.device-transfer-upload"
+    local upload_dir="$TRANSFER_ROOT/upload"
     local status
 
     stage_tree_for_upload "$source_dir" "$upload_dir"
@@ -436,7 +487,7 @@ launch_harness() {
 
 copy_tree_to_device() {
     local source_dir="$1"
-    local upload_dir="$WORKDIR/.device-transfer-upload"
+    local upload_dir="$TRANSFER_ROOT/upload"
     local status
 
     if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
@@ -498,7 +549,7 @@ install_harness() {
 }
 
 test_perl_device() {
-    pushd "perl-$PERL_VERSION/ios/test"
+    pushd "$PERL_BUILD_DIR/ios/test"
     check_exit_code
 
     local install_root="$PWD/Build/Install"
@@ -508,10 +559,10 @@ test_perl_device() {
         BUILD_CAMELBONES_BOOLEAN="YES"
     fi
 
-    xcodebuild ARCHS="$ARCHS" \
+    xcodebuild -sdk "$HARNESS_TARGET" ARCHS="$ARCHS" \
         EMBED_CAMELBONES_FRAMEWORK="$BUILD_CAMELBONES_BOOLEAN" \
-        CAMELBONES_FRAMEWORK_PATH="$CAMELBONES_PREFIX/camelbones/CamelBones/build/Products/$CAMELBONES_BUILD_CONFIGURATION-$CAMELBONES_TARGET" \
-        IOS_FRAMEWORK_PATH="$PERL_IOS_PREFIX/perl-$PERL_VERSION/ios/ios/build/Products/$IOS_BUILD_CONFIGURATION-$IOS_TARGET" \
+        CAMELBONES_FRAMEWORK_PATH="$CAMELBONES_ROOT/CamelBones/build/Products/$CAMELBONES_BUILD_CONFIGURATION-$CAMELBONES_TARGET" \
+        IOS_FRAMEWORK_PATH="$PERL_BUILD_DIR/ios/ios/build/Products/$IOS_BUILD_CONFIGURATION-$IOS_TARGET" \
         PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
         LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
         PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
@@ -520,9 +571,8 @@ test_perl_device() {
     check_exit_code
 
     # install the app so it can receive files in Documents
-    simulator_build=`echo "$ARCHS" | grep -c "x86_64"` # x86_64 simulator
     test_app="$install_root/Applications/$HARNESS_PRODUCT_NAME.app"
-    if [ "$simulator_build" -eq "0" ]; then
+    if [ "$SIMULATOR_BUILD" -eq "0" ]; then
         install_harness "$test_app"
         check_exit_code
     else
@@ -533,14 +583,14 @@ test_perl_device() {
 
     echo "Copy perl build directory to iOS device..."
 
-    if [ "$simulator_build" -eq "0" ]; then
-        copy_tree_to_device "$WORKDIR/perl-$PERL_VERSION"
+    if [ "$SIMULATOR_BUILD" -eq "0" ]; then
+        copy_tree_to_device "$PERL_BUILD_DIR"
         check_exit_code
     else
         build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
         build_destination_dir="$build_destination_dir/Documents/"
-        simulator_stage_dir="$WORKDIR/.ios-test-stage"
-        stage_tree_for_upload "$WORKDIR/perl-$PERL_VERSION" "$simulator_stage_dir"
+        simulator_stage_dir="$TRANSFER_ROOT/simulator-stage"
+        stage_tree_for_upload "$PERL_BUILD_DIR" "$simulator_stage_dir"
         check_exit_code $? "simulator tree staging"
         cp -RL "$simulator_stage_dir/." "$build_destination_dir"
         rm -Rf "$simulator_stage_dir"
@@ -549,7 +599,7 @@ test_perl_device() {
 
     echo "App Documents dir is '$build_destination_dir'"
 
-    if [ "$simulator_build" -eq "0" ]; then
+    if [ "$SIMULATOR_BUILD" -eq "0" ]; then
         echo "Starting device harness launch"
         launch_harness
         check_exit_code $? "device harness launch"
@@ -562,7 +612,7 @@ test_perl_device() {
 
     popd
 
-    if [ "$simulator_build" -eq "0" ]; then
+    if [ "$SIMULATOR_BUILD" -eq "0" ]; then
         return 0
     fi
 
@@ -629,19 +679,19 @@ check_exit_code
 
 rm -Rf "$INSTALL_DIR"
 
-PERL_ARCH="$ARCHS" DEBUG=1 sh -x "perl-$PERL_VERSION/ios/build.sh"
+PERL_ARCH="$ARCHS" DEBUG=1 sh -x "$PERL_BUILD_DIR/ios/build.sh"
 check_exit_code
 
 # enable APItest.bundle and Typemap.bundle loading
 mkdir -p "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/APItest"
 mkdir -p "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/Typemap"
-cp "perl-$PERL_VERSION/lib/auto/XS/APItest/APItest.bs" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/APItest"
-cp "perl-$PERL_VERSION/lib/auto/XS/APItest/APItest.bundle" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/APItest"
-cp "perl-$PERL_VERSION/lib/auto/XS/Typemap/Typemap.bundle" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/Typemap"
+cp "$PERL_BUILD_DIR/lib/auto/XS/APItest/APItest.bs" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/APItest"
+cp "$PERL_BUILD_DIR/lib/auto/XS/APItest/APItest.bundle" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/APItest"
+cp "$PERL_BUILD_DIR/lib/auto/XS/Typemap/Typemap.bundle" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/auto/XS/Typemap"
 
 mkdir -p "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/"
 chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/APItest.pm" 2>/dev/null || true
-cp "perl-$PERL_VERSION/lib/XS/APItest.pm" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/"
+cp "$PERL_BUILD_DIR/lib/XS/APItest.pm" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/"
 check_exit_code $? "APItest.pm installation"
 
 mkdir -p "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/Iterator"
@@ -649,11 +699,11 @@ mkdir -p "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Pa
 chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/Iterator/iOS.pm" 2>/dev/null || true
 chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler/iOSExecutable.pm" 2>/dev/null || true
 chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler/iOSPerl.pm" 2>/dev/null || true
-cp "perl-$PERL_VERSION/lib/TAP/Parser/Iterator/iOS.pm" \
+cp "$PERL_BUILD_DIR/lib/TAP/Parser/Iterator/iOS.pm" \
     "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/Iterator/"
-cp "perl-$PERL_VERSION/lib/TAP/Parser/SourceHandler/iOSExecutable.pm" \
+cp "$PERL_BUILD_DIR/lib/TAP/Parser/SourceHandler/iOSExecutable.pm" \
     "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler/"
-cp "perl-$PERL_VERSION/lib/TAP/Parser/SourceHandler/iOSPerl.pm" \
+cp "$PERL_BUILD_DIR/lib/TAP/Parser/SourceHandler/iOSPerl.pm" \
     "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler/"
 check_exit_code $? "iOS TAP module installation"
 

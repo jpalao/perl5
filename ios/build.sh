@@ -55,6 +55,7 @@ MIN_VERSION_TAG="-m""$PLATFORM_TAG""os-version-min=$MIN_VERSION"
 WORKDIR=`pwd`
 PREFIX="$WORKDIR/$INSTALL_DIR"
 PERL_VERSION="$PERL_REVISION.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
+: "${PERL_BUILD_DIR:=$WORKDIR/perl-$PERL_VERSION}"
 
 : "${PERLBREW_SOURCE:=$PERLBREW_ROOT/build/perl-$PERL_VERSION}"
 export PERLBREW_SOURCE
@@ -119,11 +120,18 @@ if [ $SIMULATOR_BUILD -ne 0 ]; then
   BUILD_FLAGS="$SIMULATOR_BUILD_FLAGS"
   LINK_FLAGS="$SIMULATOR_LINK_FLAGS"
   SDK_PATH="$SIMULATOR_SDK_PATH"
+  IOS_PLATFORM="${IOS_PLATFORM:-iphonesimulator}"
 else
   BUILD_FLAGS="$DEVICE_BUILD_FLAGS"
   LINK_FLAGS="$DEVICE_LINK_FLAGS"
   SDK_PATH="$DEVICE_SDK_PATH"
+  IOS_PLATFORM="${IOS_PLATFORM:-iphoneos}"
 fi
+
+export IOS_PLATFORM
+export IOS_ARCH="$PERL_ARCH"
+export IOS_DEPLOYMENT_TARGET="$MIN_VERSION"
+export IOS_SDKROOT="$SDK_PATH"
 
 BUILD_FLAGS="$BUILD_FLAGS -D$PERL_PLATFORM_TAG"
 LINK_FLAGS="$LINK_FLAGS -D$PERL_PLATFORM_TAG"
@@ -131,6 +139,22 @@ LINK_FLAGS="$LINK_FLAGS -D$PERL_PLATFORM_TAG"
 ######################################################
 # Build perl
 ######################################################
+
+boot_simulator_for_probes() {
+  local simulator_uuid="${IOS_PROBE_SIMULATOR_UDID:-${SIMULATOR_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}"
+
+  if [ "$IOS_PLATFORM" != "iphonesimulator" ]; then
+    return 0
+  fi
+  if [ -z "$simulator_uuid" ]; then
+    echo >&2 "IOS_PROBE_SIMULATOR_UDID is unset. Set it to an available simulator UUID and try again"
+    return 1
+  fi
+
+  echo "Ensuring simulator $simulator_uuid is booted for Configure probes"
+  xcrun simctl boot "$simulator_uuid" >/dev/null 2>&1 || true
+  xcrun simctl bootstatus "$simulator_uuid" -b
+}
 
 build_perl() {
   cd "$WORKDIR"
@@ -142,14 +166,14 @@ build_perl() {
       do
         echo "$f is"
         echo "Installing perl extension $f..."
-        tar xvfz "$f" -C "perl-$PERL_VERSION/ext"
+        tar xvfz "$f" -C "$PERL_BUILD_DIR/ext"
       done
     else
       echo "No extension archives found in $WORKDIR/ext"
     fi
   fi
 
-  cd "perl-$PERL_VERSION"
+  cd "$PERL_BUILD_DIR"
 
   export SDKROOT="$SDK_PATH"
   export CC=/usr/bin/clang
@@ -167,6 +191,8 @@ build_perl() {
   else
     export IPHONEOS_DEPLOYMENT_TARGET="$MIN_VERSION"
   fi
+
+  boot_simulator_for_probes || exit 1
 
   ./Configure -des -Dusedevel \
     -Duseshrplib \
@@ -254,8 +280,8 @@ build_ios_framework() {
     pushd $IOS_FRAMEWORK_DIR
     check_exit_code
 
-    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$WORKDIR/perl-$PERL_VERSION" \
-    LIBPERL_PATH="$WORKDIR/perl-$PERL_VERSION" \
+    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_BUILD_DIR" \
+    LIBPERL_PATH="$PERL_BUILD_DIR" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
     -scheme "$IOS_TARGET"
     check_exit_code
@@ -263,10 +289,10 @@ build_ios_framework() {
 }
 
 prepare_ios_module_source() {
-    mkdir -p "$WORKDIR/perl-$PERL_VERSION/ext/ios"
+    mkdir -p "$PERL_BUILD_DIR/ext/ios"
     "${HOST_PERL:-perl}" -MExtUtils::ParseXS -e \
       'ExtUtils::ParseXS::process_file(filename => $ARGV[0], output => $ARGV[1])' \
-      "$IOS_FRAMEWORK_DIR/CPAN/ios.xs" "$WORKDIR/perl-$PERL_VERSION/ext/ios/ios.m"
+      "$IOS_FRAMEWORK_DIR/CPAN/ios.xs" "$PERL_BUILD_DIR/ext/ios/ios.m"
     check_exit_code
 }
 
@@ -292,8 +318,8 @@ build_camelbones_framework() {
     build_libffi
     check_exit_code
 
-    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$WORKDIR/perl-$PERL_VERSION" \
-    LIBPERL_PATH="$WORKDIR/perl-$PERL_VERSION" \
+    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_BUILD_DIR" \
+    LIBPERL_PATH="$PERL_BUILD_DIR" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
     -scheme "$CAMELBONES_TARGET"
     check_exit_code
