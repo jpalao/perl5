@@ -6,11 +6,7 @@ BEGIN {
 
 use strict;
 use warnings;
-use Test::More (
-    $^O =~ /darwin-ios/
-    ? ( skip_all => 'nested process TAP is unsupported on iOS' )
-    : ()
-);
+use Test::More;
 use File::Spec;
 use App::Prove;
 use Text::ParseWords qw(shellwords);

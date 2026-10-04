@@ -21,17 +21,12 @@ my $IS_WIN32 = ( $^O =~ /^(MS)?Win32$/ );
 my $HAS_SH   = -x '/bin/sh';
 my $HAS_ECHO = -x '/bin/echo';
 
-$HAS_SH = 0 if $^O =~ /darwin-ios/;
-
 my $dir = File::Spec->catdir(
     't',
     'source_tests'
 );
 
-my $iterator_class = $^O =~ /darwin-ios/ ? 'TAP::Parser::Iterator::iOS'    :
-                                           'TAP::Parser::Iterator::Process';
-
-my $perl = $^O =~ /darwin-ios/ ? 'perl' : $^X;
+my $perl = $^X;
 
 my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
   qw( source source.1 source.bat source.pl source.sh source_args.sh source.t
@@ -96,8 +91,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
                     (map { "-I$_" } split /$Config{path_sep}/, $ENV{PERL5LIB} || ''),
                     '-It/lib', '-T', $file{source}
                 ],
-                skip          => $^O =~ /darwin-ios/,
-                iclass        => $iterator_class,
+                iclass        => 'TAP::Parser::Iterator::Process',
                 output        => [ '1..1', 'ok 1 - source' ],
                 assemble_meta => 1,
             },
@@ -113,7 +107,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
                 raw         => \$file{'source.sh'},
                 skip        => $HAS_SH && $HAS_ECHO ? 0 : 1,
                 skip_reason => 'no /bin/sh, /bin/echo',
-                iclass      => $iterator_class,
+                iclass      => 'TAP::Parser::Iterator::Process',
                 output        => [ '1..1', 'ok 1 - source.sh' ],
                 assemble_meta => 1,
             },
@@ -122,7 +116,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
                 test_args   => ['foo'],
                 skip        => $HAS_SH && $HAS_ECHO ? 0 : 1,
                 skip_reason => 'no /bin/sh, /bin/echo',
-                iclass      => $iterator_class,
+                iclass      => 'TAP::Parser::Iterator::Process',
                 output        => [ '1..1', 'ok 1 - source_args.sh foo' ],
                 assemble_meta => 1,
             },
@@ -130,7 +124,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
                 raw         => \$file{'source.bat'},
                 skip        => $IS_WIN32 ? 0 : 1,
                 skip_reason => 'not running Win32',
-                iclass      => $iterator_class,
+                iclass      => 'TAP::Parser::Iterator::Process',
                 output        => [ '1..1', 'ok 1 - source.bat' ],
                 assemble_meta => 1,
             },
@@ -187,7 +181,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
         make_iterator => [
             {   name          => $file{source},
                 raw           => \$file{source},
-                iclass        => $iterator_class,
+                iclass        => 'TAP::Parser::Iterator::Process',
                 output        => [ '1..1', 'ok 1 - source' ],
                 assemble_meta => 1,
             },
@@ -197,12 +191,11 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
     test_handler( $class, $tests );
 
     # internals tests!
-    SKIP: {
+    {
         my $source = TAP::Parser::Source->new->raw( \$file{source} );
         $source->assemble_meta;
         my $iterator = $class->make_iterator($source);
-        skip ('iOS: TODO', 1) if ($^O =~ /darwin-ios/ && !$iterator->{command});
-        my @command = @{ $iterator->{command} };
+        my @command  = @{ $iterator->{command} };
         ok( grep( $_ =~ /^['"]?-T['"]?$/, @command ),
             '... and it should find the taint switch'
         );
@@ -298,7 +291,7 @@ my %file = map { $_ => File::Spec->catfile( $dir, $_ ) }
 }
 
 # IO::Handle TAP source tests
-SKIP: {
+{
     my $class = 'TAP::Parser::SourceHandler::Handle';
     my $tests = {
         default_vote => 0,
@@ -389,8 +382,6 @@ sub test_handler {
             isa_ok $iterator, $test->{iclass}, $name;
             if ( $test->{output} ) {
                 my $i = 1;
-                skip("iOS: TODO", 3)
-                    if $^O =~ /darwin-ios/ && $test->{name} eq 't/source_tests/source';
                 for my $line ( @{ $test->{output} } ) {
                     is $iterator->next, $line, "... line $i";
                     $i++;

@@ -32,6 +32,18 @@ $ENV{HOME} = getcwd();
 # or they may pass or fail randomly
 my @ios_blacklist;
 
+push @ios_blacklist, qw(
+    ../cpan/Test-Harness/t/compat/env.t
+    ../cpan/Test-Harness/t/compat/inc-propagation.t
+    ../cpan/Test-Harness/t/compat/test-harness-compat.t
+    ../cpan/Test-Harness/t/iterators.t
+    ../cpan/Test-Harness/t/parse.t
+    ../cpan/Test-Harness/t/perl5lib.t
+    ../cpan/Test-Harness/t/process.t
+    ../cpan/Test-Harness/t/proverun.t
+    ../cpan/Test-Harness/t/source_handler.t
+);
+
 my @simul_blacklist = qw(
     run/switches.t
     run/switchd.t

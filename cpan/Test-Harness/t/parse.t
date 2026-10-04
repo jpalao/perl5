@@ -634,11 +634,7 @@ END_TAP
 
     isa_ok $parser, 'TAP::Parser';
 
-    if ($^O =~ /darwin-ios/) {
-        isa_ok $parser->_iterator, 'TAP::Parser::Iterator::iOS';
-    } else {
-        isa_ok $parser->_iterator, 'TAP::Parser::Iterator::Process';
-    }
+    isa_ok $parser->_iterator, 'TAP::Parser::Iterator::Process';
 
     # Workaround for Mac OS X problem wrt closing the iterator without
     # reading from it.

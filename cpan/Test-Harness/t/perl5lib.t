@@ -21,9 +21,7 @@ sub has_crazy_patch {
 }
 
 use Test::More (
-      $^O =~ /darwin-ios/
-    ? ( skip_all => 'nested process probes are unsupported on iOS' )
-    : $^O eq 'VMS' ? ( skip_all => 'VMS' )
+      $^O eq 'VMS' ? ( skip_all => 'VMS' )
     : has_crazy_patch() ? ( skip_all => 'Incompatible @INC patch' )
     : ( tests => 1 )
 );

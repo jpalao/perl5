@@ -2147,7 +2147,6 @@ cpan/Test-Harness/lib/TAP/Parser/Aggregator.pm		A parser for Test Anything Proto
 cpan/Test-Harness/lib/TAP/Parser/Grammar.pm		A parser for Test Anything Protocol
 cpan/Test-Harness/lib/TAP/Parser/Iterator.pm		A parser for Test Anything Protocol
 cpan/Test-Harness/lib/TAP/Parser/Iterator/Array.pm	A parser for Test Anything Protocol
-cpan/Test-Harness/lib/TAP/Parser/Iterator/iOS.pm	A parser for Test Anything Protocol
 cpan/Test-Harness/lib/TAP/Parser/Iterator/Process.pm	A parser for Test Anything Protocol
 cpan/Test-Harness/lib/TAP/Parser/Iterator/Stream.pm	A parser for Test Anything Protocol
 cpan/Test-Harness/lib/TAP/Parser/IteratorFactory.pm	A parser for Test Anything Protocol

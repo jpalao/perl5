@@ -14,6 +14,15 @@ BEGIN {
         'NAME' => 'ios',
         'DIR' => \@frameworks,
         'XS' => { 'ios.xs' => 'ios.m' },
+        'PM' => {
+            'lib/ios.pm' => '$(INST_LIBDIR)/ios.pm',
+            'lib/TAP/Parser/Iterator/iOS.pm' =>
+                '$(INST_LIBDIR)/TAP/Parser/Iterator/iOS.pm',
+            'lib/TAP/Parser/SourceHandler/iOSPerl.pm' =>
+                '$(INST_LIBDIR)/TAP/Parser/SourceHandler/iOSPerl.pm',
+            'lib/TAP/Parser/SourceHandler/iOSExecutable.pm' =>
+                '$(INST_LIBDIR)/TAP/Parser/SourceHandler/iOSExecutable.pm',
+        },
     );
     for (keys %CBCommon::opts) {
 	      $local_opts{$_} = $CBCommon::opts{$_};

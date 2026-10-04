@@ -1,6 +1,9 @@
 ios.xs
 cb_common.pl
 lib/ios.pm
+lib/TAP/Parser/Iterator/iOS.pm
+lib/TAP/Parser/SourceHandler/iOSExecutable.pm
+lib/TAP/Parser/SourceHandler/iOSPerl.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
