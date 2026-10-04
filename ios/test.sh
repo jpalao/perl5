@@ -291,6 +291,19 @@ prepare_perl() {
     rm -Rf "$perl_build_dir"
     git clone --no-checkout "$PERL5_SOURCE_ROOT" "$perl_build_dir"
     git -C "$perl_build_dir" checkout --detach "$PERL5_REVISION"
+    local local_patch
+    local_patch=$(mktemp "${TMPDIR:-/tmp}/perl-ios-source-diff.XXXXXX")
+    if ! git -C "$PERL5_SOURCE_ROOT" diff --binary HEAD -- > "$local_patch"; then
+        rm -f "$local_patch"
+        echo >&2 "failed to collect local Perl source changes"
+        return 1
+    fi
+    if [ -s "$local_patch" ] && ! git -C "$perl_build_dir" apply --whitespace=nowarn "$local_patch"; then
+        rm -f "$local_patch"
+        echo >&2 "failed to apply local Perl source changes to generated tree"
+        return 1
+    fi
+    rm -f "$local_patch"
     ios_harness_source="$PERL5_SOURCE_ROOT/ios/test/ios_harness"
     if [ ! -f "$ios_harness_source" ]; then
         echo >&2 "missing iOS harness source: $ios_harness_source"

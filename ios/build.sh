@@ -280,7 +280,7 @@ build_ios_framework() {
     pushd $IOS_FRAMEWORK_DIR
     check_exit_code
 
-    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_BUILD_DIR" \
+    xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_BUILD_DIR" \
     LIBPERL_PATH="$PERL_BUILD_DIR" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
     -scheme "$IOS_TARGET"
@@ -307,7 +307,7 @@ build_libffi() {
       exit 1
     fi
 
-    xcodebuild -project libffi.xcodeproj -scheme "$LIBFFI_SCHEME" \
+    xcodebuild -project libffi.xcodeproj -scheme "$LIBFFI_SCHEME" -sdk "$IOS_PLATFORM" \
       ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO
     check_exit_code
     popd
@@ -318,7 +318,7 @@ build_camelbones_framework() {
     build_libffi
     check_exit_code
 
-    xcodebuild ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_BUILD_DIR" \
+    xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_BUILD_DIR" \
     LIBPERL_PATH="$PERL_BUILD_DIR" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
     -scheme "$CAMELBONES_TARGET"
