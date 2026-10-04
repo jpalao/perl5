@@ -35,29 +35,32 @@ $ENV{HOME} = getcwd();
 # or they may pass or fail randomly
 my @ios_blacklist;
 
-push @ios_blacklist, qw(
-    ../cpan/Test-Harness/t/compat/env.t
-    ../cpan/Test-Harness/t/compat/inc-propagation.t
-    ../cpan/Test-Harness/t/compat/test-harness-compat.t
-    ../cpan/Test-Harness/t/iterators.t
-    ../cpan/Test-Harness/t/parse.t
-    ../cpan/Test-Harness/t/perl5lib.t
-    ../cpan/Test-Harness/t/process.t
-    ../cpan/Test-Harness/t/proverun.t
-    ../cpan/Test-Harness/t/source_handler.t
-    ../cpan/Test-Harness/t/iterator_factory.t
-    ../cpan/Test-Harness/t/parser-subclass.t
-);
+# Device: Test::Harness depends on child-process, taint, and exit-status
+# behavior that is not yet adapted to the embedded iOS runner. Revisit after
+# integrating the corresponding upstream-compatible behavior.
+push @ios_blacklist, '../cpan/Test-Harness/';
 
+# Simulator: these switch/debug tests are known to fail on x86_64 even
+# though they pass on the arm64 device.
 my @simul_blacklist = qw(
     run/switches.t
     run/switchd.t
     run/switchM.t
+);
 
+# Simulator: command-line switch behavior differs on the x86_64 target.
+push @simul_blacklist, qw(
     cmd/switch.t
+);
 
+# Simulator: argv behavior differs from the device harness.
+push @simul_blacklist, qw(
     io/argv.t
+);
 
+# Simulator: these numeric, packing, stat, and vector cases have known
+# x86_64 results that differ from the arm64 device.
+push @simul_blacklist, qw(
     op/64bitint.t
     op/blocks.t
     op/coreamp.t
@@ -65,7 +68,11 @@ my @simul_blacklist = qw(
     op/sprintf2.t
     op/stat.t
     op/vec.t
+);
 
+# Simulator: porting tests inspect host/build details unavailable or
+# intentionally different in the simulator build.
+push @simul_blacklist, qw(
     porting/checkcase.t
     porting/checkcfgvar.t
     porting/checkcfgvar.t
@@ -80,7 +87,11 @@ my @simul_blacklist = qw(
     porting/readme.t
     porting/regen.t
     porting/utils.t
+);
 
+# Simulator: these distribution and extension tests have known x86_64
+# failures and remain covered on the arm64 device where applicable.
+push @simul_blacklist, qw(
     ../cpan/Archive-Tar/t/02_methods.t
     ../cpan/Archive-Tar/t/04_resolved_issues.t
 
@@ -140,16 +151,19 @@ sub exclude_tests {
                 }
             }
         }
+        # Simulator: Pod::Html and Pod::Simple are not stable in this target.
         @tests = grep(/^(?:(?!\.\.\/ext\/Pod\-Html))/, @tests);
         @tests = grep(/^(?:(?!\.\.\/cpan\/Pod\-Simple))/, @tests);
     }
 
-    # most likely will never pass on iOS
+    # Device: these suites require external commands or IPC mechanisms that
+    # are unavailable without fork, pipes, or SysV IPC on iOS.
     @tests = grep(/^(?:(?!\.\.\/cpan\/IPC-Cmd))/, @tests);
     @tests = grep(/^(?:(?!\.\.\/cpan\/IPC-SysV))/, @tests);
     @tests = grep(/^(?:(?!\.\.\/ext\/IPC-Open3))/, @tests);
 
-    # tests requiring make, unavailable on the device
+    # Device: these tests require make and the MakeMaker toolchain, which are
+    # not available in the device Documents/runtime environment.
     @tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils-MakeMaker))/, @tests);
 };
 
@@ -158,4 +172,3 @@ sub exclude_tests {
 do './harness';
 
 CORE::exit($::ios_harness_status // 0);
-
