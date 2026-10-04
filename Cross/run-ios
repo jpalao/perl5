@@ -121,12 +121,12 @@ fi
 if [ "$simulator_probe" = true ]; then
     xcrun simctl uninstall "$IOS_PROBE_SIMULATOR_UDID" "$IOS_PROBE_BUNDLE_ID" >/dev/null 2>&1 || true
     xcrun simctl install "$IOS_PROBE_SIMULATOR_UDID" "$bundle_root" >/dev/null
-    xcrun simctl terminate "$IOS_PROBE_SIMULATOR_UDID" "$IOS_PROBE_BUNDLE_ID" >/dev/null 2>&1 || true
     set +e
+    probe_container=$(xcrun simctl get_app_container "$IOS_PROBE_SIMULATOR_UDID" "$IOS_PROBE_BUNDLE_ID" app)
     if [ -n "$env_spec" ]; then
-        eval "env $env_spec xcrun simctl launch --console \"\$IOS_PROBE_SIMULATOR_UDID\" \"\$IOS_PROBE_BUNDLE_ID\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
+        eval "env $env_spec xcrun simctl spawn \"\$IOS_PROBE_SIMULATOR_UDID\" \"\$probe_container/probe\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
     else
-        xcrun simctl launch --console "$IOS_PROBE_SIMULATOR_UDID" "$IOS_PROBE_BUNDLE_ID" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
+        xcrun simctl spawn "$IOS_PROBE_SIMULATOR_UDID" "$probe_container/probe" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
     fi
     status=$?
     set -e
