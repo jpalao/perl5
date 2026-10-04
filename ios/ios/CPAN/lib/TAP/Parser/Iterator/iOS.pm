@@ -3,7 +3,6 @@ package TAP::Parser::Iterator::iOS;
 use strict;
 use warnings;
 use Cwd qw(getcwd);
-use ios;
 
 use base 'TAP::Parser::Iterator';
 
@@ -43,7 +42,8 @@ sub _initialize {
     if ($command_parts) {
         $setup->() if $setup;
         chomp @$command_parts;
-        ($exit_code, $tap) = exec_test($workdir, $command_parts);
+        require ios;
+        ($exit_code, $tap) = ios::exec_test($workdir, $command_parts);
         $teardown->() if $teardown;
         if (defined $tap) {
             utf8::downgrade($tap, 1) if utf8::is_utf8($tap);

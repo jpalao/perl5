@@ -8,6 +8,9 @@ use strict;
 use warnings;
 use Config;
 use Cwd qw/getcwd/;
+use TAP::Parser::Iterator::iOS;
+use TAP::Parser::SourceHandler::iOSExecutable;
+use TAP::Parser::SourceHandler::iOSPerl;
 
 BEGIN {
     *CORE::GLOBAL::exit = sub {
@@ -42,6 +45,8 @@ push @ios_blacklist, qw(
     ../cpan/Test-Harness/t/process.t
     ../cpan/Test-Harness/t/proverun.t
     ../cpan/Test-Harness/t/source_handler.t
+    ../cpan/Test-Harness/t/iterator_factory.t
+    ../cpan/Test-Harness/t/parser-subclass.t
 );
 
 my @simul_blacklist = qw(

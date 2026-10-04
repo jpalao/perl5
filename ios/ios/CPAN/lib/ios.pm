@@ -64,15 +64,6 @@ require XSLoader;
 XSLoader::load('ios', $VERSION);
 CBInit();
 
-INIT {
-    my $ios_dir = $INC{'ios.pm'};
-    $ios_dir =~ s{/[^/]+\z}{} if defined $ios_dir;
-    local @INC = (grep { defined && length } ($ios_dir, @INC));
-    require TAP::Parser::Iterator::iOS;
-    require TAP::Parser::SourceHandler::iOSPerl;
-    require TAP::Parser::SourceHandler::iOSExecutable;
-}
-
 sub _require {
     my ($module) = @_;
     no warnings 'redefine';

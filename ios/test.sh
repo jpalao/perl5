@@ -644,6 +644,19 @@ chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/APItest.pm" 2>/dev/null || tr
 cp "perl-$PERL_VERSION/lib/XS/APItest.pm" "$INSTALL_DIR/lib/perl5/$PERL_VERSION/XS/"
 check_exit_code $? "APItest.pm installation"
 
+mkdir -p "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/Iterator"
+mkdir -p "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler"
+chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/Iterator/iOS.pm" 2>/dev/null || true
+chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler/iOSExecutable.pm" 2>/dev/null || true
+chmod u+w "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler/iOSPerl.pm" 2>/dev/null || true
+cp "perl-$PERL_VERSION/lib/TAP/Parser/Iterator/iOS.pm" \
+    "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/Iterator/"
+cp "perl-$PERL_VERSION/lib/TAP/Parser/SourceHandler/iOSExecutable.pm" \
+    "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler/"
+cp "perl-$PERL_VERSION/lib/TAP/Parser/SourceHandler/iOSPerl.pm" \
+    "$INSTALL_DIR/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/TAP/Parser/SourceHandler/"
+check_exit_code $? "iOS TAP module installation"
+
 test_perl_device
 
 echo "Build finished: $(date)"
