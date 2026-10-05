@@ -33,34 +33,17 @@ $ENV{HOME} = getcwd();
 # hang, crash or exit unexpectedly,
 # or may pass, causing havoc afterwards,
 # or they may pass or fail randomly
-my @ios_blacklist;
 
-# Device: Test::Harness depends on child-process, taint, and exit-status
-# behavior that is not yet adapted to the embedded iOS runner. Revisit after
-# integrating the corresponding upstream-compatible behavior.
-push @ios_blacklist, '../cpan/Test-Harness/';
+my @ios_blacklist = (
+    '../cpan/Test-Harness/',
+);
 
-# Simulator: these switch/debug tests are known to fail on x86_64 even
-# though they pass on the arm64 device.
 my @simul_blacklist = qw(
     run/switches.t
     run/switchd.t
     run/switchM.t
-);
-
-# Simulator: command-line switch behavior differs on the x86_64 target.
-push @simul_blacklist, qw(
     cmd/switch.t
-);
-
-# Simulator: argv behavior differs from the device harness.
-push @simul_blacklist, qw(
     io/argv.t
-);
-
-# Simulator: these numeric, packing, stat, and vector cases have known
-# x86_64 results that differ from the arm64 device.
-push @simul_blacklist, qw(
     op/64bitint.t
     op/blocks.t
     op/coreamp.t
@@ -68,54 +51,51 @@ push @simul_blacklist, qw(
     op/sprintf2.t
     op/stat.t
     op/vec.t
-);
-
-# Simulator: porting tests inspect host/build details unavailable or
-# intentionally different in the simulator build.
-push @simul_blacklist, qw(
     porting/checkcase.t
     porting/checkcfgvar.t
     porting/checkcfgvar.t
     porting/cmp_version.t
     porting/diag.t
-
     porting/manifest.t
     porting/pending-author.t
     porting/perlfunc.t
     porting/podcheck.t
-
     porting/readme.t
     porting/regen.t
     porting/utils.t
-);
-
-# Simulator: these distribution and extension tests have known x86_64
-# failures and remain covered on the arm64 device where applicable.
-push @simul_blacklist, qw(
     ../cpan/Archive-Tar/t/02_methods.t
     ../cpan/Archive-Tar/t/04_resolved_issues.t
-
     ../cpan/Filter-Util-Call/t/call.t
-
     ../cpan/Scalar-List-Utils/t/uniqnum.t
-
     ../dist/PathTools/t/cwd.t
     ../dist/PathTools/t/abs2rel.t
     ../dist/PathTools/t/taint.t
-
     ../dist/Carp/t/stack_after_err.t
-
     ../dist/Storable/t/file_magic.t
     ../dist/Storable/t/malice.t
-
     ../dist/threads/t/kill3.t
-
     ../ext/File-Find/t/taint.t
     ../ext/File-Glob/t/basic.t
     ../ext/File-Glob/t/threads.t
-
     ../lib/perl5db.t
 );
+
+sub collect_tests {
+    my ($directory) = @_;
+    opendir(my $handle, $directory) or die "Cannot open $directory: $!";
+    my @tests;
+    for my $entry (sort readdir($handle)) {
+        next if $entry eq '.' || $entry eq '..';
+        my $path = "$directory/$entry";
+        if (-d $path) {
+            push @tests, collect_tests($path);
+        } elsif ($path =~ /\.t$/) {
+            push @tests, $path;
+        }
+    }
+    closedir($handle);
+    return @tests;
+}
 
 sub dump_list {
     my @tests = @_;
@@ -151,23 +131,40 @@ sub exclude_tests {
                 }
             }
         }
-        # Simulator: Pod::Html and Pod::Simple are not stable in this target.
-        @tests = grep(/^(?:(?!\.\.\/ext\/Pod\-Html))/, @tests);
-        @tests = grep(/^(?:(?!\.\.\/cpan\/Pod\-Simple))/, @tests);
     }
 
-    # Device: these suites require external commands or IPC mechanisms that
-    # are unavailable without fork, pipes, or SysV IPC on iOS.
-    @tests = grep(/^(?:(?!\.\.\/cpan\/IPC-Cmd))/, @tests);
-    @tests = grep(/^(?:(?!\.\.\/cpan\/IPC-SysV))/, @tests);
-    @tests = grep(/^(?:(?!\.\.\/ext\/IPC-Open3))/, @tests);
-
-    # Device: these tests require make and the MakeMaker toolchain, which are
-    # not available in the device Documents/runtime environment.
-    @tests = grep(/^(?:(?!\.\.\/cpan\/ExtUtils-MakeMaker))/, @tests);
+    my @excluded = (
+        qr!\.\./cpan/IPC-Cmd!,
+        qr!\.\./cpan/IPC-SysV!,
+        qr!\.\./ext/IPC-Open3!,
+        qr!\.\./cpan/Test-Harness!,
+        qr!\.\./cpan/ExtUtils-MakeMaker!,
+    );
+    for my $pattern (@excluded) {
+        my @kept;
+        for my $test (@tests) {
+            if ($test =~ $pattern) {
+                print "# iOS: excluding test: $test\n";
+            } else {
+                push @kept, $test;
+            }
+        }
+        @tests = @kept;
+    }
+    return @tests;
 };
 
-# @ARGV = ('base/cond.t');
+if (!grep { $_ !~ /^-/ } @ARGV) {
+    my @tests;
+    for my $directory (qw(base comp run cmd io re opbasic op uni mro lib porting perf)) {
+        push @tests, collect_tests($directory);
+    }
+    for my $directory (qw(../ext ../dist ../cpan ../lib)) {
+        push @tests, collect_tests($directory);
+    }
+    @ARGV = grep { /^-/ } @ARGV;
+    push @ARGV, exclude_tests(@tests);
+}
 
 do './harness';
 
