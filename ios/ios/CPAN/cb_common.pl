@@ -205,7 +205,7 @@ our %opts = (
     PREREQ_PM         => {},
 
     AUTHOR            => 'Sherm Pendley <sherm.pendley@gmail.com>',
-    XSOPT             => "-typemap $PERL_IOS_PREFIX/perl-$PERL_VERSION/ext/ios/typemap",
+    XSOPT             => "-typemap $IOS_CPAN_DIR/typemap",
 
     LIBS              => [ '-lobjc'],
     INC               => "-F$IOS_MODULE_PATH/Build/Products/$XCODE_BUILD_CONFIG",
