@@ -120,12 +120,20 @@ if [ $SIMULATOR_BUILD -ne 0 ]; then
   BUILD_FLAGS="$SIMULATOR_BUILD_FLAGS"
   LINK_FLAGS="$SIMULATOR_LINK_FLAGS"
   SDK_PATH="$SIMULATOR_SDK_PATH"
-  IOS_PLATFORM="${IOS_PLATFORM:-iphonesimulator}"
+  case "$PLATFORM_TAG" in
+    iphone) IOS_PLATFORM="${IOS_PLATFORM:-iphonesimulator}" ;;
+    appletv) IOS_PLATFORM="${IOS_PLATFORM:-appletvsimulator}" ;;
+    watch) IOS_PLATFORM="${IOS_PLATFORM:-watchsimulator}" ;;
+  esac
 else
   BUILD_FLAGS="$DEVICE_BUILD_FLAGS"
   LINK_FLAGS="$DEVICE_LINK_FLAGS"
   SDK_PATH="$DEVICE_SDK_PATH"
-  IOS_PLATFORM="${IOS_PLATFORM:-iphoneos}"
+  case "$PLATFORM_TAG" in
+    iphone) IOS_PLATFORM="${IOS_PLATFORM:-iphoneos}" ;;
+    appletv) IOS_PLATFORM="${IOS_PLATFORM:-appletvos}" ;;
+    watch) IOS_PLATFORM="${IOS_PLATFORM:-watchos}" ;;
+  esac
 fi
 
 export IOS_PLATFORM
@@ -143,9 +151,10 @@ LINK_FLAGS="$LINK_FLAGS -D$PERL_PLATFORM_TAG"
 boot_simulator_for_probes() {
   local simulator_uuid="${IOS_PROBE_SIMULATOR_UDID:-${SIMULATOR_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}"
 
-  if [ "$IOS_PLATFORM" != "iphonesimulator" ]; then
-    return 0
-  fi
+  case "$IOS_PLATFORM" in
+    *simulator) ;;
+    *) return 0 ;;
+  esac
   if [ -z "$simulator_uuid" ]; then
     echo >&2 "IOS_PROBE_SIMULATOR_UDID is unset. Set it to an available simulator UUID and try again"
     return 1
@@ -199,6 +208,7 @@ build_perl() {
     -Dusethreads \
     -Dtargethost=physical-device \
     -Dtargetrun=darwin-ios \
+    -Dios_sdk="$IOS_PLATFORM" \
     -Dhostperl="$PERLBREW_SOURCE/miniperl" \
     -Dhostgenerate="$PERLBREW_SOURCE/generate_uudmap" \
     -Dcc=/usr/bin/clang \

@@ -48,6 +48,7 @@ our @ISA = qw(Exporter);
 our $VERSION = '0.0.1';
 
 our @methods = (
+    'is_simulator',
     'capture_test',
     'exec_perl_capture',
     'exec_perl',
@@ -59,6 +60,10 @@ our @methods = (
 
 our @EXPORT = @methods;
 our @EXPORT_OK = @methods;
+
+sub is_simulator {
+    return (($Config{ios_sdk} // '') =~ /simulator/) ? 1 : 0;
+}
 
 require XSLoader;
 XSLoader::load('ios', $VERSION);

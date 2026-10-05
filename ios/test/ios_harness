@@ -138,7 +138,7 @@ sub exclude_tests {
         }
     }
 
-    if ($Config{archname} =~ /x86_64/) {
+    if (($Config{ios_sdk} // '') =~ /simulator/) {
         print "# NOTE: the following tests pass on device but fail on simulator. #TODO\n";
         for my $simul_black_list (@simul_blacklist)
         {
