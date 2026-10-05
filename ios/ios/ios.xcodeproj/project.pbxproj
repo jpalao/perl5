@@ -606,7 +606,7 @@
 				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../local";
 				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../local";
 				PERL_VERSION = 5.35.4;
-				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.camelbones;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.ios;
 				PRODUCT_NAME = ios;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -703,7 +703,7 @@
 				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../local";
 				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../local";
 				PERL_VERSION = 5.35.4;
-				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.camelbones;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.ios;
 				PRODUCT_NAME = ios;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
