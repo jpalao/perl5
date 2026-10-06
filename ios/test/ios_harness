@@ -34,50 +34,12 @@ $ENV{HOME} = getcwd();
 # or may pass, causing havoc afterwards,
 # or they may pass or fail randomly
 
-my @ios_blacklist = (
-    '../cpan/Test-Harness/',
+my @ios_blacklist = qw(
+    ../ext/CamelBones-1.3.0/t/14-Threads.t
 );
 
 my @simul_blacklist = qw(
-    run/switches.t
-    run/switchd.t
-    run/switchM.t
-    cmd/switch.t
-    io/argv.t
-    op/64bitint.t
-    op/blocks.t
-    op/coreamp.t
-    op/pack.t
-    op/sprintf2.t
-    op/stat.t
-    op/vec.t
-    porting/checkcase.t
-    porting/checkcfgvar.t
-    porting/checkcfgvar.t
-    porting/cmp_version.t
-    porting/diag.t
-    porting/manifest.t
-    porting/pending-author.t
-    porting/perlfunc.t
-    porting/podcheck.t
-    porting/readme.t
-    porting/regen.t
-    porting/utils.t
-    ../cpan/Archive-Tar/t/02_methods.t
-    ../cpan/Archive-Tar/t/04_resolved_issues.t
-    ../cpan/Filter-Util-Call/t/call.t
-    ../cpan/Scalar-List-Utils/t/uniqnum.t
-    ../dist/PathTools/t/cwd.t
-    ../dist/PathTools/t/abs2rel.t
-    ../dist/PathTools/t/taint.t
-    ../dist/Carp/t/stack_after_err.t
-    ../dist/Storable/t/file_magic.t
-    ../dist/Storable/t/malice.t
-    ../dist/threads/t/kill3.t
-    ../ext/File-Find/t/taint.t
-    ../ext/File-Glob/t/basic.t
-    ../ext/File-Glob/t/threads.t
-    ../lib/perl5db.t
+    ../ext/CamelBones-1.3.0/t/14-Threads.t
 );
 
 sub collect_tests {

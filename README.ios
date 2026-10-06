@@ -60,6 +60,16 @@ It is not possible tu run 'make test' on the cross compiled target. This
 requires a test app running on the device or simulator to execute the
 tests and report the results. Please see the section TESTING.
 
+=head2 Locale capability on the iOS simulator
+
+The iOS simulator can expose locale APIs and locale names without providing
+the usable locale data and behavior available to Perl on the target device.
+The simulator is intended to model the supported iOS runtime, so simulator
+builds define C<-DNO_LOCALE> to report this effective capability consistently
+with the device build. This lets Perl's existing locale capability checks skip
+locale-dependent tests naturally instead of discovering names that cannot be
+used at runtime.
+
 If the build succeeds it will then execute 'make install' in
 $INSTALL_DIR.
 
