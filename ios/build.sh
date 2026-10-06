@@ -291,7 +291,12 @@ build_ios_framework() {
     pushd $IOS_FRAMEWORK_DIR
     check_exit_code
 
-    xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_BUILD_DIR" \
+    local framework_other_cflags=""
+    if [ "$SIMULATOR_BUILD" -ne 0 ]; then
+      framework_other_cflags="-DNO_LOCALE"
+    fi
+
+    xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" OTHER_CFLAGS="$framework_other_cflags" PERL_DIST_PATH="$PERL_BUILD_DIR" \
     LIBPERL_PATH="$PERL_BUILD_DIR" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
     -scheme "$IOS_TARGET"
