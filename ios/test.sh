@@ -92,7 +92,7 @@ if [ "$SIMULATOR_BUILD" -ne 0 ]; then
 fi
 
 BUILD_SCOPE="$HARNESS_TARGET-$IOS_DEPLOYMENT_TARGET"
-if [ "$INSTALL_DIR_DEFAULTED" -eq 1 ] && [ "$SIMULATOR_BUILD" -ne 0 ]; then
+if [ "$INSTALL_DIR_DEFAULTED" -eq 1 ]; then
     INSTALL_DIR="local-$BUILD_SCOPE"
 fi
 export INSTALL_DIR
