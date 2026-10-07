@@ -35,29 +35,14 @@ $ENV{HOME} = getcwd();
 # or they may pass or fail randomly
 
 my @ios_blacklist = qw(
+    ../ext/CamelBones-1.3.0/t/13-Exceptions.t
     ../ext/CamelBones-1.3.0/t/14-Threads.t
 );
 
 my @simul_blacklist = qw(
+    ../ext/CamelBones-1.3.0/t/13-Exceptions.t
     ../ext/CamelBones-1.3.0/t/14-Threads.t
 );
-
-sub collect_tests {
-    my ($directory) = @_;
-    opendir(my $handle, $directory) or die "Cannot open $directory: $!";
-    my @tests;
-    for my $entry (sort readdir($handle)) {
-        next if $entry eq '.' || $entry eq '..';
-        my $path = "$directory/$entry";
-        if (-d $path) {
-            push @tests, collect_tests($path);
-        } elsif ($path =~ /\.t$/) {
-            push @tests, $path;
-        }
-    }
-    closedir($handle);
-    return @tests;
-}
 
 sub dump_list {
     my @tests = @_;
@@ -117,16 +102,29 @@ sub exclude_tests {
 };
 
 if (!grep { $_ !~ /^-/ } @ARGV) {
+    $::do_nothing = $::do_nothing = 1;
+    require './TEST';
+
     my @tests;
     for my $directory (qw(base comp run cmd io re opbasic op uni mro lib porting perf)) {
-        push @tests, collect_tests($directory);
+        @ARGV = ();
+        _find_tests($directory);
+        push @tests, @ARGV;
     }
-    for my $directory (qw(../ext ../dist ../cpan ../lib)) {
-        push @tests, collect_tests($directory);
+
+    my ($extensions, $known_extensions);
+    open(my $config, '<', '../config.sh') or die "Cannot open ../config.sh: $!";
+    while (my $line = <$config>) {
+        $extensions = $1 if $line =~ /^extensions=['"](.*)['"]$/;
+        $known_extensions = $1 if $line =~ /^known_extensions=['"](.*)['"]$/;
     }
+    close($config);
+    push @tests, _tests_from_manifest($extensions, $known_extensions);
+
     @ARGV = grep { /^-/ } @ARGV;
     push @ARGV, exclude_tests(@tests);
 }
+
 
 do './harness';
 
