@@ -13460,9 +13460,7 @@ set fork d_fork
 eval $inlibc
 case "$targetrun" in
 darwin-ios)
-	d_alarm="$undef"
 	d_fork="$undef"
-	d_ualarm="$undef"
 	d_vfork="$undef"
 	;;
 esac
