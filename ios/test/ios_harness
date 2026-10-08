@@ -8,6 +8,8 @@ use strict;
 use warnings;
 use Config;
 use Cwd qw/getcwd/;
+
+use ios;
 use TAP::Parser::Iterator::iOS;
 use TAP::Parser::SourceHandler::iOSExecutable;
 use TAP::Parser::SourceHandler::iOSPerl;
