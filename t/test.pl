@@ -1720,9 +1720,6 @@ sub warning_like {
 #        _AFTER_ the 'threads' module is loaded.
 sub watchdog ($;$)
 {
-    # The embedded iOS harness cannot reliably use the fork/thread/signal
-    # watchdog path without destabilizing the application process.
-    return if $is_ios;
     my $timeout = shift;
     my $method  = shift || "";
     my $timeout_msg = 'Test process timed out - terminating';
