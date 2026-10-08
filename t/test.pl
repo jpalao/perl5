@@ -794,24 +794,7 @@ sub runperl {
     die "test.pl:runperl() does not take a hashref"
 	if ref $_[0] and ref $_[0] eq 'HASH';
 
-    if ($is_ios) {
-        my %args = @_;
-        my $result;
-        local $@;
-        my $ok = eval {
-            require ios;
-            ($result) = ios::exec_perl_capture(\%args);
-            1;
-        };
-        if (!$ok) {
-            $? = 255 << 8;
-            return $@;
-        }
-        $? = $result->[0];
-        utf8::encode($result->[1])
-            if defined $result->[1] && utf8::is_utf8($result->[1]);
-        return defined $result->[1] ? $result->[1] : '';
-    }
+    require ios && return ios::runperl(@_) if $is_ios;
 
     my $runperl = &_create_runperl;
     my $result;
@@ -1737,6 +1720,8 @@ sub warning_like {
 #        _AFTER_ the 'threads' module is loaded.
 sub watchdog ($;$)
 {
+    # The embedded iOS harness cannot reliably use the fork/thread/signal
+    # watchdog path without destabilizing the application process.
     return if $is_ios;
     my $timeout = shift;
     my $method  = shift || "";
