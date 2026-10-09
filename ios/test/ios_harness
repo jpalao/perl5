@@ -8,6 +8,7 @@ use strict;
 use warnings;
 use Config;
 use Cwd qw/getcwd/;
+use JSON::PP;
 
 use ios;
 use TAP::Parser::Iterator::iOS;
