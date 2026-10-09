@@ -14,7 +14,6 @@ our @ISA = qw(Exporter);
 
 our $Is_VMS     = $^O eq 'VMS';
 our $Is_MacOS   = $^O eq 'MacOS';
-our $Is_IOS     = $^O =~ /darwin-ios/;
 our $Is_FreeBSD = $^O eq 'freebsd';
 
 our @EXPORT = qw(which_perl perl_lib makefile_name makefile_backup
@@ -134,7 +133,7 @@ sub which_perl {
     $perl .= $Config{exe_ext} unless $perl =~ m/$Config{exe_ext}$/i;
 
     my $perlpath = File::Spec->rel2abs( $perl );
-    unless( $Is_MacOS || $Is_IOS || -x $perlpath ) {
+    unless( $Is_MacOS || -x $perlpath ) {
         # $^X was probably 'perl'
 
         # When building in the core, *don't* go off and find
