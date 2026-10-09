@@ -4,12 +4,8 @@ use Config;
 use IPC::Open3 1.0103 qw(open3);
 
 BEGIN {
-    if ($^O eq 'VMS') {
+    if ($^O eq 'VMS' || $^O =~ /darwin-ios/) {
         print "1..0 # IPC::Open3 needs porting\n";
-        exit;
-    }
-    if ($^O =~ /darwin-ios/) {
-        print "1..0 # skip iOS: IPC::Open3 not supported\n";
         exit;
     }
 }

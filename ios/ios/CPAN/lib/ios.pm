@@ -532,8 +532,8 @@ sub exec_cli {
         ($result) = exec_perl_capture($json);
     };
     $result = _normalize_capture_result($result, $@);
-    print  Dumper("code", $result->[0]) if $DEBUG;
-    print  Dumper("output", $result->[1]) if $DEBUG;
+    print Dumper("code", $result->[0]) if $DEBUG;
+    print Dumper("output", $result->[1]) if $DEBUG;
     return ($result->[0], defined $result->[1] ? $result->[1] : '');
 }
 

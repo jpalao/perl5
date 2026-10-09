@@ -128,7 +128,6 @@ if (!grep { $_ !~ /^-/ } @ARGV) {
     push @ARGV, exclude_tests(@tests);
 }
 
-
 do './harness';
 
 CORE::exit($::ios_harness_status // 0);
