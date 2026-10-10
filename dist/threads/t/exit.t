@@ -108,9 +108,8 @@ run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
     is($?>>8, 86, "'use threads 'exit' => 'thread_only'");
 }
 
-my $out = run_perl(prog => 'use threads 2.21' .
-                           ($^O =~ /darwin-ios/ ? ' qw(exit thread_only)' : '') .
-                           ';' .
+my $thread_exit_opt = $^O =~ /darwin-ios/ ? ' qw(exit thread_only)' : '';
+my $out = run_perl(prog => 'use threads 2.21' . $thread_exit_opt . ';' .
                            'threads->create(sub {' .
                            '    exit(99);' .
                            '});' .
