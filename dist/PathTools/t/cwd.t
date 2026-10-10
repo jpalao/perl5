@@ -10,7 +10,7 @@ chdir 't';
 use Config;
 use File::Spec;
 use File::Path;
-use Errno qw(EACCES);
+use Errno qw(EACCES EPERM);
 
 use lib File::Spec->catdir('t', 'lib');
 use Test::More;
@@ -219,8 +219,7 @@ SKIP: {
             like($pas,           qr|$want$|i, "Cwd::_perl_abs_path produced $pas");
         }
         else {
-            skip "iOS: #TODO", 1 if $^O =~ /darwin-ios/;
-            is($!+0, EACCES, "check we got the expected error on failure");
+            is($!+0, $^O =~ /darwin-ios/ ? EPERM: EACCES, "check we got the expected error on failure");
         }
     }
 
