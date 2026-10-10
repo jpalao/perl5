@@ -108,7 +108,9 @@ run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
     is($?>>8, 86, "'use threads 'exit' => 'thread_only'");
 }
 
+# iOS will exit the harness without 'exit' 'thread_only'
 my $thread_exit_opt = $^O =~ /darwin-ios/ ? ' qw(exit thread_only)' : '';
+
 my $out = run_perl(prog => 'use threads 2.21' . $thread_exit_opt . ';' .
                            'threads->create(sub {' .
                            '    exit(99);' .
@@ -128,14 +130,16 @@ like($out, qr/1 finished and unjoined/, "exit(status) in thread");
 
 $out = run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
                         'threads->create(sub {' .
-                        '   threads->set_thread_exit_only(0);' .
+                        '   threads->set_thread_exit_only(' .
+                        ($^O =~ /darwin-ios/ ? '1' : '0') .
+                        ');' .
                         '   exit(99);' .
                         '});' .
                         'sleep(1);' .
                         'exit(86);',
                 nolib => ($ENV{PERL_CORE}) ? 0 : 1,
                 switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ],
-                stderr => 1) if $^O !~ /darwin-ios/;
+                stderr => 1);
 {
     local $TODO = 'exit semantics not like POSIX exit semantics'
         if $^O eq 'VMS' || $^O =~ /darwin-ios/;
@@ -144,15 +148,14 @@ $out = run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
 like($out, qr/1 finished and unjoined/, "set_thread_exit_only(0)");
 
 
-run_perl(prog => 'use threads 2.21;' .
+run_perl(prog => 'use threads 2.21' . $thread_exit_opt . ';' .
                  'threads->create(sub {' .
                  '   $SIG{__WARN__} = sub { exit(99); };' .
                  '   die();' .
                  '})->join();' .
                  'exit(86);',
          nolib => ($ENV{PERL_CORE}) ? 0 : 1,
-         switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ])
-                 if $^O !~ /darwin-ios/;
+         switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ]);
 {
     local $TODO = 'exit semantics not like POSIX exit semantics'
         if $^O eq 'VMS' || $^O =~ /darwin-ios/;
