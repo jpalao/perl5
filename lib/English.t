@@ -87,7 +87,7 @@ is( $DEBUGGING, $^D, '$DEBUGGING' );
 
 is( $WARNING, 0, '$WARNING' );
 SKIP: {
-    skip('iOS: executable name not like perl', 1);
+    skip('iOS: executable name not perl', 1) if $^O =~ /darwin-ios/;
     like( $EXECUTABLE_NAME, qr/perl/i, '$EXECUTABLE_NAME' );
 }
 is( $OSNAME, $Config{osname}, '$OSNAME' );

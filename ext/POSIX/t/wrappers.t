@@ -217,10 +217,12 @@ SKIP: {
     my $gotit = 0;
     $SIG{USR1} = sub { $gotit++ };
     is(POSIX::kill($$, 'SIGUSR1'), 1, 'kill');
-    skip('iOS: #TODO', 1);
+    skip('iOS: POSIX::kill does not deliver SIGUSR1', 1)
+        if $^O =~ /darwin-ios/;
     is($gotit, 1, 'got first signal');
     is(POSIX::raise('SIGUSR1'), 1, 'raise');
-    skip('iOS: #TODO', 1);
+    skip('iOS: POSIX::raise does not deliver SIGUSR1', 1)
+        if $^O =~ /darwin-ios/;
     is($gotit, 2, 'got second signal');
 }
 
