@@ -46,8 +46,7 @@ SKIP: {
     is( $$fake_out, $vbl_0, '-pathlist parameter' );
 }
 
-SKIP: { # Test exit status from pod2usage()
-    skip('iOS: exec() not supported', 1) if $^O =~ /darwin-ios/;
+{ # Test exit status from pod2usage()
     my $exit = ($^O eq 'VMS' ? 2 : 42);
     my $dev_null = File::Spec->devnull;
     my $args = join ", ", (

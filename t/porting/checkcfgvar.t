@@ -32,14 +32,5 @@ use TestInit qw(T A); # T is chdir to the top level, A makes paths absolute
 if ( $Config{usecrosscompile} ) {
   skip_all( "Not all files are available during cross-compilation" );
 }
-if ($^O =~ /darwin-ios/) {
-    exec_perl({
-        pwd => Cwd::getcwd(),
-        switches => ["-Ilib"],
-        progfile => "Porting/checkcfgvar.pl",
-        args => ["--tap"]
-    });
-    chdir 't' if -d 't';
-} else {
-    system "$^X -Ilib Porting/checkcfgvar.pl --tap";
-}
+
+system "$^X -Ilib Porting/checkcfgvar.pl --tap";

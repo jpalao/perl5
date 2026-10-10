@@ -71,7 +71,6 @@ SKIP: {
     is($@, '', 'can use :std and :locale');
 }
 
-SKIP:
 {
     local $ENV{PERL_UNICODE};
     delete $ENV{PERL_UNICODE};

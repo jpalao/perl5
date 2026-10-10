@@ -38,8 +38,4 @@ if ( ord("A") == 193) {
     exit 0;
 }
 
-if ($^O =~ /darwin-ios/) {
-    print `$^X  ext/Pod-Functions/Functions_pm.PL --tap pod/perlfunc.pod`
-} else  {
-    system "$^X ext/Pod-Functions/Functions_pm.PL --tap pod/perlfunc.pod";
-}
+system "$^X ext/Pod-Functions/Functions_pm.PL --tap pod/perlfunc.pod";

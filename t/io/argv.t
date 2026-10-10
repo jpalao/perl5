@@ -180,11 +180,13 @@ $x = runperl(
     args	=> [ 'tmpIo_argv1.tmp' ],
 );
 is($x, "bone\n", '<<>> and rcatline');
+
 $x = runperl(
-    prog       => 'while (<<>>) { print }',
-    stdin      => "foo\n",
+    prog	=> 'while (<<>>) { print }',
+    stdin	=> "foo\n",
 );
 is($x, "foo\n", '<<>> from just STDIN (no argument)');
+
 TODO: {
     local $::TODO = "unrelated bug in redirection implementation" if $^O eq 'VMS';
     $x = runperl(
