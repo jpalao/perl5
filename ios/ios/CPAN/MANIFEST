@@ -1,0 +1,17 @@
+ios.xs
+cb_common.pl
+lib/ios.pm
+lib/TAP/Parser/Iterator/iOS.pm
+lib/TAP/Parser/SourceHandler/iOSExecutable.pm
+lib/TAP/Parser/SourceHandler/iOSPerl.pm
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+META.yml
+ppport.h
+README
+t/00-ios.t
+t/01-embedded-make.t
+t/fixtures/Perla-Pure/Makefile.PL
+t/fixtures/Perla-Pure/lib/Perla/Pure.pm
+typemap

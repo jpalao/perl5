@@ -4,7 +4,7 @@ use warnings;
 package Perl::OSType;
 # ABSTRACT: Map Perl operating system names to generic types
 
-our $VERSION = '1.010';
+our $VERSION = '1.011';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -29,6 +29,9 @@ my %OSTYPES = qw(
   iphoneos    Unix
   irix        Unix
   darwin      Unix
+  darwin-ios       Unix
+  darwin-ios-tv    Unix
+  darwin-ios-watch Unix
   machten     Unix
   midnightbsd Unix
   minix       Unix

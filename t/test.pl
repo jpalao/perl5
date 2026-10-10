@@ -631,6 +631,7 @@ USE_OK
 my $is_mswin    = $^O eq 'MSWin32';
 my $is_vms      = $^O eq 'VMS';
 my $is_cygwin   = $^O eq 'cygwin';
+my $is_ios      = $^O =~ /darwin-ios/;
 
 sub _quote_args {
     my ($runperl, $args) = @_;
@@ -792,6 +793,9 @@ sub untaint_path {
 sub runperl {
     die "test.pl:runperl() does not take a hashref"
 	if ref $_[0] and ref $_[0] eq 'HASH';
+
+    require ios && return ios::runperl(@_) if $is_ios;
+
     my $runperl = &_create_runperl;
     my $result;
 
@@ -1716,6 +1720,8 @@ sub warning_like {
 #        _AFTER_ the 'threads' module is loaded.
 sub watchdog ($;$)
 {
+    return if $is_ios; # no alarm or kill on ios
+
     my $timeout = shift;
     my $method  = shift || "";
     my $timeout_msg = 'Test process timed out - terminating';

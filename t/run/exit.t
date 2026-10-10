@@ -66,12 +66,13 @@ if (!$vms_exit_mode) {
     skip("No POSIX wait macros", 3) unless $wait_macros_ok;
     ok(POSIX::WIFEXITED(${^CHILD_ERROR_NATIVE}), "WIFEXITED");
     ok(!POSIX::WIFSIGNALED(${^CHILD_ERROR_NATIVE}), "WIFSIGNALED");
+    skip("iOS: emulated 'system', WEXITSTATUS not set", 1) if $^O =~ /darwin-ios/;
     is(POSIX::WEXITSTATUS(${^CHILD_ERROR_NATIVE}), 42, "WEXITSTATUS");
   }
 
   SKIP: {
-    skip("Skip signals and core dump tests on Win32 and VMS", 7) 
-        if ($^O eq 'MSWin32' || $^O eq 'VMS');
+    skip("Skip signals and core dump tests on Win32 and VMS and iOS", 7)
+        if ($^O eq 'MSWin32' || $^O eq 'VMS' || $^O =~ /darwin-ios/);
 
     #TODO VMS will backtrace on this test and exits with code of 0
     #instead of 15.

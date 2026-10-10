@@ -3,6 +3,7 @@ use Test::More tests => 100;
 my $is_win32 = ($^O =~ /Win32/);
 my $is_qnx = ($^O eq 'qnx');
 my $is_vos = ($^O eq 'vos');
+my $is_ios = $^O =~ /darwin-ios/;
 
 use Time::Piece;
 use Time::Seconds;
@@ -50,6 +51,7 @@ if (defined &Win32::GetCurrentProcessId
 }
 SKIP: {
     skip "can't register TZ changes in a pseudo-fork", 2 if $is_pseudo_fork;
+    skip "iOS: can't register TZ changes", 2 if $is_ios;
     local $ENV{TZ} = "EST5";
     Time::Piece::_tzset();  # register the environment change
     my $lt = localtime;
