@@ -61,13 +61,20 @@ case "$IOS_TEST_APP" in
     harness)
         : "${HARNESS_SCHEME:=harness}"
         : "${HARNESS_PRODUCT_NAME:=harness}"
+        : "${HARNESS_PROJECT:=harness.xcodeproj}"
         ;;
     foundation-runner|runner)
         : "${HARNESS_SCHEME:=foundation-runner}"
         : "${HARNESS_PRODUCT_NAME:=foundation-runner}"
+        : "${HARNESS_PROJECT:=harness.xcodeproj}"
+        ;;
+    watch-runner)
+        : "${HARNESS_SCHEME:=watch-runner}"
+        : "${HARNESS_PRODUCT_NAME:=watch-runner}"
+        : "${HARNESS_PROJECT:=watch-runner.xcodeproj}"
         ;;
     *)
-        echo >&2 "IOS_TEST_APP must be harness, runner, or foundation-runner"
+        echo >&2 "IOS_TEST_APP must be harness, runner, foundation-runner, or watch-runner"
         exit 1
         ;;
 esac
@@ -78,11 +85,21 @@ esac
 : "${TEST_LOG_WAIT_TIMEOUT:=120}"
 
 SIMULATOR_BUILD=0
-if [ "$HARNESS_TARGET" = "iphonesimulator" ] || [[ "$ARCHS" == *x86_64* ]] || [[ "$ARCHS" == *i386* ]]; then
-    SIMULATOR_BUILD=1
-fi
+case "$HARNESS_TARGET" in
+    *simulator)
+        SIMULATOR_BUILD=1
+        ;;
+    *)
+        if [[ "$ARCHS" == *x86_64* ]] || [[ "$ARCHS" == *i386* ]]; then
+            SIMULATOR_BUILD=1
+            HARNESS_TARGET=iphonesimulator
+        fi
+        ;;
+esac
 if [ "$SIMULATOR_BUILD" -ne 0 ]; then
-    HARNESS_TARGET=iphonesimulator
+    if [ -n "${IOS_DEVICE_UUID:-}" ] && [ -z "${SIMULATOR_DEVICE_UUID:-}" ]; then
+        SIMULATOR_DEVICE_UUID="$IOS_DEVICE_UUID"
+    fi
     : "${SIMULATOR_DEVICE_UUID:=${IOS_SIMULATOR_UUID:-}}"
     if [ -z "$SIMULATOR_DEVICE_UUID" ]; then
         echo >&2 "SIMULATOR_DEVICE_UUID is unset. Set it to an available simulator UUID and try again"
@@ -274,6 +291,7 @@ check_exit_code() {
 }
 
 prepare_camelbones() {
+    [ "$BUILD_CAMELBONES" -eq 1 ] || return 0
     if [ -d "$CAMELBONES_ROOT/.git" ]; then
         echo "Using existing CamelBones checkout at $CAMELBONES_ROOT"
         return 0
@@ -286,6 +304,8 @@ prepare_perl() {
     local perl_build_dir
     local perl_revision
     local ios_harness_source
+    local watch_runner_source
+    local watch_runner_project
 
     perl_build_dir="$PERL_BUILD_DIR"
     rm -Rf "$perl_build_dir"
@@ -310,6 +330,17 @@ prepare_perl() {
         return 1
     fi
     install -m 755 "$ios_harness_source" "$perl_build_dir/t/ios_harness"
+    if [ "$IOS_TEST_APP" = "watch-runner" ]; then
+        watch_runner_source="$PERL5_SOURCE_ROOT/ios/test/watch-runner"
+        watch_runner_project="$PERL5_SOURCE_ROOT/ios/test/watch-runner.xcodeproj"
+        if [ ! -f "$watch_runner_source/WatchRunnerApp.swift" ] ||
+            [ ! -f "$watch_runner_project/project.pbxproj" ]; then
+            echo >&2 "missing watch simulator runner sources under $PERL5_SOURCE_ROOT/ios/test"
+            return 1
+        fi
+        cp -R "$watch_runner_source" "$perl_build_dir/ios/test/"
+        cp -R "$watch_runner_project" "$perl_build_dir/ios/test/"
+    fi
     perl_revision=$(git -C "$perl_build_dir" rev-parse HEAD)
     echo "Building perl5 revision $perl_revision"
 }
@@ -372,6 +403,23 @@ stage_tree_for_upload() {
     refresh_generated_config_timestamps "$upload_dir" || return 1
     echo "Perl tree staging complete."
     return 0
+}
+
+simulator_app_group_container() {
+    local simulator_data metadata identifier
+
+    simulator_data=$(xcrun simctl getenv "$1" HOME) || return 1
+    for metadata in "$simulator_data"/Containers/Shared/AppGroup/*/.com.apple.mobile_container_manager.metadata.plist; do
+        [ -f "$metadata" ] || continue
+        identifier=$(/usr/libexec/PlistBuddy -c 'Print :MCMMetadataIdentifier' "$metadata" 2>/dev/null) || continue
+        if [ "$identifier" = "$2" ]; then
+            dirname "$metadata"
+            return 0
+        fi
+    done
+
+    echo >&2 "Could not find simulator App Group container '$2'"
+    return 1
 }
 
 capture_command_output() {
@@ -572,11 +620,12 @@ test_perl_device() {
         BUILD_CAMELBONES_BOOLEAN="YES"
     fi
 
-    xcodebuild -sdk "$HARNESS_TARGET" ARCHS="$ARCHS" \
+    xcodebuild -project "$HARNESS_PROJECT" -sdk "$HARNESS_TARGET" ARCHS="$ARCHS" \
         EMBED_CAMELBONES_FRAMEWORK="$BUILD_CAMELBONES_BOOLEAN" \
         CAMELBONES_FRAMEWORK_PATH="$CAMELBONES_ROOT/CamelBones/build/Products/$CAMELBONES_BUILD_CONFIGURATION-$CAMELBONES_TARGET" \
-        IOS_FRAMEWORK_PATH="$PERL_BUILD_DIR/ios/ios/build/Products/$IOS_BUILD_CONFIGURATION-$IOS_TARGET" \
+        IOS_FRAMEWORK_PATH="$PERL_BUILD_DIR/ios/ios/Build/Products/$IOS_BUILD_CONFIGURATION-$IOS_TARGET" \
         PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5" \
+        PERL_INSTALL_PREFIX="$PERL_INSTALL_PREFIX" \
         LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
         PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
         DSTROOT="$install_root" -configuration "$HARNESS_BUILD_CONFIGURATION" \
@@ -600,14 +649,23 @@ test_perl_device() {
         copy_tree_to_device "$PERL_BUILD_DIR"
         check_exit_code
     else
-        build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
+        if [ "$HARNESS_TARGET" = "watchsimulator" ]; then
+            build_destination_dir=$(simulator_app_group_container "$IOS_DEVICE_UUID" group.net.pytm.perl.watchrunner)
+            check_exit_code $? "simulator App Group lookup"
+        else
+            build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
+            check_exit_code $? "simulator app data lookup"
+        fi
         build_destination_dir="$build_destination_dir/Documents/"
+        mkdir -p "$build_destination_dir"
         simulator_stage_dir="$TRANSFER_ROOT/simulator-stage"
         stage_tree_for_upload "$PERL_BUILD_DIR" "$simulator_stage_dir"
         check_exit_code $? "simulator tree staging"
         cp -RL "$simulator_stage_dir/." "$build_destination_dir"
         rm -Rf "$simulator_stage_dir"
         check_exit_code
+        rm -f "$build_destination_dir/perl-tests.status"
+        check_exit_code $? "clear stale simulator test status"
     fi
 
     echo "App Documents dir is '$build_destination_dir'"

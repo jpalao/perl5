@@ -7,7 +7,8 @@ ios - supporting XS code for iOS and derivatives
 =cut
 
 BEGIN {
-    die "ios.pm is only available on iOS\n" if $^O !~ /darwin-ios/;
+    die "ios.pm is only available on iOS and watchOS\n"
+        if $^O !~ /darwin-ios/ && !$ENV{PERL_APPLEWATCH};
 
     *CORE::GLOBAL::readpipe = sub {
         my $list_context = wantarray;
@@ -60,6 +61,9 @@ our @methods = (
 
 our @EXPORT = @methods;
 our @EXPORT_OK = @methods;
+
+# Keep these runner aliases synchronized with CBPerlRunnerNames in NativeMethods.m.
+my $PERL_RUNNER_NAME = qr/(?:perl(?:5(?:\.\d+)*)?|harness|foundation-runner|watch-runner-extension)/;
 
 sub is_simulator {
     return (($Config{ios_sdk} // '') =~ /simulator/) ? 1 : 0;
@@ -351,7 +355,7 @@ sub parse_test {
 
     my @command = grep defined,
         ref $t eq 'ARRAY' ? @$t : &quotewords('\s+', 0, $t);
-    shift @command while @command && $command[0] !~ /(?:perl|harness|foundation-runner)["']?$/;
+    shift @command while @command && $command[0] !~ /$PERL_RUNNER_NAME["']?$/;
     shift @command;
 
     my $file_index;
@@ -402,7 +406,7 @@ sub parse_cli {
         &quotewords('\s+', 0, $cli);
     my $interpreter_name = basename($^X // '');
     shift @cmd_words while @cmd_words
-        && basename($cmd_words[0]) !~ /^(?:perl(?:5(?:\.\d+)*)?|harness|foundation-runner)$/
+        && basename($cmd_words[0]) !~ /\A$PERL_RUNNER_NAME\z/
         && basename($cmd_words[0]) ne $interpreter_name;
     shift @cmd_words if @cmd_words;
     print Dumper("\@cmd_words", "@cmd_words") if $DEBUG;
@@ -729,7 +733,7 @@ sub _run_make_recipe {
         $status = $status >> 8 if defined $status && $status > 255;
         return defined $status ? $status : 1;
     }
-    if ($name =~ /^(?:perl(?:5(?:\.\d+)*)?|harness|foundation-runner)$/) {
+    if ($name =~ /\A$PERL_RUNNER_NAME\z/) {
         my ($redirect_mode, $redirect_file);
         if (@words >= 2 && $words[-2] =~ /^>{1,2}$/) {
             $redirect_file = pop @words;

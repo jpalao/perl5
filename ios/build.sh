@@ -43,6 +43,7 @@ elif [ $PERL_APPLEWATCH -ne 0 ]; then
   DEVICE_SDK_PATH="$WATCHOS_DEVICE_SDK_PATH"
   SIMULATOR_SDK_PATH="$WATCHOS_SIMULATOR_SDK_PATH"
   PERL_PLATFORM_TAG="PERL_APPLEWATCH"
+  export PERL_IOS=1
 else
   PLATFORM_TAG="iphone"
   DEVICE_SDK_PATH="$IOS_DEVICE_SDK_PATH"
@@ -236,10 +237,12 @@ build_perl() {
       build_camelbones_framework
   fi
 
-  mkdir -p $CAMELBONES_CPAN_DIR
-  chmod -R +w $CAMELBONES_CPAN_DIR
-  echo cp -R "$CAMELBONES_FRAMEWORK_DIR/CPAN/." $CAMELBONES_CPAN_DIR/
-  cp -R "$CAMELBONES_FRAMEWORK_DIR/CPAN/." $CAMELBONES_CPAN_DIR/
+  if [ $BUILD_CAMELBONES -eq 1 ]; then
+    mkdir -p "$CAMELBONES_CPAN_DIR"
+    chmod -R +w "$CAMELBONES_CPAN_DIR"
+    echo cp -R "$CAMELBONES_FRAMEWORK_DIR/CPAN/." "$CAMELBONES_CPAN_DIR/"
+    cp -R "$CAMELBONES_FRAMEWORK_DIR/CPAN/." "$CAMELBONES_CPAN_DIR/"
+  fi
 
   DYLD_LIBRARY_PATH=`pwd` ./miniperl -Ilib make_ext.pl ext/ios/pm_to_blib  MAKE="$XCODE_DEVELOPER_PATH/usr/bin/make" LIBPERL_A=libperl.dylib
   check_exit_code
@@ -282,7 +285,7 @@ delete_installed_perl() {
 check_exit_code() {
   status=${1:-$?}
   if [ "$status" -ne 0 ]; then
-    echo "Failed to build perl for iOS"
+    echo "Failed to build perl for Apple platform $PLATFORM_TAG"
     exit "$status"
   fi
 }
@@ -292,14 +295,30 @@ build_ios_framework() {
     check_exit_code
 
     local framework_other_cflags=""
+    local framework_scheme="$IOS_TARGET"
     if [ "$SIMULATOR_BUILD" -ne 0 ]; then
       framework_other_cflags="-DNO_LOCALE"
     fi
 
-    xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" OTHER_CFLAGS="$framework_other_cflags" PERL_DIST_PATH="$PERL_BUILD_DIR" \
-    LIBPERL_PATH="$PERL_BUILD_DIR" \
-    PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
-    -scheme "$IOS_TARGET"
+    if [ $PERL_APPLEWATCH -ne 0 ]; then
+      case "$IOS_PLATFORM" in
+        watchsimulator) framework_scheme="iphonesimulator" ;;
+        watchos) framework_scheme="iphoneos" ;;
+      esac
+      xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" VALID_ARCHS="$ARCHS" \
+      OTHER_CFLAGS="$framework_other_cflags" PERL_DIST_PATH="$PERL_BUILD_DIR" \
+      LIBPERL_PATH="$PERL_BUILD_DIR" PERL_VERSION="$PERL_VERSION" \
+      HEADER_SEARCH_PATHS="$PERL_BUILD_DIR" \
+      OTHER_LDFLAGS="-L$PERL_BUILD_DIR -lperl" \
+      ONLY_ACTIVE_ARCH=NO SUPPORTED_PLATFORMS="$IOS_PLATFORM" \
+      WATCHOS_DEPLOYMENT_TARGET="$MIN_VERSION" TARGETED_DEVICE_FAMILY=4 \
+      -configuration "${IOS_BUILD_CONFIGURATION:-Debug}" -scheme "$framework_scheme"
+    else
+      xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" \
+      OTHER_CFLAGS="$framework_other_cflags" PERL_DIST_PATH="$PERL_BUILD_DIR" \
+      LIBPERL_PATH="$PERL_BUILD_DIR" PERL_VERSION="$PERL_VERSION" \
+      ONLY_ACTIVE_ARCH=NO -scheme "$framework_scheme"
+    fi
     check_exit_code
     popd
 }

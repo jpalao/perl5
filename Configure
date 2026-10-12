@@ -3083,17 +3083,31 @@ case "$targethost" in
 				exit 1
 				;;
 			esac
+			case "$IOS_PLATFORM" in
+			watchsimulator)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-watchos$IOS_DEPLOYMENT_TARGET-simulator"
+				IOS_MIN_VERSION_FLAG="-mwatchos-version-min"
+				;;
+			watchos)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-watchos$IOS_DEPLOYMENT_TARGET"
+				IOS_MIN_VERSION_FLAG="-mwatchos-version-min"
+				;;
+			*)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-ios$IOS_DEPLOYMENT_TARGET"
+				IOS_MIN_VERSION_FLAG="-miphoneos-version-min"
+				;;
+			esac
 			case "$ccflags" in
 			*"-target "*) ;;
-			*) ccflags="$ccflags -target $IOS_ARCH-apple-ios$IOS_DEPLOYMENT_TARGET" ;;
+			*) ccflags="$ccflags -target $IOS_TARGET_TRIPLE" ;;
 			esac
 			case "$ccflags" in
 			*"-isysroot "*) ;;
 			*) ccflags="$ccflags -isysroot $IOS_SDKROOT" ;;
 			esac
 			case "$ccflags" in
-			*"-miphoneos-version-min="*) ;;
-			*) ccflags="$ccflags -miphoneos-version-min=$IOS_DEPLOYMENT_TARGET" ;;
+			*"$IOS_MIN_VERSION_FLAG="*) ;;
+			*) ccflags="$ccflags $IOS_MIN_VERSION_FLAG=$IOS_DEPLOYMENT_TARGET" ;;
 			esac
 			case "$ccflags" in
 			*"-arch "*) ;;
@@ -3101,15 +3115,15 @@ case "$targethost" in
 			esac
 			case "$ldflags" in
 			*"-target "*) ;;
-			*) ldflags="$ldflags -target $IOS_ARCH-apple-ios$IOS_DEPLOYMENT_TARGET" ;;
+			*) ldflags="$ldflags -target $IOS_TARGET_TRIPLE" ;;
 			esac
 			case "$ldflags" in
 			*"-isysroot "*) ;;
 			*) ldflags="$ldflags -isysroot $IOS_SDKROOT" ;;
 			esac
 			case "$ldflags" in
-			*"-miphoneos-version-min="*) ;;
-			*) ldflags="$ldflags -miphoneos-version-min=$IOS_DEPLOYMENT_TARGET" ;;
+			*"$IOS_MIN_VERSION_FLAG="*) ;;
+			*) ldflags="$ldflags $IOS_MIN_VERSION_FLAG=$IOS_DEPLOYMENT_TARGET" ;;
 			esac
 			case "$ldflags" in
 			*"-arch "*) ;;
@@ -25945,4 +25959,3 @@ $rm -f kit*isdone ark*isdone
 $rm -rf UU
 
 : End of Configure
-

@@ -1,0 +1,421 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		200000000000000000000001 /* WatchRunnerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000001 /* WatchRunnerApp.swift */; };
+		200000000000000000000002 /* WatchRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000002 /* WatchRunner.m */; };
+		200000000000000000000003 /* watch-runner-extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 300000000000000000000006 /* watch-runner-extension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		300000000000000000000001 /* WatchRunnerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRunnerApp.swift; sourceTree = "<group>"; };
+		300000000000000000000002 /* WatchRunner.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WatchRunner.m; sourceTree = "<group>"; };
+		300000000000000000000003 /* WatchRunner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WatchRunner.h; sourceTree = "<group>"; };
+		300000000000000000000004 /* WatchRunner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "WatchRunner-Bridging-Header.h"; sourceTree = "<group>"; };
+		300000000000000000000005 /* watch-runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "watch-runner.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		300000000000000000000006 /* watch-runner-extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "watch-runner-extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		400000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		400000000000000000000002 /* App Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		600000000000000000000006 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				200000000000000000000003 /* watch-runner-extension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		600000000000000000000009 /* Container proxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 800000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 600000000000000000000005;
+			remoteInfo = "watch-runner-extension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXGroup section */
+		500000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				500000000000000000000002 /* watch-runner */,
+				500000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		500000000000000000000002 /* watch-runner */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000001 /* WatchRunnerApp.swift */,
+				300000000000000000000002 /* WatchRunner.m */,
+				300000000000000000000003 /* WatchRunner.h */,
+				300000000000000000000004 /* WatchRunner-Bridging-Header.h */,
+			);
+			path = "watch-runner";
+			sourceTree = "<group>";
+		};
+		500000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000005 /* watch-runner.app */,
+				300000000000000000000006 /* watch-runner-extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		600000000000000000000001 /* watch-runner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 700000000000000000000002 /* Build configuration list for PBXNativeTarget "watch-runner" */;
+			buildPhases = (
+				60000000000000000000000A /* App Sources */,
+				400000000000000000000002 /* App Frameworks */,
+				600000000000000000000003 /* Resources */,
+				600000000000000000000006 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				600000000000000000000008 /* PBXTargetDependency */,
+			);
+			name = "watch-runner";
+			productName = "watch-runner";
+			productReference = 300000000000000000000005 /* watch-runner.app */;
+			productType = "com.apple.product-type.application.watchapp2";
+		};
+		600000000000000000000005 /* watch-runner-extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 700000000000000000000007 /* Build configuration list for PBXNativeTarget "watch-runner-extension" */;
+			buildPhases = (
+				600000000000000000000002 /* Sources */,
+				400000000000000000000001 /* Frameworks */,
+				60000000000000000000000B /* Extension Resources */,
+				600000000000000000000004 /* Prepare Perl runtime */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "watch-runner-extension";
+			productName = "watch-runner-extension";
+			productReference = 300000000000000000000006 /* watch-runner-extension.appex */;
+			productType = "com.apple.product-type.watchkit2-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		800000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					600000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					600000000000000000000005 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 700000000000000000000001 /* Build configuration list for PBXProject "watch-runner" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 500000000000000000000001;
+			productRefGroup = 500000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				600000000000000000000001 /* watch-runner */,
+				600000000000000000000005 /* watch-runner-extension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		600000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60000000000000000000000A /* App Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60000000000000000000000B /* Extension Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		600000000000000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 600000000000000000000005 /* watch-runner-extension */;
+			targetProxy = 600000000000000000000009 /* Container proxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		600000000000000000000004 /* Prepare Perl runtime */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "sh \"$PROJECT_DIR/watch-runner/prepare-runtime.sh\"\n";
+			showEnvVarsInLog = 1;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		600000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				200000000000000000000001 /* WatchRunnerApp.swift in Sources */,
+				200000000000000000000002 /* WatchRunner.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		700000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = x86_64;
+				CODE_SIGN_ENTITLEMENTS = "watch-runner/WatchRunnerApp.entitlements";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleVersion = 1;
+				INFOPLIST_KEY_CFBundleShortVersionString = 1.0;
+				INFOPLIST_KEY_CFBundleDisplayName = "Perl Watch Test Runner";
+				MARKETING_VERSION = 1.0;
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.watchrunner;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		700000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = x86_64;
+				CODE_SIGN_ENTITLEMENTS = "watch-runner/WatchRunnerApp.entitlements";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleVersion = 1;
+				INFOPLIST_KEY_CFBundleShortVersionString = 1.0;
+				INFOPLIST_KEY_CFBundleDisplayName = "Perl Watch Test Runner";
+				MARKETING_VERSION = 1.0;
+				INFOPLIST_KEY_WKWatchKitApp = YES;
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.watchrunner;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		700000000000000000000008 /* Extension Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = x86_64;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_ENTITLEMENTS = "watch-runner/WatchRunnerExtension.entitlements";
+				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(IOS_FRAMEWORK_PATH)";
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(IOS_FRAMEWORK_PATH)/ios.framework/Headers",
+					"$(LIBPERL_PATH)",
+				);
+				INFOPLIST_FILE = "watch-runner/WatchRunnerExtension-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					ios,
+				);
+				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
+				PERL_VERSION = 5.37.2;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.watchrunner.extension;
+				PRODUCT_NAME = "watch-runner-extension";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_OBJC_BRIDGING_HEADER = "watch-runner/WatchRunner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		700000000000000000000009 /* Extension Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = x86_64;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_ENTITLEMENTS = "watch-runner/WatchRunnerExtension.entitlements";
+				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(IOS_FRAMEWORK_PATH)";
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(IOS_FRAMEWORK_PATH)/ios.framework/Headers",
+					"$(LIBPERL_PATH)",
+				);
+				INFOPLIST_FILE = "watch-runner/WatchRunnerExtension-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					ios,
+				);
+				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
+				PERL_VERSION = 5.37.2;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.watchrunner.extension;
+				PRODUCT_NAME = "watch-runner-extension";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_OBJC_BRIDGING_HEADER = "watch-runner/WatchRunner-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		700000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				SDKROOT = watchos;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		700000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				SDKROOT = watchos;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		700000000000000000000001 /* Build configuration list for PBXProject "watch-runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				700000000000000000000005 /* Debug */,
+				700000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		700000000000000000000002 /* Build configuration list for PBXNativeTarget "watch-runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				700000000000000000000003 /* Debug */,
+				700000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		700000000000000000000007 /* Build configuration list for PBXNativeTarget "watch-runner-extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				700000000000000000000008 /* Extension Debug */,
+				700000000000000000000009 /* Extension Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 800000000000000000000001 /* Project object */;
+}

@@ -11,7 +11,8 @@ my $test = 0;
 my $otool = "/usr/bin/otool";
 my $install_name_tool = "/usr/bin/install_name_tool";
 
-my ($PRODUCT_NAME, $TARGET_BUILD_DIR, $TARGET_NAME, $SOURCE_PREFIX, $SIGN_ID) = @ARGV;
+my ($PRODUCT_NAME, $TARGET_BUILD_DIR, $TARGET_NAME, $SOURCE_PREFIX, $SIGN_ID, $PRODUCT_BUNDLE_PATH) = @ARGV;
+$PRODUCT_BUNDLE_PATH ||= "$TARGET_BUILD_DIR/$PRODUCT_NAME.app";
 
 print "\$PRODUCT_NAME: $PRODUCT_NAME\n";
 print "\$TARGET_BUILD_DIR: $TARGET_BUILD_DIR\n";
@@ -22,9 +23,9 @@ print "\$SIGN_ID: $SIGN_ID\n";
 my $SOURCE_PREFIX_REGEX = qr|^$SOURCE_PREFIX|;
 my $BINARY_MATCH = qr "|^$SOURCE_PREFIX.*(?:dylib|bundle)$|";
 
-my $TARGET_BIN_DIR = "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/";
-my $TARGET_FRAMEWORK_DIR = "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Frameworks";
-my $TARGET_PERLIBDIR_DIR = "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/perl5";
+my $TARGET_BIN_DIR = "$PRODUCT_BUNDLE_PATH/";
+my $TARGET_FRAMEWORK_DIR = "$PRODUCT_BUNDLE_PATH/Frameworks";
+my $TARGET_PERLIBDIR_DIR = "$PRODUCT_BUNDLE_PATH/perl5";
 
 my $perl_dependencies = find_perl_dependencies();
 
