@@ -374,7 +374,8 @@ SKIP: {
 
     SKIP: {
         skip "Test uses unixisms", 2 if $Is_MSWin32;
-        skip "No TTY to test -t with", 2 unless -e $TTY;
+        # iOS simulator can see the device but cannot use it
+        skip "No TTY to test -t with", 2 unless (-e $TTY && !$Is_Ios);
 
         open(TTY, $TTY) ||
           warn "Can't open $TTY--run t/TEST outside of make.\n";

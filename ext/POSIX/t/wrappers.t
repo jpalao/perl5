@@ -146,6 +146,7 @@ is_deeply([POSIX::stat($temp_file)], [stat $temp_file], 'stat');
 
 is(POSIX::strstr('BBFRPRAFPGHPP', 'FP'), 7, 'strstr');
 SKIP: {
+    skip('iOS: system() cannot launch CLI commands', 1) if $^O =~ /darwin-ios/;
     my $true;
     foreach (qw(/bin/true /usr/bin/true)) {
 	if (-x $_) {

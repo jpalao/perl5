@@ -91,7 +91,8 @@ else {
 
 chdir $tmpdir;
 
-`/bin/rm -rf a b c x` if -x '/bin/rm';
+`/bin/rm -rf a b c x` if -x '/bin/rm'
+    && $^O !~ /darwin-ios/;
 
 umask(022);
 
