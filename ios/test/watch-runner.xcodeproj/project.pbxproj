@@ -214,7 +214,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "sh \"$PROJECT_DIR/watch-runner/prepare-runtime.sh\"\n";
+			shellScript = "sh \"$PROJECT_DIR/prepare-runtime.sh\"\n";
 			showEnvVarsInLog = 1;
 		};
 /* End PBXShellScriptBuildPhase section */

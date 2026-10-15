@@ -1,0 +1,272 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A70000000000000000000001 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A70000000000000000000011 /* main.m */; };
+		A70000000000000000000002 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A70000000000000000000012 /* Foundation.framework */; };
+		A70000000000000000000003 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A70000000000000000000013 /* UIKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A70000000000000000000011 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "foundation-runner/main.m"; sourceTree = SOURCE_ROOT; };
+		A70000000000000000000012 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		A70000000000000000000013 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		A70000000000000000000014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "appletv-runner/Info.plist"; sourceTree = SOURCE_ROOT; };
+		A70000000000000000000015 /* appletv-runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "appletv-runner.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A70000000000000000000031 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A70000000000000000000002 /* Foundation.framework in Frameworks */,
+				A70000000000000000000003 /* UIKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A70000000000000000000020 = {
+			isa = PBXGroup;
+			children = (
+				A70000000000000000000011 /* main.m */,
+				A70000000000000000000012 /* Foundation.framework */,
+				A70000000000000000000013 /* UIKit.framework */,
+				A70000000000000000000014 /* Info.plist */,
+				A70000000000000000000021 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A70000000000000000000021 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A70000000000000000000015 /* appletv-runner.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A70000000000000000000040 /* appletv-runner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000063 /* Build configuration list for PBXNativeTarget "appletv-runner" */;
+			buildPhases = (
+				A70000000000000000000030 /* Sources */,
+				A70000000000000000000031 /* Frameworks */,
+				A70000000000000000000032 /* Resources */,
+				A70000000000000000000033 /* Prepare Perl runtime */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "appletv-runner";
+			productName = "appletv-runner";
+			productReference = A70000000000000000000015 /* appletv-runner.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A70000000000000000000050 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A70000000000000000000040 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = A70000000000000000000060 /* Build configuration list for PBXProject "appletv-runner" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A70000000000000000000020;
+			productRefGroup = A70000000000000000000021 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A70000000000000000000040 /* appletv-runner */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A70000000000000000000032 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A70000000000000000000033 /* Prepare Perl runtime */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "sh \"$PROJECT_DIR/prepare-runtime.sh\"\n";
+			showEnvVarsInLog = 1;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A70000000000000000000030 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A70000000000000000000001 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A70000000000000000000061 /* Debug Project */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				SDKROOT = appletvos;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
+			};
+			name = Debug;
+		};
+		A70000000000000000000062 /* Release Project */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				SDKROOT = appletvos;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
+			};
+			name = Release;
+		};
+		A70000000000000000000064 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6555P83K4D;
+				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(LIBPERL_PATH)",
+					"$(IOS_FRAMEWORK_PATH)/ios.framework/Headers",
+				);
+				INFOPLIST_FILE = "appletv-runner/Info.plist";
+				IOS_FRAMEWORK_PATH = "$(PROJECT_DIR)/../ios/Build/Products/Debug-$(PLATFORM_NAME)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
+				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"ios",
+				);
+				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local-$(PLATFORM_NAME)-$(TVOS_DEPLOYMENT_TARGET)";
+				PERL_VERSION = 5.37.2;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.appletv;
+				PRODUCT_NAME = "appletv-runner";
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
+			};
+			name = Debug;
+		};
+		A70000000000000000000065 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6555P83K4D;
+				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(LIBPERL_PATH)",
+					"$(IOS_FRAMEWORK_PATH)/ios.framework/Headers",
+				);
+				INFOPLIST_FILE = "appletv-runner/Info.plist";
+				IOS_FRAMEWORK_PATH = "$(PROJECT_DIR)/../ios/Build/Products/Release-$(PLATFORM_NAME)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
+				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"ios",
+				);
+				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local-$(PLATFORM_NAME)-$(TVOS_DEPLOYMENT_TARGET)";
+				PERL_VERSION = 5.37.2;
+				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.appletv;
+				PRODUCT_NAME = "appletv-runner";
+				SKIP_INSTALL = NO;
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 12.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A70000000000000000000060 /* Build configuration list for PBXProject "appletv-runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A70000000000000000000061 /* Debug Project */,
+				A70000000000000000000062 /* Release Project */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000063 /* Build configuration list for PBXNativeTarget "appletv-runner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A70000000000000000000064 /* Debug */,
+				A70000000000000000000065 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A70000000000000000000050 /* Project object */;
+}

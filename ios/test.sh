@@ -10,18 +10,21 @@ if [ -e $HOME/perl5/perlbrew/etc/bashrc ];
     else echo "$HOME/perl5/perlbrew/etc/bashrc not found" && exit 0;
 fi
 
-if [ -n "${IOS_SETUP_FILE:-}" ] && [ -e "$IOS_SETUP_FILE" ];
-    then source "$IOS_SETUP_FILE";
+if [ -n "${IOS_SETUP_FILE:-}" ]; then
+    if [ ! -f "$IOS_SETUP_FILE" ]; then
+        echo >&2 "IOS_SETUP_FILE does not name a file: $IOS_SETUP_FILE"
+        exit 1
+    fi
+    source "$IOS_SETUP_FILE"
 elif [ -e "$WORKDIR/setup_test.sh" ];
     then source "$WORKDIR/setup_test.sh";
 elif [ -e "$SCRIPT_DIR/setup_test.sh" ];
     then source "$SCRIPT_DIR/setup_test.sh";
 fi
 
-if [ -z ${IOS_DEVICE_UUID+x} ] && [ -z ${SIMULATOR_DEVICE_UUID+x} ] && [ -z ${IOS_SIMULATOR_UUID+x} ];
-    then echo "IOS_DEVICE_UUID or SIMULATOR_DEVICE_UUID is unset. Please set one and try again" && exit 0;
-    elif [ -n "${IOS_DEVICE_UUID:-}" ]; then echo "IOS_DEVICE_UUID is set to '$IOS_DEVICE_UUID'";
-    else echo "Simulator UUID is set";
+if [ -z "${IOS_DEVICE_UUID:-${SIMULATOR_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}" ];
+    then echo "IOS_DEVICE_UUID or a simulator UUID is unset. Please set it and try again" && exit 1;
+    else echo "IOS_DEVICE_UUID is set to '$IOS_DEVICE_UUID'";
 fi
 
 if [ -z ${HARNESS_APP_ID+x} ];
@@ -46,6 +49,41 @@ if [ -z "${INSTALL_DIR:-}" ]; then
     INSTALL_DIR_DEFAULTED=1
 fi
 : "${ARCHS:=arm64}"
+: "${HARNESS_TARGET:=iphoneos}"
+
+: "${SIMULATOR_BUILD:=0}"
+case "$HARNESS_TARGET" in
+    *simulator)
+        SIMULATOR_BUILD=1
+        ;;
+    *)
+        case "$ARCHS" in
+            *x86_64*|*i386*)
+                case "$HARNESS_TARGET" in
+                    appletvos) HARNESS_TARGET=appletvsimulator ;;
+                    watchos) HARNESS_TARGET=watchsimulator ;;
+                    *) HARNESS_TARGET=iphonesimulator ;;
+                esac
+                SIMULATOR_BUILD=1
+                ;;
+        esac
+        ;;
+esac
+if [ "$SIMULATOR_BUILD" -eq 1 ]; then
+    : "${SIMULATOR_DEVICE_UUID:=${IOS_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}"
+    if [ -z "$SIMULATOR_DEVICE_UUID" ]; then
+        echo >&2 "SIMULATOR_DEVICE_UUID is unset. Set it to an available simulator UUID and try again"
+        exit 1
+    fi
+    IOS_DEVICE_UUID="$SIMULATOR_DEVICE_UUID"
+    DEVICE_TRANSPORT=simulator
+fi
+
+BUILD_SCOPE="$HARNESS_TARGET-$IOS_DEPLOYMENT_TARGET"
+if [ "$INSTALL_DIR_DEFAULTED" -eq 1 ]; then
+    INSTALL_DIR="local-$BUILD_SCOPE"
+fi
+export INSTALL_DIR
 
 : "${CAMELBONES_GIT:=https://github.com/jpalao/camelbones.git}"
 : "${CAMELBONES_BRANCH:=original}"
@@ -54,9 +92,18 @@ fi
 
 : "${PERL_IOS_PREFIX:=$WORKDIR}"
 
-: "${HARNESS_TARGET:=iphoneos}"
 : "${HARNESS_BUILD_CONFIGURATION:=Debug}"
-: "${IOS_TEST_APP:=foundation-runner}"
+case "$HARNESS_TARGET" in
+    appletvos|appletvsimulator)
+        : "${IOS_TEST_APP:=appletv-runner}"
+        ;;
+    watchsimulator)
+        : "${IOS_TEST_APP:=watch-runner}"
+        ;;
+    *)
+        : "${IOS_TEST_APP:=foundation-runner}"
+        ;;
+esac
 case "$IOS_TEST_APP" in
     harness)
         : "${HARNESS_SCHEME:=harness}"
@@ -68,13 +115,25 @@ case "$IOS_TEST_APP" in
         : "${HARNESS_PRODUCT_NAME:=foundation-runner}"
         : "${HARNESS_PROJECT:=harness.xcodeproj}"
         ;;
+    appletv-runner)
+        case "$HARNESS_TARGET" in
+            appletvos|appletvsimulator) ;;
+            *)
+                echo >&2 "appletv-runner requires HARNESS_TARGET=appletvos or appletvsimulator"
+                exit 1
+                ;;
+        esac
+        : "${HARNESS_SCHEME:=appletv-runner}"
+        : "${HARNESS_PRODUCT_NAME:=appletv-runner}"
+        : "${HARNESS_PROJECT:=appletv-runner.xcodeproj}"
+        ;;
     watch-runner)
         : "${HARNESS_SCHEME:=watch-runner}"
         : "${HARNESS_PRODUCT_NAME:=watch-runner}"
         : "${HARNESS_PROJECT:=watch-runner.xcodeproj}"
         ;;
     *)
-        echo >&2 "IOS_TEST_APP must be harness, runner, foundation-runner, or watch-runner"
+        echo >&2 "IOS_TEST_APP must be harness, runner, foundation-runner, watch-runner, or appletv-runner"
         exit 1
         ;;
 esac
@@ -84,40 +143,13 @@ esac
 : "${AUTO_LAUNCH:=1}"
 : "${TEST_LOG_WAIT_TIMEOUT:=120}"
 
-SIMULATOR_BUILD=0
-case "$HARNESS_TARGET" in
-    *simulator)
-        SIMULATOR_BUILD=1
-        ;;
-    *)
-        if [[ "$ARCHS" == *x86_64* ]] || [[ "$ARCHS" == *i386* ]]; then
-            SIMULATOR_BUILD=1
-            HARNESS_TARGET=iphonesimulator
-        fi
-        ;;
-esac
-if [ "$SIMULATOR_BUILD" -ne 0 ]; then
-    if [ -n "${IOS_DEVICE_UUID:-}" ] && [ -z "${SIMULATOR_DEVICE_UUID:-}" ]; then
-        SIMULATOR_DEVICE_UUID="$IOS_DEVICE_UUID"
-    fi
-    : "${SIMULATOR_DEVICE_UUID:=${IOS_SIMULATOR_UUID:-}}"
-    if [ -z "$SIMULATOR_DEVICE_UUID" ]; then
-        echo >&2 "SIMULATOR_DEVICE_UUID is unset. Set it to an available simulator UUID and try again"
-        exit 1
-    fi
-    IOS_DEVICE_UUID="$SIMULATOR_DEVICE_UUID"
-fi
-
-BUILD_SCOPE="$HARNESS_TARGET-$IOS_DEPLOYMENT_TARGET"
-if [ "$INSTALL_DIR_DEFAULTED" -eq 1 ]; then
-    INSTALL_DIR="local-$BUILD_SCOPE"
-fi
-export INSTALL_DIR
-
 PERL_INSTALL_PREFIX="$WORKDIR/$INSTALL_DIR"
 PERL_BUILD_DIR="$WORKDIR/perl-$PERL_VERSION-$HARNESS_TARGET-$IOS_DEPLOYMENT_TARGET"
 export PERL_BUILD_DIR
-REMOTE_DOCUMENTS_DIR="Documents"
+REMOTE_TEST_DATA_DIR="Documents"
+if [ "$IOS_TEST_APP" = "appletv-runner" ]; then
+    REMOTE_TEST_DATA_DIR="Library/Caches"
+fi
 TEST_STATUS_SOURCE=""
 TRANSFER_TRANSPORT=""
 DEVICECTL_AVAILABLE=0
@@ -155,7 +187,6 @@ export OVERWRITE_IOS_FRAMEWORK=0
 export ARCHS="$ARCHS"
 export PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5"
 export LIBPERL_PATH="$PERL_BUILD_DIR"
-mkdir -p "$TRANSFER_ROOT"
 
 use_perlbrew() {
     if ! perlbrew use "perl-$PERL_VERSION"; then
@@ -198,8 +229,8 @@ check_dependencies() {
         }
     done
 
-    if [ "$SIMULATOR_BUILD" -ne 0 ]; then
-        TRANSFER_TRANSPORT="simulator"
+    if [ "$SIMULATOR_BUILD" -eq 1 ]; then
+        TRANSFER_TRANSPORT=simulator
         echo "Using simulator $SIMULATOR_DEVICE_UUID"
         return 0
     fi
@@ -296,22 +327,24 @@ prepare_camelbones() {
         echo "Using existing CamelBones checkout at $CAMELBONES_ROOT"
         return 0
     fi
-    rm -Rf "$CAMELBONES_ROOT"
     git clone --single-branch --branch "$CAMELBONES_BRANCH" "$CAMELBONES_GIT" "$CAMELBONES_ROOT"
 }
 
 prepare_perl() {
     local perl_build_dir
     local perl_revision
+    local local_patch
     local ios_harness_source
+    local appletv_runner_source
+    local appletv_runner_project
     local watch_runner_source
     local watch_runner_project
+    local prepare_runtime_source
 
     perl_build_dir="$PERL_BUILD_DIR"
     rm -Rf "$perl_build_dir"
     git clone --no-checkout "$PERL5_SOURCE_ROOT" "$perl_build_dir"
     git -C "$perl_build_dir" checkout --detach "$PERL5_REVISION"
-    local local_patch
     local_patch=$(mktemp "${TMPDIR:-/tmp}/perl-ios-source-diff.XXXXXX")
     if ! git -C "$PERL5_SOURCE_ROOT" diff --binary HEAD -- > "$local_patch"; then
         rm -f "$local_patch"
@@ -329,17 +362,33 @@ prepare_perl() {
         echo >&2 "missing iOS harness source: $ios_harness_source"
         return 1
     fi
-    install -m 755 "$ios_harness_source" "$perl_build_dir/t/ios_harness"
-    if [ "$IOS_TEST_APP" = "watch-runner" ]; then
-        watch_runner_source="$PERL5_SOURCE_ROOT/ios/test/watch-runner"
-        watch_runner_project="$PERL5_SOURCE_ROOT/ios/test/watch-runner.xcodeproj"
-        if [ ! -f "$watch_runner_source/WatchRunnerApp.swift" ] ||
-            [ ! -f "$watch_runner_project/project.pbxproj" ]; then
-            echo >&2 "missing watch simulator runner sources under $PERL5_SOURCE_ROOT/ios/test"
+    install -m 755 "$ios_harness_source" "$perl_build_dir/t/ios_harness" || return 1
+    if [ "$IOS_TEST_APP" = "appletv-runner" ]; then
+        appletv_runner_source="$PERL5_SOURCE_ROOT/ios/test/appletv-runner"
+        appletv_runner_project="$PERL5_SOURCE_ROOT/ios/test/appletv-runner.xcodeproj"
+        prepare_runtime_source="$PERL5_SOURCE_ROOT/ios/test/prepare-runtime.sh"
+        if [ ! -f "$appletv_runner_source/Info.plist" ] ||
+            [ ! -f "$appletv_runner_project/project.pbxproj" ] ||
+            [ ! -f "$prepare_runtime_source" ]; then
+            echo >&2 "missing Apple TV runner or shared runtime packaging sources"
             return 1
         fi
-        cp -R "$watch_runner_source" "$perl_build_dir/ios/test/"
-        cp -R "$watch_runner_project" "$perl_build_dir/ios/test/"
+        cp -R "$appletv_runner_source" "$perl_build_dir/ios/test/" || return 1
+        cp -R "$appletv_runner_project" "$perl_build_dir/ios/test/" || return 1
+        install -m 755 "$prepare_runtime_source" "$perl_build_dir/ios/test/prepare-runtime.sh" || return 1
+    elif [ "$IOS_TEST_APP" = "watch-runner" ]; then
+        watch_runner_source="$PERL5_SOURCE_ROOT/ios/test/watch-runner"
+        watch_runner_project="$PERL5_SOURCE_ROOT/ios/test/watch-runner.xcodeproj"
+        prepare_runtime_source="$PERL5_SOURCE_ROOT/ios/test/prepare-runtime.sh"
+        if [ ! -f "$watch_runner_source/WatchRunnerApp.swift" ] ||
+            [ ! -f "$watch_runner_project/project.pbxproj" ] ||
+            [ ! -f "$prepare_runtime_source" ]; then
+            echo >&2 "missing Watch runner or shared runtime packaging sources"
+            return 1
+        fi
+        cp -R "$watch_runner_source" "$perl_build_dir/ios/test/" || return 1
+        cp -R "$watch_runner_project" "$perl_build_dir/ios/test/" || return 1
+        install -m 755 "$prepare_runtime_source" "$perl_build_dir/ios/test/prepare-runtime.sh" || return 1
     fi
     perl_revision=$(git -C "$perl_build_dir" rev-parse HEAD)
     echo "Building perl5 revision $perl_revision"
@@ -396,6 +445,7 @@ stage_tree_for_upload() {
         --exclude 'build/' \
         --exclude '/ios/test/Build/' \
         --exclude '*.bundle' \
+        --include '/config.sh' \
         "$source_dir/" "$upload_dir/"; then
         echo >&2 "rsync staging failed for $source_dir"
         return 1
@@ -426,6 +476,7 @@ capture_command_output() {
     local output_file="$TRANSFER_ROOT/command-output.log"
     local status
 
+    mkdir -p "$TRANSFER_ROOT"
     rm -f "$output_file"
     "$@" >"$output_file" 2>&1
     status=$?
@@ -438,7 +489,7 @@ capture_command_output() {
 
 upload_tree_with_devicectl() {
     local source_dir="$1"
-    local upload_dir="$TRANSFER_ROOT/upload"
+    local upload_dir="$TRANSFER_ROOT/device-transfer-upload"
     local status
 
     stage_tree_for_upload "$source_dir" "$upload_dir"
@@ -447,14 +498,14 @@ upload_tree_with_devicectl() {
         rm -Rf "$upload_dir"
         return "$status"
     fi
-    echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with devicectl..."
+    echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_TEST_DATA_DIR with devicectl..."
     capture_command_output xcrun devicectl device copy to \
         --device "$IOS_DEVICE_UUID" \
         --user mobile \
         --domain-type appDataContainer \
         --domain-identifier "$HARNESS_APP_ID" \
         --source "$upload_dir" \
-        --destination "$REMOTE_DOCUMENTS_DIR"
+        --destination "$REMOTE_TEST_DATA_DIR"
     status=$?
     if [ "$status" -ne 0 ]; then
         rm -Rf "$upload_dir"
@@ -548,7 +599,7 @@ launch_harness() {
 
 copy_tree_to_device() {
     local source_dir="$1"
-    local upload_dir="$TRANSFER_ROOT/upload"
+    local upload_dir="$TRANSFER_ROOT/device-transfer-upload"
     local status
 
     if [ "$TRANSFER_TRANSPORT" = "ios-deploy" ]; then
@@ -558,26 +609,26 @@ copy_tree_to_device() {
             rm -Rf "$upload_dir"
             return "$status"
         fi
-        echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR with ios-deploy..."
+        echo "Uploading staged Perl tree to $HARNESS_APP_ID/$REMOTE_TEST_DATA_DIR with ios-deploy..."
         capture_command_output ios-deploy \
             -i "$IOS_DEVICE_UUID" \
             --bundle_id "$HARNESS_APP_ID" \
             --upload "$upload_dir" \
-            --to "/$REMOTE_DOCUMENTS_DIR"
+            --to "/$REMOTE_TEST_DATA_DIR"
         status=$?
         rm -Rf "$upload_dir"
         [ "$status" -eq 0 ] || return "$status"
-        build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (ios-deploy)"
+        build_destination_dir="$HARNESS_APP_ID/$REMOTE_TEST_DATA_DIR (ios-deploy)"
         return 0
     fi
 
     if [ "$TRANSFER_TRANSPORT" = "devicectl" ]; then
-        build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
+        build_destination_dir="$HARNESS_APP_ID/$REMOTE_TEST_DATA_DIR (devicectl)"
         upload_tree_with_devicectl "$source_dir"
         return $?
     fi
 
-    build_destination_dir="$HARNESS_APP_ID/$REMOTE_DOCUMENTS_DIR (devicectl)"
+    build_destination_dir="$HARNESS_APP_ID/$REMOTE_TEST_DATA_DIR (devicectl)"
     upload_tree_with_devicectl "$source_dir"
 }
 
@@ -632,9 +683,10 @@ test_perl_device() {
         -allowProvisioningUpdates -scheme "$HARNESS_SCHEME" clean install
     check_exit_code
 
-    # install the app so it can receive files in Documents
+    # Install the app before copying test data into its sandbox.
+    simulator_build="$SIMULATOR_BUILD"
     test_app="$install_root/Applications/$HARNESS_PRODUCT_NAME.app"
-    if [ "$SIMULATOR_BUILD" -eq "0" ]; then
+    if [ "$simulator_build" -eq "0" ]; then
         install_harness "$test_app"
         check_exit_code
     else
@@ -645,7 +697,7 @@ test_perl_device() {
 
     echo "Copy perl build directory to iOS device..."
 
-    if [ "$SIMULATOR_BUILD" -eq "0" ]; then
+    if [ "$simulator_build" -eq "0" ]; then
         copy_tree_to_device "$PERL_BUILD_DIR"
         check_exit_code
     else
@@ -653,11 +705,10 @@ test_perl_device() {
             build_destination_dir=$(simulator_app_group_container "$IOS_DEVICE_UUID" group.net.pytm.perl.watchrunner)
             check_exit_code $? "simulator App Group lookup"
         else
-            build_destination_dir=`xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data`
+            build_destination_dir=$(xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$HARNESS_APP_ID" data)
             check_exit_code $? "simulator app data lookup"
         fi
-        build_destination_dir="$build_destination_dir/Documents/"
-        mkdir -p "$build_destination_dir"
+        build_destination_dir="$build_destination_dir/$REMOTE_TEST_DATA_DIR/"
         simulator_stage_dir="$TRANSFER_ROOT/simulator-stage"
         stage_tree_for_upload "$PERL_BUILD_DIR" "$simulator_stage_dir"
         check_exit_code $? "simulator tree staging"
@@ -668,9 +719,9 @@ test_perl_device() {
         check_exit_code $? "clear stale simulator test status"
     fi
 
-    echo "App Documents dir is '$build_destination_dir'"
+    echo "App test data dir is '$build_destination_dir'"
 
-    if [ "$SIMULATOR_BUILD" -eq "0" ]; then
+    if [ "$simulator_build" -eq "0" ]; then
         echo "Starting device harness launch"
         launch_harness
         check_exit_code $? "device harness launch"
@@ -683,7 +734,7 @@ test_perl_device() {
 
     popd
 
-    if [ "$SIMULATOR_BUILD" -eq "0" ]; then
+    if [ "$simulator_build" -eq "0" ]; then
         return 0
     fi
 

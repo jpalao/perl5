@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <TargetConditionals.h>
 #import <ios/ios.h>
 #import <unistd.h>
 
@@ -9,6 +10,18 @@ static NSString *RunnerArgument(NSArray *arguments, NSString *name, NSString *fa
         return [arguments objectAtIndex:index + 1];
     }
     return fallback;
+}
+
+static NSString *RunnerTestDataDirectory(void) {
+#if TARGET_OS_TV
+    NSSearchPathDirectory directory = NSCachesDirectory;
+#else
+    NSSearchPathDirectory directory = NSDocumentDirectory;
+#endif
+    NSString *baseDirectory = [NSSearchPathForDirectoriesInDomains(directory,
+                                                                    NSUserDomainMask,
+                                                                    YES) firstObject];
+    return baseDirectory;
 }
 
 static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *statusPath) {
@@ -146,13 +159,25 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    NSString *documents = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
-                                                                 NSUserDomainMask,
-                                                                 YES) firstObject];
-    [@"didFinishLaunching\n" writeToFile:[documents stringByAppendingPathComponent:@"foundation-runner.marker"]
-                              atomically:YES
-                                encoding:NSUTF8StringEncoding
-                                   error:nil];
+    NSString *testDataDirectory = RunnerTestDataDirectory();
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSError *directoryError = nil;
+    if (![fileManager createDirectoryAtPath:testDataDirectory
+                withIntermediateDirectories:YES
+                                 attributes:nil
+                                      error:&directoryError]) {
+        NSLog(@"Foundation runner could not create test data directory %@: %@",
+            testDataDirectory, directoryError);
+    } else {
+        NSString *markerPath = [testDataDirectory stringByAppendingPathComponent:@"foundation-runner.marker"];
+        NSError *markerError = nil;
+        if (![ @"didFinishLaunching\n" writeToFile:markerPath
+                                       atomically:YES
+                                         encoding:NSUTF8StringEncoding
+                                            error:&markerError]) {
+            NSLog(@"Foundation runner could not write launch marker %@: %@", markerPath, markerError);
+        }
+    }
     return YES;
 }
 
@@ -163,14 +188,12 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
     self.testRunStarted = YES;
     NSLog(@"Foundation runner became active");
     NSArray *arguments = [[NSProcessInfo processInfo] arguments];
-    NSString *documents = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
-                                                                 NSUserDomainMask,
-                                                                 YES) firstObject];
-    NSString *fullTestScript = [documents stringByAppendingPathComponent:@"t/ios_harness"];
+    NSString *testDataDirectory = RunnerTestDataDirectory();
+    NSString *fullTestScript = [testDataDirectory stringByAppendingPathComponent:@"t/ios_harness"];
     NSString *scriptPath = RunnerArgument(arguments, @"--script", fullTestScript);
-    NSString *defaultOutput = [documents stringByAppendingPathComponent:@"perl-tests.txt"];
+    NSString *defaultOutput = [testDataDirectory stringByAppendingPathComponent:@"perl-tests.txt"];
     NSString *outputPath = RunnerArgument(arguments, @"--output", defaultOutput);
-    NSString *defaultStatus = [documents stringByAppendingPathComponent:@"perl-tests.status"];
+    NSString *defaultStatus = [testDataDirectory stringByAppendingPathComponent:@"perl-tests.status"];
     NSString *statusPath = RunnerArgument(arguments, @"--status", defaultStatus);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)),
                     dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{

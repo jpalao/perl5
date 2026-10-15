@@ -294,18 +294,14 @@ static int CBSystemArgumentError(void)
     return -1;
 }
 
-static NSSet<NSString *> *CBPerlRunnerNames(void)
+static BOOL CBIsPerlRunnerName(NSString *name)
 {
-    static NSSet<NSString *> *runnerNames;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        runnerNames = [[NSSet alloc] initWithArray:@[
-            @"harness",
-            @"foundation-runner",
-            @"watch-runner-extension",
-        ]];
-    });
-    return runnerNames;
+    NSString *bundleExecutable = [[NSBundle mainBundle] executablePath];
+    NSString *bundleExecutableName = bundleExecutable.lastPathComponent;
+    return [name isEqualToString:@"harness"] ||
+        [name isEqualToString:bundleExecutableName] ||
+        [name hasSuffix:@"-runner"] ||
+        [name hasSuffix:@"-runner-extension"];
 }
 
 static void CBWarnMissingSystemPath(PerlInterpreter *interpreter, NSString *path)
@@ -347,7 +343,7 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
         return CBSystemPathError();
     }
     BOOL isPerlExecutable = [name hasSuffix:@"perl"] ||
-        [CBPerlRunnerNames() containsObject:name];
+        CBIsPerlRunnerName(name);
     if (!isPerlExecutable) {
         return CBSystemPathError();
     }

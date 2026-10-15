@@ -62,8 +62,13 @@ our @methods = (
 our @EXPORT = @methods;
 our @EXPORT_OK = @methods;
 
-# Keep these runner aliases synchronized with CBPerlRunnerNames in NativeMethods.m.
-my $PERL_RUNNER_NAME = qr/(?:perl(?:5(?:\.\d+)*)?|harness|foundation-runner|watch-runner-extension)/;
+# Accept the current embedded executable and conventional runner executable names.
+my $current_runner_name = $^X // '';
+$current_runner_name =~ s{.*/}{};
+my $current_runner_name_pattern = length $current_runner_name
+    ? quotemeta($current_runner_name)
+    : '(?!)';
+my $PERL_RUNNER_NAME = qr/(?:perl(?:5(?:\.\d+)*)?|harness|[A-Za-z0-9_.-]+-runner(?:-extension)?|$current_runner_name_pattern)/;
 
 sub is_simulator {
     return (($Config{ios_sdk} // '') =~ /simulator/) ? 1 : 0;

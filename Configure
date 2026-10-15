@@ -3084,6 +3084,14 @@ case "$targethost" in
 				;;
 			esac
 			case "$IOS_PLATFORM" in
+			appletvsimulator)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-tvos$IOS_DEPLOYMENT_TARGET-simulator"
+				IOS_MIN_VERSION_FLAG="-mtvos-version-min"
+				;;
+			appletvos)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-tvos$IOS_DEPLOYMENT_TARGET"
+				IOS_MIN_VERSION_FLAG="-mtvos-version-min"
+				;;
 			watchsimulator)
 				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-watchos$IOS_DEPLOYMENT_TARGET-simulator"
 				IOS_MIN_VERSION_FLAG="-mwatchos-version-min"
@@ -3176,7 +3184,7 @@ case "$targethost" in
 	esac
 	case "$targetrun" in
 		darwin-ios)
-			cp "$src/Cross/run-darwin-ios" "$run"
+			cp "$src/Cross/run-ios" "$run"
 			$chmod a+rx "$run"
 			;;
 	ssh|rsh)
@@ -3254,16 +3262,16 @@ EOF
 	    ;;
 	cp) cat >$to <<EOF
 #!/bin/sh
-for f in \$@
+	for f in "\$@"
 do
   case "\$f" in
   /*)
-    $mkdir -p $targetdir/\`dirname \$f\`
-    $cp \$f $targetdir/\$f || exit 1
+	    $mkdir -p "$targetdir/\$(dirname "\$f")"
+	    $cp -R "\$f" "$targetdir/\$f" || exit 1
     ;;
   *)
-    $targetmkdir $targetdir/\`dirname \$f\`
-    $cp \$f $targetdir/\$f || exit 1
+	    $targetmkdir -p "$targetdir/\$(dirname "\$f")"
+	    $cp -R "\$f" "$targetdir/\$f" || exit 1
     ;;
   esac
 done
@@ -21069,6 +21077,12 @@ else
        ;;
     esac
 fi
+case "$IOS_PLATFORM:$longdblkind" in
+appletvos:0)
+	longdblinfbytes=$doubleinfbytes
+	longdblnanbytes=$doublenanbytes
+	;;
+esac
 # In case the program crashed the values are empty, turn them undef.
 case "$doubleinfbytes" in
 '') doubleinfbytes=$undef ;;
@@ -21840,11 +21854,22 @@ echo " "
 $echo "Checking the format strings to be used for Perl's internal types..." >&4
 
 if $test X"$ivsize" = X8; then
-	ivdformat="$sPRId64"
-	uvuformat="$sPRIu64"
-	uvoformat="$sPRIo64"
-	uvxformat="$sPRIx64"
-	uvXUformat="$sPRIXU64"
+	case "$IOS_PLATFORM:$ivtype:$uvtype" in
+	'appletvos:long:unsigned long')
+		ivdformat='"ld"'
+		uvuformat='"lu"'
+		uvoformat='"lo"'
+		uvxformat='"lx"'
+		uvXUformat='"lX"'
+		;;
+	*)
+		ivdformat="$sPRId64"
+		uvuformat="$sPRIu64"
+		uvoformat="$sPRIo64"
+		uvxformat="$sPRIx64"
+		uvXUformat="$sPRIXU64"
+		;;
+	esac
 else
 	if $test X"$ivsize" = X"$longsize"; then
 		ivdformat='"ld"'

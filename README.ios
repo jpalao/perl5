@@ -339,6 +339,29 @@ The file is updated while the tests run, so partial output is retained
 if a run is interrupted. Set `TEST_LOG_PREFIX` to identify a targeted
 suite, such as `TEST_LOG_PREFIX=camelbones-tests`.
 
+=head3 tvOS simulator
+
+The Apple TV runner uses the shared Foundation runner and the same
+embedded Perl framework as the iOS and Watch runners. Xcode builds the
+tvOS framework and app separately for the selected simulator or device.
+
+To run the Perl suite on the configured Apple TV simulator from the Perl
+source root:
+
+  IOS_SETUP_FILE=ios/setup_test_appletvsimulator.sh bash ios/test.sh
+
+The simulator UUID is set in the setup file; update it if the simulator
+is recreated. The architecture follows the Mac host, and the deployment
+target is tvOS 12.0. Set C<AUTO_LAUNCH=0> to build, install, and stage
+the Perl tree without starting the suite automatically.
+
+For the connected Apple TV HD, run:
+
+  IOS_SETUP_FILE=ios/setup_test_appletvos.sh bash ios/test.sh
+
+The device UDID is set in that setup file. The Apple TV must be paired
+with the Mac and have developer mode enabled.
+
 =head2 TESTING PROCESS
 
 The ios/test directory contains an objective-c Xcode project called
@@ -348,6 +371,10 @@ in the device.
 With a debug build you can run and debug through t/harness in the iOS
 device from either macOS shell with lldb or graphically with Xcode,
 where you can also run Instruments.
+
+Embedded Perl command handling recognizes the app's own executable name
+and conventional `*-runner` or `*-runner-extension` names, so adding a
+platform runner does not require another native alias.
 
 `runperl` functionality is currently provided through CamelBones. The
 runperl config hash used in t/harness is converted to JSON and passed as

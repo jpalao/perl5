@@ -2441,7 +2441,7 @@ Perl_do_exec3(pTHX_ const char *incmd, int fd, int do_report)
     char *s;
     char *buf;
     char *cmd;
-#if defined(PERL_APPLEWATCH)
+#if defined(PERL_APPLEWATCH) || defined(PERL_APPLETV)
     PERL_ARGS_ASSERT_DO_EXEC3;
     Perl_croak(aTHX_ "exec? I'm not *that* kind of operating system");
 #else

@@ -38,6 +38,7 @@ if [ $PERL_APPLETV -ne 0 ]; then
   DEVICE_SDK_PATH="$APPLETV_DEVICE_SDK_PATH"
   SIMULATOR_SDK_PATH="$APPLETV_SIMULATOR_SDK_PATH"
   PERL_PLATFORM_TAG="PERL_APPLETV"
+  export PERL_IOS=1
 elif [ $PERL_APPLEWATCH -ne 0 ]; then
   PLATFORM_TAG="watch"
   DEVICE_SDK_PATH="$WATCHOS_DEVICE_SDK_PATH"
@@ -65,28 +66,24 @@ mkdir "$PREFIX"
 mkdir "$PREFIX/lib"
 mkdir "$PREFIX/include"
 
-case "$PERL_ARCH" in
-  x86_64)
+SIMULATOR_BUILD=0
+case "${IOS_TARGET:-}" in
+  *simulator)
     SIMULATOR_BUILD=1
-    ;;
-  i386)
-    SIMULATOR_BUILD=1
-    ;;
-  arm64)
-    SIMULATOR_BUILD=0
-    ;;
-  armv7)
-    SIMULATOR_BUILD=0
-    ;;
-  armv7s)
-    SIMULATOR_BUILD=0
-    ;;
-  armv7k)
-    SIMULATOR_BUILD=0
     ;;
   *)
-    echo "Unsupported architecture: $PERL_ARCH"
-    exit 1
+    case "$PERL_ARCH" in
+      x86_64|i386)
+        SIMULATOR_BUILD=1
+        ;;
+      arm64|armv7|armv7s|armv7k)
+        SIMULATOR_BUILD=0
+        ;;
+      *)
+        echo "Unsupported architecture: $PERL_ARCH"
+        exit 1
+        ;;
+    esac
     ;;
 esac
 
@@ -300,7 +297,20 @@ build_ios_framework() {
       framework_other_cflags="-DNO_LOCALE"
     fi
 
-    if [ $PERL_APPLEWATCH -ne 0 ]; then
+    if [ $PERL_APPLETV -ne 0 ]; then
+      case "$IOS_PLATFORM" in
+        appletvsimulator) framework_scheme="iphonesimulator" ;;
+        appletvos) framework_scheme="iphoneos" ;;
+      esac
+      xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" VALID_ARCHS="$ARCHS" \
+      OTHER_CFLAGS="$framework_other_cflags" PERL_DIST_PATH="$PERL_BUILD_DIR" \
+      LIBPERL_PATH="$PERL_BUILD_DIR" PERL_VERSION="$PERL_VERSION" \
+      HEADER_SEARCH_PATHS="$PERL_BUILD_DIR" \
+      OTHER_LDFLAGS="-L$PERL_BUILD_DIR -lperl" \
+      ONLY_ACTIVE_ARCH=NO SUPPORTED_PLATFORMS="$IOS_PLATFORM" \
+      TVOS_DEPLOYMENT_TARGET="$MIN_VERSION" TARGETED_DEVICE_FAMILY=3 \
+      -configuration "${IOS_BUILD_CONFIGURATION:-Debug}" -scheme "$framework_scheme"
+    elif [ $PERL_APPLEWATCH -ne 0 ]; then
       case "$IOS_PLATFORM" in
         watchsimulator) framework_scheme="iphonesimulator" ;;
         watchos) framework_scheme="iphoneos" ;;
