@@ -36,6 +36,7 @@ regen/regcharclass.pl
 regen/uconfig_h.pl
 runtests.SH
 t/TEST
+t/ios_harness
 Porting/Maintainers.pl
 Porting/add-package.pl
 Porting/bench.pl

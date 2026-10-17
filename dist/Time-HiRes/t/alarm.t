@@ -20,7 +20,8 @@ my $can_subsecond_alarm =
     defined &Time::HiRes::gettimeofday &&
     defined &Time::HiRes::ualarm &&
     defined &Time::HiRes::usleep &&
-    ($Config{d_ualarm} || $xdefine =~ /-DHAS_UALARM/);
+    ($Config{d_ualarm} || $xdefine =~ /-DHAS_UALARM/) &&
+    $^O !~/darwin-ios/;
 
 SKIP: {
     skip "no subsecond alarm", 1 unless $can_subsecond_alarm;

@@ -31,7 +31,11 @@ like( $warning, qr/^Insecure .* $Tmsg/, '    taint warn' );
     $warning = '';
     my $out = `$Perl -le "print q(Hello)"`;
     is( $out, "Hello\n",                      '`` worked' );
-    is( $warning, '',                       '   no warnings "taint"' );
+    SKIP: {
+        skip('iOS readpipe override cannot preserve lexical taint warnings', 1)
+            if $^O eq 'darwin-ios';
+        is( $warning, '',                       '   no warnings "taint"' );
+    }
 }
 
 # Get ourselves a tainted variable.

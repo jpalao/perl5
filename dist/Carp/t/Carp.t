@@ -21,6 +21,7 @@ sub runperl {
 }
 
 my $Is_VMS = $^O eq 'VMS';
+my $Is_iOS = $^O =~ /darwin-ios/;
 
 use Carp qw(carp cluck croak confess);
 
@@ -309,7 +310,7 @@ sub w { cluck @_ }
 
 SKIP:
 {
-    skip "IPC::Open3::open3 needs porting", 2 if $Is_VMS;
+    skip "IPC::Open3::open3 needs porting", 2 if $Is_VMS || $Is_iOS;
 
     # Check that croak() and confess() don't clobber $!
     runperl(
@@ -422,7 +423,7 @@ SKIP: {
 # implicitly via utf8_heavy.pl) after a syntax error [perl #82854].
 SKIP:
 {
-    skip "IPC::Open3::open3 needs porting", 1 if $Is_VMS;
+    skip "IPC::Open3::open3 needs porting", 1 if $Is_VMS || $Is_iOS;
     like(
       runperl(
         prog => q<
@@ -456,7 +457,7 @@ is $@, "heek at ".__FILE__." line ".(__LINE__-2).", <DATA> line 2.\n",
 
 SKIP:
 {
-    skip "IPC::Open3::open3 needs porting", 1 if $Is_VMS;
+    skip "IPC::Open3::open3 needs porting", 1 if $Is_VMS || $Is_iOS;
     like(
       runperl(
         prog => q<

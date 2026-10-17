@@ -360,20 +360,30 @@ PERL_EXE_LDFLAGS=$exeldflags
 	;;
 esac
 
-case "$usecrosscompile$perl" in
-define?*)
+case "X$hostperl" in
+X?*)
+	$spitshell >>$Makefile <<'!GROK!THIS!'
+PERL_EXE = perl$(EXE_EXT)
+RUN_PERL = $(LDLIBPTH) $(HOST_PERL) -Ilib -I.
+!GROK!THIS!
+	;;
+*)
+	case "$usecrosscompile$perl" in
+	define?*)
 	$spitshell >>$Makefile <<!GROK!THIS!
 # Macros to invoke a copy of our fully operational perl during the build.
 PERL_EXE = perl\$(EXE_EXT)
 RUN_PERL = \$(LDLIBPTH) \$(RUN) $perl\$(EXE_EXT)
 !GROK!THIS!
-	;;
-*)
+		;;
+	*)
 	$spitshell >>$Makefile <<!GROK!THIS!
 # Macros to invoke a copy of our fully operational perl during the build.
 PERL_EXE = perl\$(EXE_EXT)
 RUN_PERL = \$(LDLIBPTH) \$(RUN) ./perl\$(EXE_EXT) -Ilib -I.
 !GROK!THIS!
+		;;
+	esac
 	;;
 esac
 
@@ -406,7 +416,7 @@ $make_set_make
 !GROK!THIS!
 
 case "${osname}" in
-linux*|darwin)
+linux*|darwin*)
 $spitshell >>$Makefile <<!GROK!THIS!
 # If you're going to use valgrind and it can't be invoked as plain valgrind
 # then you'll need to change this, or override it on the make command line.
@@ -456,7 +466,7 @@ INSTALLPREFIXEXP = $prefix
 # $versiononly
 
 case "${osname}:${osvers}" in
-darwin:*)
+darwin*:*)
 $spitshell >>$Makefile <<EOF
 
 # Your locales are broken (osname $osname, osvers $osvers)
@@ -769,10 +779,7 @@ case "$hostgenerate" in
 ''|'undef')
 $spitshell >>$Makefile <<!GROK!THIS!
 bitcount.h: generate_uudmap\$(HOST_EXE_EXT)
-	$run ./generate_uudmap\$(HOST_EXE_EXT) \$(generated_headers)
-	-@for f in \$(generated_headers); do \\
-	    $from \$\$f; \\
-	done
+	./generate_uudmap\$(HOST_EXE_EXT) \$(generated_headers)
 
 !GROK!THIS!
 
@@ -980,6 +987,16 @@ lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
 !NO!SUBS!
 		;;
 	darwin*)
+		if test "X$hostperl" != X; then
+			$spitshell >>$Makefile <<!GROK!THIS!
+lib/buildcustomize.pl: \$& \$(miniperl_dep) write_buildcustomize.pl
+	-@rm -f miniperl.xok
+	-@rm \$(MINIPERL_EXE)
+	\$(LNS) \$(HOST_PERL) \$(MINIPERL_EXE)
+	\$(LDLIBPTH) ./miniperl\$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
+	\$(MINIPERL) -f write_buildcustomize.pl 'osname' "$osname"
+!GROK!THIS!
+		else
 		case "$osvers" in
 		[1-6].*) ;;
 		*) case "$ldflags" in
@@ -1000,6 +1017,7 @@ lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
 	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	$(MINIPERL) -f write_buildcustomize.pl
 !NO!SUBS!
+		fi
 		;;
 	*)
 		if test "X$hostperl" != X; then
@@ -1042,7 +1060,7 @@ $(PERL_EXE): $& $(perlmain_dep) $(LIBPERL) $(static_ext) ext.libs $(PERLEXPORT) 
 !NO!SUBS!
         ;;
 
-	darwin)
+	darwin*)
 	    case "$useshrplib$osvers" in
 	    true1[5-9]*|true[2-9]*) $spitshell >>$Makefile <<'!NO!SUBS!'
 	$(SHRPENV) $(CC) -o perl $(PERL_EXE_LDFLAGS) $(CLDFLAGS) $(CCDLFLAGS) $(perlmain_objs) $(static_ext) $(LLIBPERL) `cat ext.libs` $(libs)

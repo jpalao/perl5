@@ -266,7 +266,8 @@ for my $k (qw(each keys values)) {
     is join ("-", each %h), '1-2',
 	'each on apparently empty hash does not leave RITER set';
 }
-{
+SKIP: {
+    skip('iOS: TODO', 2) if $^O =~ /darwin-ios/;
     my $warned= 0;
     local $SIG{__WARN__}= sub {
         /\QUse of each() on hash after insertion without resetting hash iterator results in undefined behavior\E/

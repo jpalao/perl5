@@ -9,6 +9,8 @@ use ExtUtils::CBuilder;
 use attributes;
 use overload;
 
+plan skip_all => 'Runtime XS compilation is unavailable on iOS'
+  if $^O eq 'darwin-ios';
 plan tests => 33;
 
 my ($source_file, $obj_file, $lib_file);

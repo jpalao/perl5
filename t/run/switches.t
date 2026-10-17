@@ -166,7 +166,7 @@ SWTEST
     close $f or die "Could not close: $!";
     $r = runperl(
 	progfile    => $filename,
-	args	    => [ '-x=foo -y' ],
+	args	    => $^O =~ /darwin-ios/ ? [ '-x=foo', '-y' ] : [ '-x=foo -y' ],
     );
     is( $r, 'foo1', '-s on the shebang line' );
 }
@@ -216,6 +216,8 @@ SWTESTPM
 
     {
         local $TODO = '';  # this one works on VMS
+	 skip('iOS: module lookup differs for embedded runs', 1)
+	     if $^O =~ /darwin-ios/;
         is( $r, '', '-m' );
     }
     $r = runperl(
@@ -497,6 +499,8 @@ __EOF__
         my ($osvers) = ($Config{osvers} =~ /^(\d+(?:\.\d+)?)/);
         skip "NetBSD 6 libc defines at functions, but they're incomplete", 3
           if $^O eq "netbsd" && $osvers < 7;
+	 skip "iOS: in-place editing cannot reopen the sandbox path after chdir", 3
+	   if $^O =~ /darwin-ios/;
         my $code = <<'CODE';
 @ARGV = ("tmpinplace/foo");
 $^I = "";

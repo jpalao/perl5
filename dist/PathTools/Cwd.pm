@@ -151,7 +151,8 @@ $METHOD_MAP{NT} = $METHOD_MAP{MSWin32};
 # are safe.  This prevents _backtick_pwd() consulting $ENV{PATH}
 # so everything works under taint mode.
 my $pwd_cmd;
-if($^O ne 'MSWin32') {
+# iOS Simulator may see the host pwd in macos, but apps cannot execute it.
+if($^O ne 'MSWin32' && $^O !~ /darwin-ios/) {
     foreach my $try ('/bin/pwd',
 		     '/usr/bin/pwd',
 		     '/QOpenSys/bin/pwd', # OS/400 PASE.
