@@ -62,30 +62,36 @@ PERL_VERSION="$PERL_REVISION.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${PERLBREW_SOURCE:=$PERLBREW_ROOT/build/perl-$PERL_VERSION}"
 export PERLBREW_SOURCE
 
-mkdir "$PREFIX"
-mkdir "$PREFIX/lib"
-mkdir "$PREFIX/include"
+if [ -z "${IOS_TARGET:-}" ]; then
+  echo >&2 "IOS_TARGET must name the target SDK; PERL_ARCH cannot distinguish a device from a simulator"
+  exit 1
+fi
 
-SIMULATOR_BUILD=0
-case "${IOS_TARGET:-}" in
-  *simulator)
+case "$IOS_TARGET" in
+  iphoneos|appletvos|watchos)
+    SIMULATOR_BUILD=0
+    ;;
+  iphonesimulator|appletvsimulator|watchsimulator)
     SIMULATOR_BUILD=1
     ;;
   *)
-    case "$PERL_ARCH" in
-      x86_64|i386)
-        SIMULATOR_BUILD=1
-        ;;
-      arm64|armv7|armv7s|armv7k)
-        SIMULATOR_BUILD=0
-        ;;
-      *)
-        echo "Unsupported architecture: $PERL_ARCH"
-        exit 1
-        ;;
-    esac
+    echo >&2 "Unsupported target SDK: $IOS_TARGET"
+    echo >&2 "Use iphoneos, iphonesimulator, appletvos, appletvsimulator, watchos, or watchsimulator"
+    exit 1
     ;;
 esac
+
+case "$PERL_ARCH" in
+  arm64|armv7|armv7s|armv7k|x86_64|i386) ;;
+  *)
+    echo >&2 "Unsupported architecture: $PERL_ARCH"
+    exit 1
+    ;;
+esac
+
+mkdir "$PREFIX"
+mkdir "$PREFIX/lib"
+mkdir "$PREFIX/include"
 
 # depends on GnuMakefile and DEBUGGING
 if [ $DEBUG -eq 1 ]; then

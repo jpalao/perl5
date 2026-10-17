@@ -51,22 +51,17 @@ fi
 : "${ARCHS:=arm64}"
 : "${HARNESS_TARGET:=iphoneos}"
 
-: "${SIMULATOR_BUILD:=0}"
 case "$HARNESS_TARGET" in
-    *simulator)
+    iphoneos|appletvos|watchos)
+        SIMULATOR_BUILD=0
+        ;;
+    iphonesimulator|appletvsimulator|watchsimulator)
         SIMULATOR_BUILD=1
         ;;
     *)
-        case "$ARCHS" in
-            *x86_64*|*i386*)
-                case "$HARNESS_TARGET" in
-                    appletvos) HARNESS_TARGET=appletvsimulator ;;
-                    watchos) HARNESS_TARGET=watchsimulator ;;
-                    *) HARNESS_TARGET=iphonesimulator ;;
-                esac
-                SIMULATOR_BUILD=1
-                ;;
-        esac
+        echo >&2 "Unsupported HARNESS_TARGET SDK: $HARNESS_TARGET"
+        echo >&2 "Use iphoneos, iphonesimulator, appletvos, appletvsimulator, watchos, or watchsimulator"
+        exit 1
         ;;
 esac
 if [ "$SIMULATOR_BUILD" -eq 1 ]; then

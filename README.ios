@@ -101,48 +101,63 @@ perl-5.33.10-watch-armv7k-20200619-140059.lib.tar.bz2
 
 =back
 
-To build a release version of Perl for iOS arm64 in 'local' dir: sh -x
-"perl-5.33.10/ios/build.sh"
+To build a release version of Perl for iOS arm64 in 'local' dir:
+IOS_TARGET=iphoneos PERL_ARCH=arm64 sh -x "perl-5.33.10/ios/build.sh"
 
-To build a release version of Perl for iOS x86_64 simulator in './local'
-dir: PERL_ARCH=x86_64 DEBUG=1 sh -x "perl-5.33.10/ios/build.sh"
+To build a release version of Perl for an iOS simulator in './local' dir,
+select its target SDK explicitly. For an Apple silicon simulator:
+IOS_TARGET=iphonesimulator PERL_ARCH=arm64 DEBUG=1 sh -x
+"perl-5.33.10/ios/build.sh"
+On an Intel Mac, use C<PERL_ARCH=x86_64> if supported by the selected
+simulator runtime; keep C<IOS_TARGET=iphonesimulator>.
 
 To build a debug version of Perl for iOS armv7 in './another' dir:
-PERL_ARCH=armv7 DEBUG=1 INSTALL_DIR='another' sh -x
+IOS_TARGET=iphoneos PERL_ARCH=armv7 DEBUG=1 INSTALL_DIR='another' sh -x
 "perl-5.33.10/ios/build.sh"
 
 To build a release version of Perl for Apple TV arm64: PERL_APPLETV=1
-MIN_VERSION=9.0 sh -x "perl-5.33.10/ios/build.sh"
+IOS_TARGET=appletvos PERL_ARCH=arm64 MIN_VERSION=9.0 sh -x
+"perl-5.33.10/ios/build.sh"
 
 To build a debug version perl for Apple TV: PERL_APPLETV=1
-MIN_VERSION=9.0 DEBUG=1 sh -x "perl-5.33.10/ios/build.sh"
+IOS_TARGET=appletvos PERL_ARCH=arm64 MIN_VERSION=9.0 DEBUG=1 sh -x
+"perl-5.33.10/ios/build.sh"
 
 To build a debug version of Perl for Apple TV Simulator: PERL_APPLETV=1
-MIN_VERSION=9.0 PERL_ARCH=x86_64 DEBUG=1 sh -x
+IOS_TARGET=appletvsimulator PERL_ARCH=arm64 MIN_VERSION=9.0 DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
 
 To build a debug version of Perl for Apple Watch: PERL_APPLEWATCH=1
-DEBUG=1 MIN_VERSION=3.0 sh -x "perl-5.33.10/ios/build.sh"
+IOS_TARGET=watchos DEBUG=1 MIN_VERSION=3.0 sh -x
+"perl-5.33.10/ios/build.sh"
 
 To build a debug version of Perl for Apple Watch Simulator:
-PERL_ARCH=x86_64 PERL_APPLEWATCH=1 MIN_VERSION=3.0 DEBUG=1 sh -x
+IOS_TARGET=watchsimulator PERL_ARCH=arm64 PERL_APPLEWATCH=1
+MIN_VERSION=3.0 DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
 
 =head1 BUILD OPTIONS
 
-Please note that there is no specific flag for simulator builds as all
-X86_64 builds will automatically be built for the simulator.
+Select the target SDK with C<IOS_TARGET>. Simulator versus device builds
+are determined by this SDK, never by C<PERL_ARCH>; for example, both an
+Apple silicon simulator and a physical device may use C<arm64>.
 
-The following optional environment variables can be set to customize
-your build:
+The following environment variables control or customize your build:
 
 =over 2
 
 =item PERL_ARCH
 
-The following architectures are supported:
+The architecture of the Perl binaries. Only one can be built at a time.
+This selects the target CPU architecture and does not determine whether
+the build targets a device or simulator.
 
-The architecture of the perl binaries. Only one can be built at a time
+=item IOS_TARGET
+
+The target SDK. Must be one of C<iphoneos>, C<iphonesimulator>,
+C<appletvos>, C<appletvsimulator>, C<watchos>, or C<watchsimulator>.
+This is required because architecture alone cannot distinguish a device
+from a simulator.
 
 =back
 
@@ -178,13 +193,10 @@ The architecture of the perl binaries. Only one can be built at a time
 
 =back
 
-Must be one of: arm64, armv7 for iOS builds arm64 for Apple TV builds
-armv7k for Apple Watch builds x86_64 for iOS simulator, Apple TV
-simulator or Apple Watch builds
-
-On iOS and Apple TV device builds the default is arm64 On Apple Watch
-device builds the default is armv7k On all simulator builds default is
-x86_64
+The default C<PERL_ARCH> is C<arm64>; watchOS device builds use
+C<armv7k>. Choose an architecture supported by the selected SDK and
+toolchain. Simulator builds do not infer their target architecture from
+the host Mac.
 
   PERL_ARCH=arm64 # for iOS or tvOS
 
