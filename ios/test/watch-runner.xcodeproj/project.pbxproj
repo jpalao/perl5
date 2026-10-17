@@ -236,6 +236,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = x86_64;
+				"ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CODE_SIGN_ENTITLEMENTS = "watch-runner/WatchRunnerApp.entitlements";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
@@ -260,6 +261,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = x86_64;
+				"ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CODE_SIGN_ENTITLEMENTS = "watch-runner/WatchRunnerApp.entitlements";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
@@ -285,6 +287,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = x86_64;
+				"ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
@@ -300,7 +303,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -325,6 +328,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = x86_64;
+				"ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
@@ -340,7 +344,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

@@ -525,7 +525,9 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				"ARCHS[sdk=iphoneos*]" = arm64;
-				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
@@ -615,7 +617,9 @@
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "";
 				"VALID_ARCHS[sdk=iphoneos*]" = "arm64 armv7";
-				"VALID_ARCHS[sdk=iphonesimulator*]" = "i386 x86_64";
+				"VALID_ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"VALID_ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"VALID_ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				WARNING_CFLAGS = (
 					"-Wno-shorten-64-to-32",
 					"-Wall",
@@ -629,7 +633,9 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				"ARCHS[sdk=iphoneos*]" = arm64;
-				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
@@ -712,7 +718,9 @@
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "";
 				"VALID_ARCHS[sdk=iphoneos*]" = "arm64 armv7";
-				"VALID_ARCHS[sdk=iphonesimulator*]" = "i386 x86_64";
+				"VALID_ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"VALID_ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"VALID_ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				WARNING_CFLAGS = (
 					"-Wno-shorten-64-to-32",
 					"-Wall",
@@ -726,7 +734,9 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				"ARCHS[sdk=iphoneos*]" = arm64;
-				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
@@ -799,7 +809,9 @@
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "";
 				"VALID_ARCHS[sdk=iphoneos*]" = "arm64 armv7";
-				"VALID_ARCHS[sdk=iphonesimulator*]" = "i386 x86_64";
+				"VALID_ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"VALID_ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"VALID_ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				WARNING_CFLAGS = (
 					"-Wno-shorten-64-to-32",
 					"-Wall",
@@ -813,7 +825,9 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				"ARCHS[sdk=iphoneos*]" = "$(ARCHS_STANDARD)";
-				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_LINK_OBJC_RUNTIME = NO;
@@ -879,7 +893,9 @@
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "";
 				"VALID_ARCHS[sdk=iphoneos*]" = "arm64 armv7";
-				"VALID_ARCHS[sdk=iphonesimulator*]" = "i386 x86_64";
+				"VALID_ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"VALID_ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
+				"VALID_ARCHS[sdk=watchsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				WARNING_CFLAGS = (
 					"-Wno-shorten-64-to-32",
 					"-Wall",

@@ -3,7 +3,6 @@
 ############## CONFIG BEGIN ##############
 
 # perl binaries
-: "${PERL_ARCH:=arm64}"
 : "${BITCODE:=0}"
 : "${DEBUG:=0}"
 : "${INSTALL_DIR:=local}"
@@ -53,14 +52,10 @@ else
   export PERL_IOS=1
 fi
 
-MIN_VERSION_TAG="-m""$PLATFORM_TAG""os-version-min=$MIN_VERSION"
 WORKDIR=`pwd`
 PREFIX="$WORKDIR/$INSTALL_DIR"
 PERL_VERSION="$PERL_REVISION.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${PERL_BUILD_DIR:=$WORKDIR/perl-$PERL_VERSION}"
-
-: "${PERLBREW_SOURCE:=$PERLBREW_ROOT/build/perl-$PERL_VERSION}"
-export PERLBREW_SOURCE
 
 if [ -z "${IOS_TARGET:-}" ]; then
   echo >&2 "IOS_TARGET must name the target SDK; PERL_ARCH cannot distinguish a device from a simulator"
@@ -78,6 +73,40 @@ case "$IOS_TARGET" in
     echo >&2 "Unsupported target SDK: $IOS_TARGET"
     echo >&2 "Use iphoneos, iphonesimulator, appletvos, appletvsimulator, watchos, or watchsimulator"
     exit 1
+    ;;
+esac
+
+if [ "$SIMULATOR_BUILD" -eq 1 ]; then
+  HOST_ARCH=$(uname -m)
+  case "$HOST_ARCH" in
+    arm64|x86_64) ;;
+    *)
+      echo >&2 "Unsupported macOS host architecture for simulator build: $HOST_ARCH"
+      exit 1
+      ;;
+  esac
+  if [ -n "${PERL_ARCH:-}" ] && [ "$PERL_ARCH" != "$HOST_ARCH" ]; then
+    echo >&2 "Simulator builds require host architecture $HOST_ARCH; PERL_ARCH=$PERL_ARCH was requested"
+    exit 1
+  fi
+  if [ -n "${ARCHS:-}" ] && [ "$ARCHS" != "$HOST_ARCH" ]; then
+    echo >&2 "Simulator builds require host architecture $HOST_ARCH; ARCHS=$ARCHS was requested"
+    exit 1
+  fi
+  PERL_ARCH="$HOST_ARCH"
+  ARCHS="$HOST_ARCH"
+  export ARCHS
+  echo "Using host architecture $PERL_ARCH for simulator build"
+else
+  : "${PERL_ARCH:=arm64}"
+fi
+
+case "$IOS_TARGET" in
+  iphonesimulator)
+    MIN_VERSION_TAG="-mios-simulator-version-min=$MIN_VERSION"
+    ;;
+  *)
+    MIN_VERSION_TAG="-m${PLATFORM_TAG}os-version-min=$MIN_VERSION"
     ;;
 esac
 
@@ -194,7 +223,7 @@ build_perl() {
 
   # do not strip if -g in ccflags
   if [ $DEBUG -eq 1 ]; then
-    perl -0777 -i.bak.0 -pe "s|(\\$\\^O eq \'darwin\');|\(\1 && \\\$Config\{\"ccflags\"\} \!\~ /-g\\\s/);|" installperl
+    "$MACOS_PERL_PATH" -0777 -i.bak.0 -pe "s|(\\$\\^O eq \'darwin\');|\(\1 && \\\$Config\{\"ccflags\"\} \!\~ /-g\\\s/);|" installperl
   fi
 
   # export min version
@@ -208,14 +237,18 @@ build_perl() {
 
   boot_simulator_for_probes || exit 1
 
-  ./Configure -des -Dusedevel \
+  env -u SDKROOT \
+    -u IPHONEOS_DEPLOYMENT_TARGET \
+    -u APPLETV_DEPLOYMENT_TARGET \
+    -u WATCHOS_DEPLOYMENT_TARGET \
+    ./Configure -des -Dusedevel \
+    -Dusecrosscompile \
     -Duseshrplib \
     -Dusethreads \
     -Dtargethost=physical-device \
     -Dtargetrun=darwin-ios \
+    -Dtargetarch="${PERL_ARCH}-darwin" \
     -Dios_sdk="$IOS_PLATFORM" \
-    -Dhostperl="$PERLBREW_SOURCE/miniperl" \
-    -Dhostgenerate="$PERLBREW_SOURCE/generate_uudmap" \
     -Dcc=/usr/bin/clang \
     -Dccflags="$BUILD_FLAGS" \
     -Dldflags="$LINK_FLAGS" \

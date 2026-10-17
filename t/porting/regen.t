@@ -22,7 +22,7 @@ if ( $::IS_EBCDIC || $::IS_EBCDIC) {
   skip_all( "- We don't regen on EBCDIC." );
 }
 use Config;
-if ( $Config{usecrosscompile} || $^O =~ /darwin-ios/) {
+if ( $Config{usecrosscompile} ) {
   skip_all( "Not all files are available during cross-compilation" );
 }
 

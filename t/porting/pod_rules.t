@@ -31,7 +31,7 @@ BEGIN {
 use strict;
 
 use Config;
-if ( $Config{usecrosscompile} || $^O =~ /darwin-ios/ ) {
+if ( $Config{usecrosscompile} ) {
   skip_all( "Not all files are available during cross-compilation" );
 }
 

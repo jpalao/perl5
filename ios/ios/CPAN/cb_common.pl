@@ -148,13 +148,21 @@ our $IOS_CPAN_DIR = $ENV{'IOS_CPAN_DIR'};
 
 =head2 ARCHS
 
-Architectures for this build, defaults to arm64
+Architectures for this build. Simulator builds default to the host
+architecture; other builds default to arm64.
 
 =cut
 
 our $ARCHS = $ENV{'ARCHS'};
 if (!length $ARCHS) {
-    $ARCHS = 'arm64';
+    my $platform = $ENV{'PLATFORM_NAME'} || $ENV{'IOS_TARGET'} || '';
+    if ($platform =~ /simulator/i) {
+        chomp($ARCHS = `uname -m`);
+        die "Unable to determine host architecture for simulator build\n"
+            if $? != 0 || !length $ARCHS;
+    } else {
+        $ARCHS = 'arm64';
+    }
 }
 
 =pod

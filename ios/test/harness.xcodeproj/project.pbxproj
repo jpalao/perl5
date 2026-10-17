@@ -551,7 +551,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				"ARCHS[sdk=iphoneos*]" = "$(ARCHS_STANDARD)";
-				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CAMELBONES_FRAMEWORK_PATH = "$(PROJECT_DIR)/../../../camelbones/CamelBones/build/Products/$(CONFIGURATION)-$(PLATFORM_NAME)";
@@ -583,7 +583,7 @@
 				LIBPERL_PATH = "";
 				"LIBPERL_PATH[sdk=iphoneos*]" = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
 				"LIBPERL_PATH[sdk=iphonesimulator*]" = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
-				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				MACOS_PERL_PATH = "/usr/bin/perl";
 				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--generate-entitlement-der";
 				PERL_DIST_PATH = "";
 				"PERL_DIST_PATH[sdk=iphoneos*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
@@ -603,7 +603,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				"ARCHS[sdk=iphoneos*]" = arm64;
-				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CAMELBONES_FRAMEWORK_PATH = "$(PROJECT_DIR)/../../../camelbones/CamelBones/build/Products/$(CONFIGURATION)-$(PLATFORM_NAME)";
@@ -635,7 +635,7 @@
 				LIBPERL_PATH = "";
 				"LIBPERL_PATH[sdk=iphoneos*]" = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
 				"LIBPERL_PATH[sdk=iphonesimulator*]" = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
-				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				MACOS_PERL_PATH = "/usr/bin/perl";
 				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--generate-entitlement-der";
 				PERL_DIST_PATH = "";
 				"PERL_DIST_PATH[sdk=iphoneos*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
@@ -731,7 +731,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				"ARCHS[sdk=iphoneos*]" = "$(ARCHS_STANDARD)";
-				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6555P83K4D;
 				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
@@ -741,7 +741,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
 				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
-				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = ("-framework", ios);
 				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
@@ -757,7 +757,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				"ARCHS[sdk=iphoneos*]" = arm64;
-				"ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6555P83K4D;
 				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
@@ -767,7 +767,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
 				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
-				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = ("-framework", ios);
 				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";

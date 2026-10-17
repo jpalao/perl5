@@ -25,7 +25,7 @@ use File::Path 'rmtree';
 use Cwd;
 use IPC::Cmd qw(can_run);
 
-if (($Config{'usecrosscompile'} && !can_run($Config{'cc'})) || $^O =~ /darwin-ios/) {
+if ($Config{'usecrosscompile'} && !can_run($Config{'cc'})) {
     skip_all("compiler not available (cross-compiling)");
 } else {
     plan(tests => 1);

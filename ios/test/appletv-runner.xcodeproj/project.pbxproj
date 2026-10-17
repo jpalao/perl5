@@ -173,6 +173,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
+				"ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6555P83K4D;
@@ -189,7 +190,7 @@
 					"@executable_path/Frameworks",
 				);
 				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
-				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -211,6 +212,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
+				"ARCHS[sdk=appletvsimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6555P83K4D;
@@ -227,7 +229,7 @@
 					"@executable_path/Frameworks",
 				);
 				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
-				MACOS_PERL_PATH = "$(HOME)/perl5/perlbrew/perls/perl-$(PERL_VERSION)/bin/perl";
+				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

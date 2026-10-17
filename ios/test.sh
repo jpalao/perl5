@@ -5,9 +5,8 @@ PERL5_SOURCE_ROOT="${PERL5_SOURCE_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd -P)}"
 WORKDIR="${PERL_IOS_WORKDIR:-$(pwd -P)}"
 PERL5_REVISION="${PERL5_REVISION:-HEAD}"
 
-if [ -e $HOME/perl5/perlbrew/etc/bashrc ];
-    then source $HOME/perl5/perlbrew/etc/bashrc;
-    else echo "$HOME/perl5/perlbrew/etc/bashrc not found" && exit 0;
+if [ -f "$HOME/perl5/perlbrew/etc/bashrc" ]; then
+    source "$HOME/perl5/perlbrew/etc/bashrc"
 fi
 
 if [ -n "${IOS_SETUP_FILE:-}" ]; then
@@ -21,6 +20,13 @@ elif [ -e "$WORKDIR/setup_test.sh" ];
 elif [ -e "$SCRIPT_DIR/setup_test.sh" ];
     then source "$SCRIPT_DIR/setup_test.sh";
 fi
+
+: "${MACOS_PERL_PATH:=$(command -v perl)}"
+if [ -z "$MACOS_PERL_PATH" ] || [ ! -x "$MACOS_PERL_PATH" ]; then
+    echo >&2 "MACOS_PERL_PATH must name an executable host Perl 5"
+    exit 1
+fi
+export MACOS_PERL_PATH
 
 if [ -z "${IOS_DEVICE_UUID:-${SIMULATOR_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}" ];
     then echo "IOS_DEVICE_UUID or a simulator UUID is unset. Please set it and try again" && exit 1;
@@ -48,7 +54,6 @@ if [ -z "${INSTALL_DIR:-}" ]; then
     INSTALL_DIR=local
     INSTALL_DIR_DEFAULTED=1
 fi
-: "${ARCHS:=arm64}"
 : "${HARNESS_TARGET:=iphoneos}"
 
 case "$HARNESS_TARGET" in
@@ -65,6 +70,21 @@ case "$HARNESS_TARGET" in
         ;;
 esac
 if [ "$SIMULATOR_BUILD" -eq 1 ]; then
+    HOST_ARCH=$(uname -m)
+    case "$HOST_ARCH" in
+        arm64|x86_64) ;;
+        *)
+            echo >&2 "Unsupported macOS host architecture for simulator build: $HOST_ARCH"
+            exit 1
+            ;;
+    esac
+    if [ -n "${ARCHS:-}" ] && [ "$ARCHS" != "$HOST_ARCH" ]; then
+        echo >&2 "Simulator builds require host architecture $HOST_ARCH; ARCHS=$ARCHS was requested"
+        exit 1
+    fi
+    ARCHS="$HOST_ARCH"
+    echo "Using host architecture $ARCHS for simulator build"
+
     : "${SIMULATOR_DEVICE_UUID:=${IOS_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}"
     if [ -z "$SIMULATOR_DEVICE_UUID" ]; then
         echo >&2 "SIMULATOR_DEVICE_UUID is unset. Set it to an available simulator UUID and try again"
@@ -72,6 +92,8 @@ if [ "$SIMULATOR_BUILD" -eq 1 ]; then
     fi
     IOS_DEVICE_UUID="$SIMULATOR_DEVICE_UUID"
     DEVICE_TRANSPORT=simulator
+else
+    : "${ARCHS:=arm64}"
 fi
 
 BUILD_SCOPE="$HARNESS_TARGET-$IOS_DEPLOYMENT_TARGET"
@@ -183,25 +205,6 @@ export ARCHS="$ARCHS"
 export PERL_DIST_PATH="$PERL_INSTALL_PREFIX/lib/perl5"
 export LIBPERL_PATH="$PERL_BUILD_DIR"
 
-use_perlbrew() {
-    if ! perlbrew use "perl-$PERL_VERSION"; then
-        echo "perlbrew: failed to use perl for macOS, attempting to install"
-        build_macos_perl
-        perlbrew use "perl-$PERL_VERSION" || check_exit_code $? "perlbrew selection"
-    fi
-    check_host_perl_version || check_exit_code $? "host Perl selection"
-}
-
-check_host_perl_version() {
-    if perl -e "exit(\$^V eq v$PERL_VERSION ? 0 : 1)"; then
-        echo "perl $PERL_VERSION seems installed at:"
-        command -v perl
-        return 0
-    fi
-    echo "Failed to detect perl version $PERL_VERSION"
-    return 1
-}
-
 devicectl_device_visible() {
     [ "$DEVICECTL_AVAILABLE" -eq 1 ] || return 1
     xcrun devicectl device info details --device "$IOS_DEVICE_UUID" >/dev/null 2>&1
@@ -215,7 +218,7 @@ ios_deploy_device_visible() {
 check_dependencies() {
     local requested_transport="$DEVICE_TRANSPORT"
 
-    deps=( "xcodebuild" "xcrun" "git" "perl" "perlbrew" "rsync" )
+    deps=( "xcodebuild" "xcrun" "git" "rsync" )
     for i in "${deps[@]}"
     do
         command -v $i >/dev/null 2>&1 || {
@@ -223,6 +226,12 @@ check_dependencies() {
             exit 1
         }
     done
+
+    if ! "$MACOS_PERL_PATH" -MFile::Find::Rule -MFile::Copy::Recursive -e 1 >/dev/null 2>&1; then
+        echo >&2 "Host Perl $MACOS_PERL_PATH must provide File::Find::Rule and File::Copy::Recursive"
+        echo >&2 "Select a host Perl with these modules using MACOS_PERL_PATH; the target Perl version need not match"
+        exit 1
+    fi
 
     if [ "$SIMULATOR_BUILD" -eq 1 ]; then
         TRANSFER_TRANSPORT=simulator
@@ -422,7 +431,7 @@ refresh_generated_config_timestamps() {
     local config_h="$tree/config.h"
 
     [ -f "$config_sh" ] && [ -f "$config_pm" ] && [ -f "$config_h" ] || return 0
-    perl -e '
+    "$MACOS_PERL_PATH" -e '
         my $mtime = (stat $ARGV[0])[9] + 1;
         utime $mtime, $mtime, @ARGV[1, 2] or die "utime: $!\n";
     ' "$config_sh" "$config_pm" "$config_h"
@@ -674,6 +683,7 @@ test_perl_device() {
         PERL_INSTALL_PREFIX="$PERL_INSTALL_PREFIX" \
         LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
         PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
+        MACOS_PERL_PATH="$MACOS_PERL_PATH" \
         DSTROOT="$install_root" -configuration "$HARNESS_BUILD_CONFIGURATION" \
         -allowProvisioningUpdates -scheme "$HARNESS_SCHEME" clean install
     check_exit_code
@@ -746,30 +756,6 @@ test_perl_device() {
     check_exit_code "$test_status" "simulator harness test"
 }
 
-build_macos_perl() {
-    # uninstall perl-blead
-    echo "Uninstalling perl-blead"
-    perlbrew uninstall -q perl-blead
-
-    echo "Installing perl-blead"
-    # macOS generate_uudmap and miniperl are used in cross builds
-    # -DPERL_USE_SAFE_PUTENV warns redefined, 5.37.1, maybe before
-    MACOSX_DEPLOYMENT_TARGET=10.5 perlbrew install -Dusedevel -Duselargefiles \
-        -Dcccdlflags='-fPIC -DPERL_USE_SAFE_PUTENV' -Doptimize=-O3 -Duseshrplib \
-        -Duse64bitall --thread --multi --64int --clan blead
-    perlbrew alias create perl-blead "perl-$PERL_VERSION"
-
-    pushd ~/perl5/perlbrew/build
-    ln -s blead/perl5-blead "perl-$PERL_VERSION"
-    popd
-
-    perlbrew use "perl-$PERL_VERSION"
-
-    # for test app build to re-link and sign binaries, see fix_ios_dylibs.sh
-    cpanm File::Copy::Recursive
-    cpanm File::Find::Rule
-}
-
 ####################################################################
 
 cd "$WORKDIR" || exit 1
@@ -782,8 +768,6 @@ trap 'exit 130' SIGINT SIGTERM SIGHUP
 acquire_run_lock
 
 check_dependencies
-
-use_perlbrew
 
 mkdir -p ext
 rm -f "ext/CamelBones-$CAMELBONES_VERSION".tar.gz

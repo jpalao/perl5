@@ -30,26 +30,19 @@ This procedure assumes that you have Xcode.app in /Applications and the
 SDKs in standard locations. If they are not, the build scripts might
 fail.
 
-Please note that cross compiling with this setup requires Perl to be
-built that macOS x86_64 `host` for every distinct minor version of Perl
-that you want to target on iOS. This is for the host`s binaries used
-during the build to have the same version as the iOS targets to be cross
-compiled. What this means is that one can build all targets with a
-single host Perl build of the same version but for every single iOS
-target with different versions, the corresponding version of the host
-build will be needed. `perlbrew` is used to automate this.
-L<https://perlbrew.pl/>
+Configure is run with C<-Dusecrosscompile>, C<-Dtargetarch>, and the
+iOS-specific C<targetrun=darwin-ios> runner. Configure builds host
+C<miniperl> and C<generate_uudmap> from the same source tree and uses
+those host binaries during the target build. The target SDK selects
+device versus simulator. Device CPU architecture comes from
+C<PERL_ARCH>; simulator builds use the macOS host architecture.
 
-We want to have the same version of Perl installed in macOS and used in
-the build than the one we are building for iOS family, as miniperl and
-generate_uudmap will be copied from the corresponding version's 'build'
-directory.  This can be done automatically with perlbrew. If you want to
-use your own build you can export the PERLBREW_SOURCE variable so the
-build script can locate these files.
-
-  perlbrew install -Duselargefiles -Dcccdlflags='-fPIC \
-  -DPERL_USE_SAFE_PUTENV' -Doptimize=-O3 -Duseshrplib \ --thread --multi
-  --64int --64all --clan 5.33.10
+The test script also needs a host Perl 5 with C<File::Find::Rule> and
+C<File::Copy::Recursive> for packaging. Set C<MACOS_PERL_PATH> to that
+interpreter if it is not the Perl found on C<PATH>. Its version does not
+need to match the Perl being built. Perlbrew is one way to keep these
+modules separate from macOS's system Perl; it is not used to supply the
+cross-build helper binaries.
 
 =head1 BUILD
 
@@ -105,11 +98,9 @@ To build a release version of Perl for iOS arm64 in 'local' dir:
 IOS_TARGET=iphoneos PERL_ARCH=arm64 sh -x "perl-5.33.10/ios/build.sh"
 
 To build a release version of Perl for an iOS simulator in './local' dir,
-select its target SDK explicitly. For an Apple silicon simulator:
-IOS_TARGET=iphonesimulator PERL_ARCH=arm64 DEBUG=1 sh -x
+select its target SDK explicitly. The build uses the host Mac architecture:
+IOS_TARGET=iphonesimulator DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
-On an Intel Mac, use C<PERL_ARCH=x86_64> if supported by the selected
-simulator runtime; keep C<IOS_TARGET=iphonesimulator>.
 
 To build a debug version of Perl for iOS armv7 in './another' dir:
 IOS_TARGET=iphoneos PERL_ARCH=armv7 DEBUG=1 INSTALL_DIR='another' sh -x
@@ -124,7 +115,7 @@ IOS_TARGET=appletvos PERL_ARCH=arm64 MIN_VERSION=9.0 DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
 
 To build a debug version of Perl for Apple TV Simulator: PERL_APPLETV=1
-IOS_TARGET=appletvsimulator PERL_ARCH=arm64 MIN_VERSION=9.0 DEBUG=1 sh -x
+IOS_TARGET=appletvsimulator MIN_VERSION=9.0 DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
 
 To build a debug version of Perl for Apple Watch: PERL_APPLEWATCH=1
@@ -132,7 +123,7 @@ IOS_TARGET=watchos DEBUG=1 MIN_VERSION=3.0 sh -x
 "perl-5.33.10/ios/build.sh"
 
 To build a debug version of Perl for Apple Watch Simulator:
-IOS_TARGET=watchsimulator PERL_ARCH=arm64 PERL_APPLEWATCH=1
+IOS_TARGET=watchsimulator PERL_APPLEWATCH=1
 MIN_VERSION=3.0 DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
 
@@ -149,8 +140,8 @@ The following environment variables control or customize your build:
 =item PERL_ARCH
 
 The architecture of the Perl binaries. Only one can be built at a time.
-This selects the target CPU architecture and does not determine whether
-the build targets a device or simulator.
+For device builds this selects the target CPU architecture. Simulator
+builds must use the host Mac architecture; an explicit mismatch is rejected.
 
 =item IOS_TARGET
 
@@ -193,10 +184,10 @@ from a simulator.
 
 =back
 
-The default C<PERL_ARCH> is C<arm64>; watchOS device builds use
-C<armv7k>. Choose an architecture supported by the selected SDK and
-toolchain. Simulator builds do not infer their target architecture from
-the host Mac.
+Device builds default to C<PERL_ARCH=arm64>; watchOS device builds use
+C<armv7k>. Simulator builds use the host Mac architecture (C<x86_64> on
+Intel, C<arm64> on Apple silicon). An explicitly requested simulator
+architecture that differs from the host is rejected.
 
   PERL_ARCH=arm64 # for iOS or tvOS
 
