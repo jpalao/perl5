@@ -3017,7 +3017,8 @@ $define|true|[yY]*)
       rm -rf $src/host
       mkdir $src/host
       cd $src/host
-      $src/Configure -des -Dusedevel -Dmksymlinks
+      # PERL_IOS describes the target, not the host helper being built here.
+      (unset PERL_IOS; $src/Configure -des -Dusedevel -Dmksymlinks)
       $make miniperl
       case "$hostgenerate" in
       '') $make generate_uudmap
