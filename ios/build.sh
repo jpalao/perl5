@@ -243,6 +243,8 @@ build_perl() {
     -u WATCHOS_DEPLOYMENT_TARGET \
     ./Configure -des -Dusedevel \
     -Dusecrosscompile \
+    -U i_gdbmndbm \
+    -U i_gdbm_ndbm \
     -Duseshrplib \
     -Dusethreads \
     -Dtargethost=physical-device \
