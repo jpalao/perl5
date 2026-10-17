@@ -283,29 +283,6 @@ static Boolean perlInitialized = false;
             setenv("PERLDB_OPTS", "ReadLine=0 NonStop=1 noTTY=1", 1);
             installedDebuggerOptions = true;
         }
-        if (fileName) {
-            NSFileManager *fileManager = [NSFileManager defaultManager];
-            NSError *attributesError = nil;
-            NSDictionary *attributes = [fileManager attributesOfItemAtPath:fileName
-                                                                       error:&attributesError];
-            NSLog(@"PerlCtrl script preflight: path=%@ cwd=%@ exists=%@ mode=%@ protection=%@ attributesError=%@",
-                fileName,
-                fileManager.currentDirectoryPath,
-                [fileManager fileExistsAtPath:fileName] ? @"YES" : @"NO",
-                attributes[NSFilePosixPermissions],
-                attributes[NSFileProtectionKey],
-                attributesError);
-            errno = 0;
-            int scriptFD = open(fileName.fileSystemRepresentation, O_RDONLY);
-            int openError = scriptFD < 0 ? errno : 0;
-            if (scriptFD < 0) {
-                NSLog(@"PerlCtrl POSIX open failed: path=%@ errno=%d (%s)",
-                    fileName, openError, strerror(openError));
-            } else {
-                NSLog(@"PerlCtrl POSIX open succeeded: path=%@", fileName);
-                close(scriptFD);
-            }
-        }
         @try {
             result = perl_parse(_PerlCtrlInterpreter, xs_init, embSize, emb, (char **)NULL);
         }
