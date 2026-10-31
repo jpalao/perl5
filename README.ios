@@ -37,12 +37,12 @@ those host binaries during the target build. The target SDK selects
 device versus simulator. Device CPU architecture comes from
 C<PERL_ARCH>; simulator builds use the macOS host architecture.
 
-The test script also needs a host Perl 5 with C<File::Find::Rule> and
-C<File::Copy::Recursive> for packaging. Set C<MACOS_PERL_PATH> to that
-interpreter if it is not the Perl found on C<PATH>. Its version does not
-need to match the Perl being built. Perlbrew is one way to keep these
-modules separate from macOS's system Perl; it is not used to supply the
-cross-build helper binaries.
+The build itself needs no host Perl: Configure builds a host C<miniperl>
+and C<generate_uudmap>, and the build scripts use them. The test script
+still needs a host Perl 5 for packaging and test setup. Set
+C<MACOS_PERL_PATH> to that interpreter if it is not the Perl found on
+C<PATH>. Its version does not need to match the Perl being built. The
+packaging scripts use only core Perl modules.
 
 =head1 BUILD
 

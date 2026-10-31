@@ -227,12 +227,6 @@ check_dependencies() {
         }
     done
 
-    if ! "$MACOS_PERL_PATH" -MFile::Find::Rule -MFile::Copy::Recursive -e 1 >/dev/null 2>&1; then
-        echo >&2 "Host Perl $MACOS_PERL_PATH must provide File::Find::Rule and File::Copy::Recursive"
-        echo >&2 "Select a host Perl with these modules using MACOS_PERL_PATH; the target Perl version need not match"
-        exit 1
-    fi
-
     if [ "$SIMULATOR_BUILD" -eq 1 ]; then
         TRANSFER_TRANSPORT=simulator
         echo "Using simulator $SIMULATOR_DEVICE_UUID"

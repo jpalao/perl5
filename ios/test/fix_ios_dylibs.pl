@@ -2,10 +2,9 @@
 use strict;
 use warnings;
 use Cwd qw 'abs_path getcwd';
-use File::Find::Rule;
+use File::Find qw(find);
 use File::Basename;
 use File::Copy;
-use File::Copy::Recursive qw(fcopy);
 
 my $test = 0;
 my $otool = "/usr/bin/otool";
@@ -40,9 +39,9 @@ for my $lib (keys %$perl_dependencies) {
 }
 
 my @search_paths = ($TARGET_FRAMEWORK_DIR, $TARGET_BIN_DIR, $TARGET_PERLIBDIR_DIR);
-my @dl_files = File::Find::Rule->file()
-    ->name('*.bundle', '*.dylib', $PRODUCT_NAME) 
-    ->in( @search_paths );
+my @dl_files = find_files(\@search_paths, sub {
+    $_[0] =~ /\.(?:bundle|dylib)\z/ || $_[0] eq $PRODUCT_NAME;
+});
     
 push @dl_files, $TARGET_FRAMEWORK_DIR."/ios.framework/ios";
 
@@ -59,7 +58,9 @@ for my $file (@dl_files) {
     process_file_dependencies($file); 
 }
 
-for my $file(File::Find::Rule->file()->name('*.bundle')->in( $TARGET_PERLIBDIR_DIR )){
+for my $file (find_files([$TARGET_PERLIBDIR_DIR], sub {
+    $_[0] =~ /\.bundle\z/;
+})) {
 	#sign the file
 	`/usr/bin/codesign --force --sign $SIGN_ID --preserve-metadata=identifier,entitlements --timestamp=none $file`;
 }
@@ -134,10 +135,24 @@ sub change_dyn_path {
     system "chmod", "-w", $file;
 }
 
+sub find_files {
+    my ($paths, $matches_name) = @_;
+    my @files;
+    find({
+        no_chdir => 1,
+        wanted => sub {
+            return unless -f $_;
+            my $name = basename($_);
+            push @files, $File::Find::name if $matches_name->($name);
+        },
+    }, @$paths);
+    return @files;
+}
+
 sub find_perl_dependencies {
-    my @perl_bundles = File::Find::Rule->file()
-        ->name('*.bundle') 
-        ->in( $TARGET_PERLIBDIR_DIR );
+    my @perl_bundles = find_files([$TARGET_PERLIBDIR_DIR], sub {
+        $_[0] =~ /\.bundle\z/;
+    });
         
     my %dependencies;
     for my $file (@perl_bundles) {
