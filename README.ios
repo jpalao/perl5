@@ -485,10 +485,13 @@ shown in red and stdout in green) and macOS terminal.
 
 =head2 Known problems
 
-Nor iOS or the Apple TV provide access to a shell interpreter that the
-user or the programmer can use. This has a number of implications for
-perl on iOS and Apple TV. exec, system calls and backticks operator are
-not supported.
+iOS, tvOS and watchOS do not provide a general shell or subprocess
+execution. With the embedded iOS framework initialized, C<system> can
+dispatch Perl invocations to a separate embedded interpreter, but cannot
+run arbitrary programs. In taint mode (C<-T> or C<-t>), C<system> checks
+its arguments and environment before dispatch. The C<ios> module also
+provides limited backtick emulation; this is not a general shell.
+C<exec> remains unsupported.
 
 The perl binary that is built is of no use for Cocoa based programming
 however libperl.dylib and the built modules can be embedded on an iOS or
