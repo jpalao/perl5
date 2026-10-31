@@ -4363,6 +4363,22 @@ PP(pp_system)
     char **argv;
     I32 index;
 
+    for (index = 0; index < argc; index++) {
+        SV *origsv = MARK[index + 1];
+        STRLEN len;
+        const char *pv;
+
+        SvGETMAGIC(origsv);
+        pv = SvPV_nomg(origsv, len);
+        MARK[index + 1] = newSVpvn_flags(pv, len,
+                            (SvFLAGS(origsv) & SVf_UTF8) | SVs_TEMP);
+    }
+
+    if (TAINTING_get) {
+        TAINT_ENV();
+        TAINT_PROPER("system");
+    }
+
     Newx(argv, argc + 1, char *);
     for (index = 0; index < argc; index++) {
         STRLEN len;

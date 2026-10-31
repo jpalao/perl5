@@ -1347,9 +1347,14 @@ violates_taint(sub { link $TAINT, '' }, 'link');
     }
 
     SKIP: {
-        skip "exec, system, backticks not available", 6 if $Is_Ios;
+        skip "exec not available", 2 if $Is_Ios;
         violates_taint(sub { exec $TAINT }, 'exec');
-        violates_taint(sub { system $TAINT }, 'system');
+    }
+
+    violates_taint(sub { system $TAINT }, 'system');
+
+    SKIP: {
+        skip "backticks not available", 2 if $Is_Ios;
 
         $foo = "*";
         taint_these $foo;
