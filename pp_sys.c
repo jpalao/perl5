@@ -4366,7 +4366,8 @@ PP(pp_system)
     Newx(argv, argc + 1, char *);
     for (index = 0; index < argc; index++) {
         STRLEN len;
-        argv[index] = savepvn(SvPV_nomg(MARK[index + 1], len), len);
+        const char *pv = SvPV_nomg(MARK[index + 1], len);
+        argv[index] = savepvn(pv, len);
     }
     argv[argc] = NULL;
 
