@@ -122,11 +122,11 @@ mkdir "$PREFIX"
 mkdir "$PREFIX/lib"
 mkdir "$PREFIX/include"
 
-# depends on GnuMakefile and DEBUGGING
+# passed to Configure as optimize; release matches the darwin hints default
 if [ $DEBUG -eq 1 ]; then
   OPTIMIZER="-O0 -g"
 else
-  OPTIMIZER="-Os -O3"
+  OPTIMIZER="-O3"
 fi
 
 # simulator builds cannot produce bitcode
@@ -221,11 +221,6 @@ build_perl() {
   export SDKROOT="$SDK_PATH"
   export CC=/usr/bin/clang
 
-  # do not strip if -g in ccflags
-  if [ $DEBUG -eq 1 ]; then
-    "$MACOS_PERL_PATH" -0777 -i.bak.0 -pe "s|(\\$\\^O eq \'darwin\');|\(\1 && \\\$Config\{\"ccflags\"\} \!\~ /-g\\\s/);|" installperl
-  fi
-
   # export min version
   if [ $PERL_APPLETV -ne 0 ]; then
     export APPLETV_DEPLOYMENT_TARGET="$MIN_VERSION"
@@ -253,6 +248,7 @@ build_perl() {
     -Dios_sdk="$IOS_PLATFORM" \
     -Dcc=/usr/bin/clang \
     -Dccflags="$BUILD_FLAGS" \
+    -Doptimize="$OPTIMIZER" \
     -Dldflags="$LINK_FLAGS" \
     -Dlibs='-lm -lc' \
     -Dprefix="$PREFIX"
