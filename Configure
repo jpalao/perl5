@@ -1505,7 +1505,7 @@ archname=''
 usereentrant='undef'
 : List of libraries we want.
 : If anyone needs extra -lxxx, put those in a hint file.
-libswanted="cl pthread socket bind inet nsl ndbm dbm malloc dl ld"
+libswanted="cl pthread socket bind inet nsl ndbm gdbm dbm db malloc dl ld"
 libswanted="$libswanted sun m crypt sec util c cposix posix ucb bsd BSD"
 : We probably want to search /usr/shlib before most other libraries.
 : This is only used by the lib/ExtUtils/MakeMaker.pm routine extliblist.
@@ -3936,6 +3936,21 @@ cd UU
 	hint=previous
 	;;
 esac
+
+# Reset implicit search paths after hints/config.sh; optdef.sh preserves
+# explicitly supplied target dependency paths.
+case "$targetrun" in
+darwin-ios)
+	glibpth="$IOS_SDKROOT/usr/lib"
+	xlibpth=''
+	plibpth=''
+	locincpth=' '
+	loclibpth=' '
+	incpth=''
+	libpth=''
+	usrinc="$IOS_SDKROOT/usr/include"
+	;;
+esac
 . ./optdef.sh
 
 : Restore computed paths
@@ -5040,7 +5055,14 @@ case "$ccname" in
     gcc)
 	realpath=`which realpath 2>/dev/null | sed 's/no realpath in.*//'`
 	$echo 'extern int foo;' > try.c
-	set X `$cppstdin -v try.c 2>&1 | $awk '/^#include </,/^End of search /'|$cppfilter $grep '/include'`
+	case "$targetrun" in
+	darwin-ios)
+		set X `$cc $ccflags -E -v try.c 2>&1 | $awk '/^#include </,/^End of search /'|$cppfilter $grep '/include'`
+		;;
+	*)
+		set X `$cppstdin -v try.c 2>&1 | $awk '/^#include </,/^End of search /'|$cppfilter $grep '/include'`
+		;;
+	esac
 	shift
 	inclibpth=""
 	if $test $# -gt 0; then
@@ -5050,9 +5072,13 @@ case "$ccname" in
 		esac
 		incpth="$incpth $i"
 		j="`$echo $i | $sed 's,/include[^/]*,/lib,'`"
-		if $test -d $j; then
-		    inclibpth="$inclibpth $j"
-		fi
+		case "$targetrun" in
+		darwin-ios) ;; # toolchain lib dirs hold host libraries
+		*)  if $test -d $j; then
+			inclibpth="$inclibpth $j"
+		    fi
+		    ;;
+		esac
 	    done
 	    incpth="`$echo $incpth | $sed 's/^ //'`"
 	    for xxx in $inclibpth $loclibpth $plibpth $glibpth; do

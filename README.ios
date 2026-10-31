@@ -152,6 +152,15 @@ from a simulator.
 
 =back
 
+For direct Configure invocations with C<-Dtargetrun=darwin-ios>, implicit
+include and library searches use the selected SDK and target compiler.
+Additional target-built dependency directories can be supplied with the
+standard C<-Dlocincpth='dir1 dir2'> and C<-Dloclibpth='dir1 dir2'> options,
+or explicit C<-I> and C<-L> compiler/linker flags. These directories need not
+be beneath the Perl installation prefix and must contain dependencies built
+for the selected SDK and architecture. Deployment, install-name changes and
+signing of external libraries are separate packaging steps.
+
 =head2 iOS (iphone, ipad):
 
 =over 4
