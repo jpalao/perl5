@@ -779,7 +779,10 @@ case "$hostgenerate" in
 ''|'undef')
 $spitshell >>$Makefile <<!GROK!THIS!
 bitcount.h: generate_uudmap\$(HOST_EXE_EXT)
-	./generate_uudmap\$(HOST_EXE_EXT) \$(generated_headers)
+	$run ./generate_uudmap\$(HOST_EXE_EXT) \$(generated_headers)
+	-@for f in \$(generated_headers); do \\
+	    $from \$\$f; \\
+	done
 
 !GROK!THIS!
 
