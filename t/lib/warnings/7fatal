@@ -544,11 +544,10 @@ if (1 {
     print $x, "\n";
 }
 EXPECT
-OPTION regex
-syntax error at - line 4, near "1 \{"
-"my" variable \$x masks earlier declaration in same statement at - line 6.
-syntax error at - line 7, near "\}"
-Execution of - aborted due to compilation errors.*
+syntax error at - line 4, near "1 {"
+"my" variable $x masks earlier declaration in same statement at - line 6.
+syntax error at - line 7, near "}"
+Execution of - aborted due to compilation errors.
 ########
 
 # fatal warnings in DESTROY should be made non-fatal [perl #123398]
