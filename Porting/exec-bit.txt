@@ -69,4 +69,6 @@ Porting/sync-with-cpan
 Porting/updateAUTHORS.pl
 Porting/valgrindpp.pl
 Cross/generate_config_sh
+Cross/run-darwin-ios
+Cross/run-ios
 Cross/warp

@@ -3023,6 +3023,8 @@ Cross/Makefile-cross-SH		Cross-compilation
 Cross/Makefile.SH.patch		Cross-compilation
 Cross/README			Cross-compilation
 Cross/README.new		Cross-compilation
+Cross/run-darwin-ios		iOS cross-compilation runner
+Cross/run-ios			iOS cross-compilation runner
 Cross/TODO			Cross-compilation
 Cross/warp			Cross-compilation
 cv.h				Code value header
