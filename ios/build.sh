@@ -372,9 +372,10 @@ build_ios_framework() {
 
 prepare_ios_module_source() {
     mkdir -p "$PERL_BUILD_DIR/ext/ios"
-    "${HOST_PERL:-perl}" -MExtUtils::ParseXS -e \
+    # The host miniperl built by Configure; no external host Perl is needed.
+    (cd "$PERL_BUILD_DIR" && ./miniperl -Ilib -MExtUtils::ParseXS -e \
       'ExtUtils::ParseXS::process_file(filename => $ARGV[0], output => $ARGV[1])' \
-      "$IOS_FRAMEWORK_DIR/CPAN/ios.xs" "$PERL_BUILD_DIR/ext/ios/ios.m"
+      "$IOS_FRAMEWORK_DIR/CPAN/ios.xs" "$PERL_BUILD_DIR/ext/ios/ios.m")
     check_exit_code
 }
 
