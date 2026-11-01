@@ -262,6 +262,12 @@ esac
 # Adds "-mmacosx-version-min=$2" to "$1" unless it already is there.
 add_macosx_version_min () {
   local v
+  case "$targetrun" in
+  darwin-ios)
+     # Configure sets the iOS/tvOS/watchOS minimum version instead.
+     return
+     ;;
+  esac
   eval "v=\$$1"
   case " $v " in
   *"-mmacosx-version-min"*)
@@ -300,29 +306,23 @@ case "$osvers" in  # Note: osvers is the kernel version, not the 10.x
 
    # We now use MACOSX_DEPLOYMENT_TARGET, if set, as an override by
    # capturing its value and adding it to the flags.
-    case "$targetrun" in
-    darwin-ios)
+    case "$MACOSX_DEPLOYMENT_TARGET" in
+    [1-9][0-9].*)
+      add_macosx_version_min ccflags $MACOSX_DEPLOYMENT_TARGET
+      add_macosx_version_min ldflags $MACOSX_DEPLOYMENT_TARGET
+      ;;
+    '')
+      # Empty MACOSX_DEPLOYMENT_TARGET is okay.
       ;;
     *)
-      case "$MACOSX_DEPLOYMENT_TARGET" in
-      [1-9][0-9].*)
-        add_macosx_version_min ccflags $MACOSX_DEPLOYMENT_TARGET
-        add_macosx_version_min ldflags $MACOSX_DEPLOYMENT_TARGET
-        ;;
-      '')
-        # Empty MACOSX_DEPLOYMENT_TARGET is okay.
-        ;;
-      *)
-        cat <<EOM >&4
+      cat <<EOM >&4
 
 *** Unexpected MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
 ***
 *** Please either set it to a valid macOS version number (e.g., 10.15) or to empty.
 
 EOM
-        exit 1
-        ;;
-      esac
+      exit 1
       ;;
     esac
 
@@ -364,11 +364,6 @@ EOM
     fi
 
    lddlflags="${ldflags} -bundle -undefined dynamic_lookup"
-  case "$targetrun" in
-  darwin-ios)
-    lddlflags=`echo "$lddlflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
-    ;;
-  esac
    ;;
 esac
 
