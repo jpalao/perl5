@@ -496,7 +496,7 @@ dispatch Perl invocations to a separate embedded interpreter, but cannot
 run arbitrary programs. In taint mode (C<-T> or C<-t>), C<system> checks
 its arguments and environment before dispatch. The C<ios> module also
 provides limited backtick emulation; this is not a general shell.
-C<exec> remains unsupported.
+C<exec> performs the same taint checks, then fails with C<ENOSYS>.
 
 The perl binary that is built is of no use for Cocoa based programming
 however libperl.dylib and the built modules can be embedded on an iOS or

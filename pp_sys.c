@@ -4608,10 +4608,6 @@ PP(pp_exec)
     dSP; dMARK; dORIGMARK; dTARGET;
     I32 value;
 
-#if PERL_IOS
-    DIE(aTHX_ PL_no_func, "exec");
-#endif
-
     if (TAINTING_get) {
         TAINT_ENV();
         while (++MARK <= SP) {
@@ -4623,6 +4619,11 @@ PP(pp_exec)
         TAINT_PROPER("exec");
     }
 
+#if PERL_IOS
+    /* iOS apps cannot replace their process image */
+    SETERRNO(ENOSYS, LIB_INVARG);
+    value = 0;
+#else
     PERL_FLUSHALL_FOR_CHILD;
     if (PL_op->op_flags & OPf_STACKED) {
         SV * const really = *++MARK;
@@ -4641,6 +4642,7 @@ PP(pp_exec)
         value = (I32)do_exec(SvPVx_nolen(sv_mortalcopy(*SP)));
 #endif
     }
+#endif /* PERL_IOS */
     SP = ORIGMARK;
     XPUSHi(value);
     RETURN;

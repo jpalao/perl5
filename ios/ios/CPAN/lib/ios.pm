@@ -22,7 +22,10 @@ BEGIN {
             my $switch = ${^TAINT} > 0 ? '-T' : '-t';
             my $message = "Insecure dependency in `` while running with $switch switch";
             die "$message\n" if ${^TAINT} > 0;
-            warn "$message\n" if ${^TAINT} < 0;
+            my $warn_bits = (caller 0)[9];
+            warn "$message\n"
+                if !defined $warn_bits
+                || vec($warn_bits, $warnings::Offsets{taint}, 1);
         }
         eval {
             ($code, $result) = exec_cli(getcwd(), $command)
