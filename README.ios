@@ -336,6 +336,17 @@ available to run the test suite as possible
 
 =head2 TESTING
 
+The default C<ios_harness> run includes the runtime tests from
+C<ios/ios/CPAN/t>, copied by the build into C<ext/ios/t>. These tests are
+discovered directly, even if absent from the top-level MANIFEST; tests also
+listed there run only once. A missing generated test directory is an error.
+Explicit test selections are not expanded.
+
+The host-side tests under C<ios/test/> are not part of device discovery.
+Run them separately on the build host, for example with
+C<prove ios/test/t>. New runtime regressions must be
+tracked before C<ios/test.sh> clones the source for a build.
+
 To start the perl test suite on the device:
 
 =over

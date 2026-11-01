@@ -33,6 +33,7 @@ $ENV{HOME} = getcwd();
 # $ENV{PERL_USE_UNSAFE_INC}
 # $ENV{PERL_DEBUG_FULL_TEST}
 if (!grep { $_ !~ /^-/ } @ARGV) {
+    my @options = @ARGV;
     $::do_nothing = $::do_nothing = 1;
     require './TEST';
 
@@ -52,15 +53,19 @@ if (!grep { $_ !~ /^-/ } @ARGV) {
     close($config);
     push @tests, _tests_from_manifest($extensions, $known_extensions);
 
+    @ARGV = ();
+    _find_tests('../ext/ios/t');
+    push @tests, @ARGV;
+
     # ExtUtils-MakeMaker needs make and a compiler, which will come from
     # the optional ios::make module.  Test-Harness needs piped open, and
     # 01_IPC-Cmd.t needs pipelines and fork; these come with pipe, popen
     # and pseudofork support.
     my $unsupported = qr{^\.\./cpan/(?:ExtUtils-MakeMaker/|Test-Harness/|IPC-Cmd/t/01_IPC-Cmd\.t$)};
-    @tests = grep { $_ !~ $unsupported } @tests;
+    my %seen;
+    @tests = grep { $_ !~ $unsupported && !$seen{$_}++ } @tests;
 
-    @ARGV = grep { /^-/ } @ARGV;
-    push @ARGV, @tests;
+    @ARGV = (@options, @tests);
 }
 
 do './harness';
