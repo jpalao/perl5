@@ -7,11 +7,7 @@ BEGIN {
     set_up_inc('../lib', '..');
 }
 
-skip_all("iOS: no git binary") if $^O =~ /darwin-ios/;
-
-if ($^O !~ /darwin-ios/){
-use TestInit qw(T);   # T is chdir to the top level
-}
+use TestInit qw(T);    # T is chdir to the top level
 use strict;
 use File::Spec;
 

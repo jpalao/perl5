@@ -63,8 +63,5 @@ for my $f ( map { "../$_" } @manifest ) {
   delete $exe_list{$f}; # seen it
 }
 
-SKIP: {
-    skip('iOS: exec-bit not supported', 1) if $^O =~ /darwin-ios/;
-    ok( ! %exe_list, "Everything in Porting/exec-bit.txt has +x in repo" )
-        or diag( "Files missing exec bit:\n  " . join("\n  ", sort keys %exe_list) . "\n");
-}
+ok( ! %exe_list, "Everything in Porting/exec-bit.txt has +x in repo" )
+  or diag( "Files missing exec bit:\n  " . join("\n  ", sort keys %exe_list) . "\n");

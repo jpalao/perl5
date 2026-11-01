@@ -104,7 +104,7 @@ unless (defined $nm_style) {
         $nm_style = 'gnu';
     } elsif ($^O eq 'freebsd') {
         $nm_style = 'gnu';
-    } elsif ($^O =~ 'darwin') {
+    } elsif ($^O eq 'darwin') {
         $nm_style = 'darwin';
     }
 }
@@ -475,7 +475,7 @@ if (defined $nm_err_tmp) {
             # versions this is exactly the string "no symbols\n" but in later
             # versions becomes a string followed by ": no symbols\n". For this
             # test it is typically "../libperl.a:perlapi.o: no symbols\n"
-            if ( $^O =~ 'darwin' ) {
+            if ( $^O eq 'darwin' ) {
                 if (/nm: no name list/ || /^(.*: )?no symbols$/ ) {
                     print "# $^O ignoring $nm output: $_";
                     next;
