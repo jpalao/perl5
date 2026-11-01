@@ -4,6 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 PERL5_SOURCE_ROOT="${PERL5_SOURCE_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd -P)}"
 WORKDIR="${PERL_IOS_WORKDIR:-$(pwd -P)}"
 PERL5_REVISION="${PERL5_REVISION:-HEAD}"
+DEBUG="${DEBUG:-0}"
 
 if [ -f "$HOME/perl5/perlbrew/etc/bashrc" ]; then
     source "$HOME/perl5/perlbrew/etc/bashrc"
@@ -774,7 +775,7 @@ check_exit_code
 
 rm -Rf "$INSTALL_DIR"
 
-PERL_ARCH="$ARCHS" DEBUG=1 sh -x "$PERL_BUILD_DIR/ios/build.sh"
+PERL_ARCH="$ARCHS" DEBUG="$DEBUG" sh -x "$PERL_BUILD_DIR/ios/build.sh"
 check_exit_code
 
 # enable APItest.bundle and Typemap.bundle loading
