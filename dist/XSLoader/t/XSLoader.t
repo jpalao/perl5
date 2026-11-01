@@ -196,7 +196,11 @@ SKIP: {
   # pretend it is, first find where Devel/Peek.pm is
   my $peek_file = "Devel/Peek.pm";
   my $module_path;
-  for my $dir (@INC) {
+  my @module_dirs = @INC;
+  # The iOS test tree omits XS bundles; use the app's signed runtime tree.
+  unshift @module_dirs, $DynaLoader::ios_runtime_path
+    if $^O =~ /darwin-ios/ && defined $DynaLoader::ios_runtime_path;
+  for my $dir (@module_dirs) {
     if (-f "$dir/$peek_file") {
       $module_path = "$dir/Not/Devel/Peek.pm";
       last;
@@ -209,9 +213,7 @@ SKIP: {
   # [perl #122455]
   # die instead of falling back to DynaLoader
   no warnings 'redefine';
-  local *XSLoader::bootstrap_inherit =
-    $^O =~ /darwin-ios/ ? sub { warn "Fallback to DynaLoader\n" } :
-      sub { die "Fallback to DynaLoader\n" };
+  local *XSLoader::bootstrap_inherit = sub { die "Fallback to DynaLoader\n" };
   ::ok( eval <<EOS, "test correct path searched for modules")
 package Not::Devel::Peek;
 #line 1 "$module_path"
