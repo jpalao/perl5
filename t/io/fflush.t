@@ -25,7 +25,7 @@ my $d_fork = defined $Config{d_fork} ? $Config{d_fork} eq 'define' ? 1 : 0 : 0;
 skip_all('fflush(NULL) or equivalent not available')
     unless $useperlio || $fflushNULL || $fflushall;
 
-plan(tests => $^O =~ /darwin-ios/ ? 2 : 7);
+plan(tests => 7);
 
 my $runperl = $^X =~ m/\s/ ? qq{"$^X"} : $^X;
 $runperl .= qq{ "-I../lib"};
@@ -60,9 +60,8 @@ close PROG or die "close $ffprog: $!";;
 $| = 0; # we want buffered output
 
 # Test flush on fork/exec
-if (!$d_fork) {
-    print "ok 1 # skipped: no fork\n";
-} else {
+SKIP: {
+    skip('no fork', 1) unless $d_fork;
     my $f = tempfile();
     open OUT, "> $f" or die "open $f: $!";
     print OUT "Pe";
@@ -83,7 +82,7 @@ if (!$d_fork) {
 	die "fork: $!";
     }
 
-    print file_eq($f, "Perl") ? "ok 1\n" : "not ok 1\n";
+    ok(file_eq($f, "Perl"));
 }
 
 # Test flush on system/qx/pipe open
@@ -102,22 +101,26 @@ my %subs = (
                 close PIPE;
             },
             );
-my $t = 2;
-for (qw(system qx popen)) {
-    next if $^O =~ /darwin-ios/ && $_ ne 'qx';
-    my $code    = $subs{$_};
-    my $f       = tempfile();
-    my $command = qq{$runperl $ffprog "$f" "rl"};
-    open OUT, "> $f" or die "open $f: $!";
-    print OUT "Pe";
-    close OUT or die "close $f: $!";;
-    print "# $command\n";
-    $code->($command);
-    print file_eq($f, "Perl") ? "ok $t\n" : "not ok $t\n";
-    ++$t;
+for my $op (qw(system qx popen)) {
+    SKIP: {
+        skip('piped open is not supported by the iOS test runner', 1)
+            if $^O =~ /darwin-ios/ && $op eq 'popen';
+        my $code    = $subs{$op};
+        my $f       = tempfile();
+        my $command = qq{$runperl $ffprog "$f" "rl"};
+        open OUT, "> $f" or die "open $f: $!";
+        print OUT "Pe";
+        close OUT or die "close $f: $!";;
+        print "# $command\n";
+        $code->($command);
+        ok(file_eq($f, "Perl"));
+    }
 }
 
-if ($^O !~ /darwin-ios/) {
+SKIP: {
+    skip('piped open is not supported by the iOS test runner', 3)
+        if $^O =~ /darwin-ios/;
+    my $t = curr_test();
     my $cmd = _create_runperl(
 			      switches => ['-l'],
 			      prog =>
@@ -129,6 +132,5 @@ if ($^O !~ /darwin-ios/) {
         print;
     }
     close $CMD;
-    $t += 3;
-    curr_test($t);
+    curr_test($t + 3);
 }
