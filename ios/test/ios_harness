@@ -32,78 +32,6 @@ $ENV{HOME} = getcwd();
 # $ENV{PERL_TEST_HARNESS_ASAP} = 1;
 # $ENV{PERL_USE_UNSAFE_INC}
 # $ENV{PERL_DEBUG_FULL_TEST}
-# TODO: on iOS these tests may 
-# hang, crash or exit unexpectedly,
-# or may pass, causing havoc afterwards,
-# or they may pass or fail randomly
-
-my @ios_blacklist = qw(
-    ../ext/CamelBones-1.3.0/t/13-Exceptions.t
-    ../ext/CamelBones-1.3.0/t/14-Threads.t
-);
-
-my @simul_blacklist = qw(
-    ../ext/CamelBones-1.3.0/t/13-Exceptions.t
-    ../ext/CamelBones-1.3.0/t/14-Threads.t
-);
-
-sub dump_list {
-    my @tests = @_;
-    foreach my $t(@tests) {
-        print "$t\n";
-    }
-}
-
-sub exclude_tests {
-    my @tests = @_;
-    for my $black_list (@ios_blacklist)
-    {
-        for (my $index = 0; $index < scalar @tests;  $index ++)
-        {
-            if ($tests[$index] =~ m!$black_list!)
-            {
-                print "# iOS: excluding test: $tests[$index]\n";
-                splice(@tests, $index, 1);
-            }
-        }
-    }
-
-    if (($Config{ios_sdk} // '') =~ /simulator/) {
-        print "# NOTE: the following tests pass on device but fail on simulator. #TODO\n";
-        for my $simul_black_list (@simul_blacklist)
-        {
-            for (my $index = 0; $index < scalar @tests;  $index ++)
-            {
-                if ($tests[$index] =~ m!$simul_black_list!)
-                {
-                    print "# iOS: excluding test: $tests[$index]\n";
-                    splice(@tests, $index, 1);
-                }
-            }
-        }
-    }
-
-    my @excluded = (
-        qr!\.\./cpan/IPC-Cmd!,
-        qr!\.\./cpan/IPC-SysV!,
-        qr!\.\./ext/IPC-Open3!,
-        qr!\.\./cpan/Test-Harness!,
-        qr!\.\./cpan/ExtUtils-MakeMaker!,
-    );
-    for my $pattern (@excluded) {
-        my @kept;
-        for my $test (@tests) {
-            if ($test =~ $pattern) {
-                print "# iOS: excluding test: $test\n";
-            } else {
-                push @kept, $test;
-            }
-        }
-        @tests = @kept;
-    }
-    return @tests;
-};
-
 if (!grep { $_ !~ /^-/ } @ARGV) {
     $::do_nothing = $::do_nothing = 1;
     require './TEST';
@@ -124,8 +52,15 @@ if (!grep { $_ !~ /^-/ } @ARGV) {
     close($config);
     push @tests, _tests_from_manifest($extensions, $known_extensions);
 
+    # ExtUtils-MakeMaker needs make and a compiler, which will come from
+    # the optional ios::make module.  Test-Harness needs piped open, and
+    # 01_IPC-Cmd.t needs pipelines and fork; these come with pipe, popen
+    # and pseudofork support.
+    my $unsupported = qr{^\.\./cpan/(?:ExtUtils-MakeMaker/|Test-Harness/|IPC-Cmd/t/01_IPC-Cmd\.t$)};
+    @tests = grep { $_ !~ $unsupported } @tests;
+
     @ARGV = grep { /^-/ } @ARGV;
-    push @ARGV, exclude_tests(@tests);
+    push @ARGV, @tests;
 }
 
 do './harness';

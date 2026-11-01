@@ -5,6 +5,11 @@ BEGIN {
         print "1..0 # Skip: needs porting, perhaps imitating Win32 mechanisms\n";
 	exit 0;
     }
+    require Config;
+    if (!$Config::Config{d_fork} && $^O ne 'MSWin32') {
+        print "1..0 # Skip: no fork\n";
+        exit 0;
+    }
     require "../../t/test.pl";
 }
 use strict;
