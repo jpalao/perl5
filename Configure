@@ -3193,8 +3193,14 @@ case "$targethost" in
 	esac
 	case "$targetrun" in
 		darwin-ios)
-			cp "$src/Cross/run-ios" "$run"
-			$chmod a+rx "$run"
+			# $run is the tracked Cross/run-darwin-ios wrapper, which
+			# execs the run-ios script beside it.
+			runios=`dirname "$run"`/run-ios
+			if $test ! -f "$run" || $test ! -f "$runios"; then
+				echo "Cannot find $run or $runios." >&4
+				exit 1
+			fi
+			$chmod a+rx "$run" "$runios"
 			;;
 	ssh|rsh)
 	    cat >$run <<EOF
