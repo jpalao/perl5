@@ -31,7 +31,6 @@ BEGIN {
 	}
 	SKIP:
 	{
-	    skip('iOS: TODO', 1) if $_ eq "SIG" && $^O =~ /darwin-ios/;
 	    skip_if_miniperl("the module for *$_ may not be available in "
 			     . "miniperl", 1) if $non_mini{$_};
 	    ok defined *$v, "*$_ appears to be defined at the outset";
@@ -54,18 +53,11 @@ $Is_MSWin32  = $^O eq 'MSWin32';
 $Is_VMS      = $^O eq 'VMS';
 $Is_os2      = $^O eq 'os2';
 $Is_Cygwin   = $^O eq 'cygwin';
-$Is_Ios      = $^O =~ /darwin-ios/;
-
-my $orig_path;
-if ($Is_Ios) {
-    use Cwd qw/getcwd/;
-    $orig_path = getcwd();
-}
+$Is_Ios      = $^O eq 'darwin-ios';
 
 $PERL =
    ($Is_VMS     ? $^X      :
     $Is_MSWin32 ? '.\perl' :
-    $Is_Ios     ? 'perl'   :
                   './perl');
 
 
@@ -91,7 +83,7 @@ sub env_is {
     } else {
         my @env = `env`;
         SKIP: {
-            skip("iOS: no shell", 1) if $Is_Ios;
+            skip("no env command on iOS", 1) if $Is_Ios;
             skip("env doesn't work on this android", 1) if !@env && $^O =~ /android/;
             chomp (my @env = grep { s/^$key=// } @env);
             is "@env", $val, $desc;
@@ -108,23 +100,21 @@ END {
     }
 }
 
-SKIP: {
-skip('iOS: no shell', 2) if $Is_Ios;
-eval '$ENV{"FOO"} = "hi there";';      # check that ENV is inited inside eval
+eval '$ENV{"FOO"} = "hi there";';	# check that ENV is inited inside eval
 # cmd.exe will echo 'variable=value' but 4nt will echo just the value
 # -- Nikola Knezevic
-
-if ($Is_MSWin32)  { like `set FOO`, qr/^(?:FOO=)?hi there$/m; }
-elsif ($Is_VMS)   { is `write sys\$output f\$trnlnm("FOO")`, "hi there\n"; }
-else              { is `echo \$FOO`, "hi there\n"; }
+SKIP: {
+    skip("no shell on iOS", 1) if $Is_Ios;
+    if ($Is_MSWin32)  { like `set FOO`, qr/^(?:FOO=)?hi there$/m; }
+    elsif ($Is_VMS)   { is `write sys\$output f\$trnlnm("FOO")`, "hi there\n"; }
+    else              { is `echo \$FOO`, "hi there\n"; }
+}
 
 unlink_all 'ajslkdfpqjsjfk';
 $! = 0;
 open(FOO,'ajslkdfpqjsjfk');
 isnt($!, 0, "Unlinked file can't be opened");
 close FOO; # just mention it, squelch used-only-once
-
-}
 
 SKIP: {
     skip('SIGINT not safe on this platform', 5)
@@ -219,12 +209,9 @@ END
 is join(':',@val1), join(':',@val2);
 cmp_ok @val1, '>', 1;
 
-SKIP: {
-skip('iOS: chdir $ENV{HOME} not permitted', 1) if $Is_Ios;
 # deleting $::{ENV}
 is runperl(prog => 'delete $::{ENV}; chdir; print qq-ok\n-'), "ok\n",
   'deleting $::{ENV}';
-      }
 
 # regex vars
 'foobarbaz' =~ /b(a)r/;
@@ -234,15 +221,12 @@ is $', 'baz';
 is $+, 'a';
 
 # [perl #24237]
-SKIP: {
-skip('iOS: #TODO', 3) if $Is_Ios;
 for (qw < ` & ' >) {
  fresh_perl_is
   qq < \@$_; q "fff" =~ /(?!^)./; print "[\$$_]\\n" >,
   "[f]\n", {},
   "referencing \@$_ before \$$_ etc. still saws off ampersands";
 }
-      }
 
 # $"
 @a = qw(foo bar baz);
@@ -263,22 +247,16 @@ is((keys %h)[0], "foo\034bar");
     is((keys %h)[0], 'fooxbar');
 }
 
-SKIP: {
-skip('iOS: no system', 2) if $Is_Ios;
 # $?, $@, $$
 system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(0)"];
 is $?, 0;
 system qq[$PERL "-I../lib" -e "use vmsish qw(hushed); exit(1)"];
 isnt $?, 0;
-      }
 
 eval { die "foo\n" };
-SKIP: {
-skip('iOS: #TODO', 2) if $Is_Ios;
 is $@, "foo\n";
 
 ok !*@{HASH}, 'no %@';
-      }
 
 cmp_ok($$, '>', 0);
 my $pid = $$;
@@ -286,7 +264,6 @@ eval { $$ = 42 };
 is $$, 42, '$$ can be modified';
 SKIP: {
     skip "no fork", 1 unless $Config{d_fork};
-    skip "no fork", 1 if $Is_Ios;
     (my $kidpid = open my $fh, "-|") // skip "cannot fork: $!", 1;
     if($kidpid) { # parent
 	my $kiddollars = <$fh>;
@@ -302,8 +279,7 @@ SKIP: {
 $$ = $pid; # Tests below use $$
 
 # $^X and $0
-SKIP: {
-    skip('iOS: no shell', 8) if $^O =~ /darwin-ios/;
+{
     my $is_abs = $Config{d_procselfexe} || $Config{usekernprocpathname}
       || $Config{usensgetexecutablepath};
     if ($^O eq 'qnx') {
@@ -311,6 +287,9 @@ SKIP: {
     }
     elsif($^O =~ /android/) {
         chomp($wd = `sh -c 'pwd'`);
+    }
+    elsif($Is_Ios) {
+        $wd = '.';
     }
     elsif($Is_Cygwin || $is_abs) {
        # Cygwin turns the symlink into the real file
@@ -323,9 +302,6 @@ SKIP: {
     }
     elsif($Is_os2) {
        $wd = Cwd::sys_cwd();
-    }
-    elsif($Is_Ios) {
-       $wd = Cwd::getcwd();
     }
     else {
 	$wd = '.';
@@ -380,26 +356,30 @@ print "\$^X is $^X, \$0 is $0\n";
 EOF
     ok close(SCRIPT) or diag $!;
     ok chmod(0755, $script) or diag $!;
-    $_ = $Is_VMS ? `$perl $script` : `$script`;
-    s/\.exe//i if $Is_Cygwin or $Is_os2;
-    s{is perl}{is $perl}; # for systems where $^X is only a basename
-    s{\\}{/}g;
-    if ($Is_MSWin32 || $Is_os2) {
-	is uc $_, uc $s1;
-    } else {
-  SKIP:
-     {
-	  skip "# TODO: Hit bug posix-2058; exec does not setup argv[0] correctly." if ($^O eq "vos");
-	  is $_, $s1;
-     }
-    }
-    $_ = `$perl $script`;
-    s/\.exe//i if $Is_os2 or $Is_Cygwin;
-    s{\\}{/}g;
-    if ($Is_MSWin32 || $Is_os2) {
-	is uc $_, uc $s1;
-    } else {
-	is $_, $s1;
+    SKIP: {
+        # The runner is not named perl, so the #! line would re-exec it
+        skip("no #! script execution on iOS", 2) if $Is_Ios;
+        $_ = $Is_VMS ? `$perl $script` : `$script`;
+        s/\.exe//i if $Is_Cygwin or $Is_os2;
+        s{is perl}{is $perl}; # for systems where $^X is only a basename
+        s{\\}{/}g;
+        if ($Is_MSWin32 || $Is_os2) {
+	    is uc $_, uc $s1;
+        } else {
+      SKIP:
+         {
+	      skip "# TODO: Hit bug posix-2058; exec does not setup argv[0] correctly." if ($^O eq "vos");
+	      is $_, $s1;
+         }
+        }
+        $_ = `$perl $script`;
+        s/\.exe//i if $Is_os2 or $Is_Cygwin;
+        s{\\}{/}g;
+        if ($Is_MSWin32 || $Is_os2) {
+	    is uc $_, uc $s1;
+        } else {
+	    is $_, $s1;
+        }
     }
     ok unlink($script) or diag $!;
     # CHECK
@@ -420,9 +400,7 @@ is $^O, $orig_osname, 'Assigning $^I does not clobber $^O';
 }
 $^O = $orig_osname;
 
-SKIP:
 {
-    skip('iOS: #TODO', 2) if $Is_Ios;
     #RT #72422
     foreach my $p (0, 1) {
 	fresh_perl_is(<<"EOP", '2 4 8', undef, "test \$^P = $p");
@@ -587,7 +565,6 @@ SKIP: {
 
 # Make sure Errno hasn't been prematurely autoloaded
 
-   skip('iOS: #TODO prematurely autoloaded', 1) if $Is_Ios;
    ok !keys %Errno::;
 
 # Test auto-loading of Errno when %! is used
@@ -624,7 +601,6 @@ foreach (['powie::!', 'Errno']) {
     my ($symbol, $package) = @$_;
     SKIP: {
 	(my $extension = $package) =~ s|::|/|g;
-	skip('iOS: #TODO', 2) if $Is_Ios;
 	skip "$package is statically linked", 2
 	    if $Config{static_ext} =~ m|\b\Q$extension\E\b|;
 	foreach my $scalar_first ('', '$$symbol;') {
@@ -751,7 +727,6 @@ SKIP: {
 
 SKIP: {
     skip_if_miniperl("No XS in miniperl", 1);
-    skip('iOS: #TODO', 1) if $Is_Ios;
 
     for ( [qw( %! Errno )] ) {
 	my ($var, $mod) = @$_;
@@ -862,7 +837,6 @@ SKIP: {
  SKIP: {
 	skip("clearing \%ENV is not safe when running under valgrind or on VMS")
 	    if $ENV{PERL_VALGRIND} || $Is_VMS;
-    skip('iOS: no shell') if $Is_Ios;
 
 	    $PATH = $ENV{PATH};
 	    $SYSTEMROOT = $ENV{SYSTEMROOT} if exists $ENV{SYSTEMROOT}; # win32
@@ -874,6 +848,8 @@ SKIP: {
 	    $ENV{PERL_DESTRUCT_LEVEL} = $PDL || 0;
 	    if ($Is_MSWin32) {
 		is `set foo 2>NUL`, "";
+	    } elsif ($Is_Ios) {
+		skip("no shell on iOS", 1);
 	    } else {
 		is `echo \$foo`, "\n";
 	    }
@@ -1012,8 +988,6 @@ SKIP: {
     is delete $ENV{'foO'}, 'baz';
     is scalar(keys(%ENV)), 0;
 }
-
-chdir $orig_path if ($Is_Ios);
 
 __END__
 
