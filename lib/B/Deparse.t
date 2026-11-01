@@ -1696,7 +1696,7 @@ CORE::given ($x) {
 CORE::evalbytes '';
 () = CORE::__SUB__;
 ####
-# SKIP (?$] < 5.017004 || $^O =~ /darwin-ios/) && "lexical subs not implemented on this Perl version"
+# SKIP ?($] < 5.017004 || $^O eq 'darwin-ios') && "lexical subs not implemented on this Perl version"
 # lexical subroutines and keywords of the same name
 # CONTEXT use feature 'lexical_subs', 'switch'; no warnings 'experimental';
 my sub default;
@@ -2095,7 +2095,7 @@ $a x= $b;
 # @_ with padrange
 my($a, $b, $c) = @_;
 ####
-# SKIP (?$] < 5.017004 || $^O =~ /darwin-ios/) && "lexical subs not implemented on this Perl version"
+# SKIP ?($] < 5.017004 || $^O eq 'darwin-ios') && "lexical subs not implemented on this Perl version"
 # lexical subroutine
 # CONTEXT use feature 'lexical_subs';
 no warnings "experimental::lexical_subs";
@@ -2108,7 +2108,7 @@ my sub f {
 }
 print f();
 ####
-# SKIP (?$] < 5.017004 || $^O =~ /darwin-ios/) && "lexical subs not implemented on this Perl version"
+# SKIP ?($] < 5.017004 || $^O eq 'darwin-ios') && "lexical subs not implemented on this Perl version"
 # lexical "state" subroutine
 # CONTEXT use feature 'state', 'lexical_subs';
 no warnings 'experimental::lexical_subs';
