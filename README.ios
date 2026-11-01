@@ -75,6 +75,13 @@ $INSTALL_DIR.
   perl-5.33.10.tar.gz [VAR1=VALUE VAR2=VALUE] sh
   perl-5.33.10/ios/build.sh/build.sh
 
+=head2 System V IPC
+
+The Apple SDKs expose System V IPC functions, but sandboxed apps cannot
+use them. Configure therefore disables message queues, semaphores, and
+shared memory for C<targetrun=darwin-ios>, including simulator builds.
+A fresh default build consequently omits C<IPC::SysV>.
+
 =head1 QUICK INTRO
 
 Following are some examples. For detailed options see next section,

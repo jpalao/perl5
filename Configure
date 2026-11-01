@@ -16795,6 +16795,16 @@ else
 fi
 set d_msg
 eval $setvar
+case "$targetrun" in
+darwin-ios)
+	# The SDK has SysV IPC symbols, but sandboxed apps cannot use them.
+	d_msg="$undef"
+	d_msgctl="$undef"
+	d_msgget="$undef"
+	d_msgsnd="$undef"
+	d_msgrcv="$undef"
+	;;
+esac
 
 : Check for msghdr_s
 echo " "
@@ -18018,6 +18028,14 @@ else
 fi
 set d_sem
 eval $setvar
+case "$targetrun" in
+darwin-ios)
+	d_sem="$undef"
+	d_semctl="$undef"
+	d_semget="$undef"
+	d_semop="$undef"
+	;;
+esac
 
 : see whether sys/sem.h defines union semun
 echo " "
@@ -18930,6 +18948,15 @@ else
 fi
 set d_shm
 eval $setvar
+case "$targetrun" in
+darwin-ios)
+	d_shm="$undef"
+	d_shmat="$undef"
+	d_shmctl="$undef"
+	d_shmdt="$undef"
+	d_shmget="$undef"
+	;;
+esac
 
 : see if we have sigaction
 echo " "

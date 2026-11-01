@@ -1561,7 +1561,6 @@ SKIP: {
     # test shmread
     SKIP: {
         skip "shm*() not available", 1 unless $Config{d_shm};
-        skip "shm*() kills sandboxed iOS processes", 1 if $Is_Ios;
 
         no strict 'subs';
         my $sent = "foobar";
@@ -1599,7 +1598,6 @@ SKIP: {
     # test msgrcv
     SKIP: {
         skip "msg*() not available", 1 unless $Config{d_msg};
-        skip "msg*() kills sandboxed iOS processes", 1 if $Is_Ios;
 
 	no strict 'subs';
         my $id;
