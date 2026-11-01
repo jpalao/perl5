@@ -144,6 +144,11 @@ use File::Glob qw(:case);
     'autodie' => {
         'DISTRIBUTION' => 'TODDR/autodie-2.34.tar.gz',
         'FILES'        => q[cpan/autodie],
+        # iOS portability changes; upstream submissions are pending.
+        'CUSTOMIZED'   => [
+            't/exec.t',
+            't/recv.t',
+        ],
         'EXCLUDED'     => [
             qr{benchmarks},
             qr{README\.md},
@@ -252,6 +257,10 @@ use File::Glob qw(:case);
     'CPAN' => {
         'DISTRIBUTION' => 'ANDK/CPAN-2.33-TRIAL.tar.gz',
         'FILES'        => q[cpan/CPAN],
+        # iOS portability change; upstream submission is pending.
+        'CUSTOMIZED'   => [
+            'lib/CPAN/HandleConfig.pm',
+        ],
         'EXCLUDED'     => [
             qr{^distroprefs/},
             qr{^inc/Test/},
@@ -516,6 +525,10 @@ use File::Glob qw(:case);
     'File::Path' => {
         'DISTRIBUTION' => 'JKEENAN/File-Path-2.18.tar.gz',
         'FILES'        => q[cpan/File-Path],
+        # iOS portability change; upstream submission is pending.
+        'CUSTOMIZED'   => [
+            't/Path_root.t',
+        ],
         'EXCLUDED'     => [
             qw(t/Path-Class.t),
             qr{^xt/},
@@ -525,6 +538,10 @@ use File::Glob qw(:case);
     'File::Temp' => {
         'DISTRIBUTION' => 'ETHER/File-Temp-0.2311.tar.gz',
         'FILES'        => q[cpan/File-Temp],
+        # iOS portability change; upstream submission is pending.
+        'CUSTOMIZED'   => [
+            't/lock.t',
+        ],
         'EXCLUDED'     => [
             qw( README.mkdn
                 misc/benchmark.pl
@@ -641,6 +658,10 @@ use File::Glob qw(:case);
         'DISTRIBUTION' => 'PMQS/IO-Compress-2.106.tar.gz',
         'MAIN_MODULE'  => 'IO::Compress::Base',
         'FILES'        => q[cpan/IO-Compress],
+        # iOS portability change; upstream submission is pending.
+        'CUSTOMIZED'   => [
+            't/011-streamzip.t',
+        ],
         'EXCLUDED'     => [
             qr{^examples/},
             qr{^t/Test/},
@@ -929,6 +950,10 @@ use File::Glob qw(:case);
     'Perl::OSType' => {
         'DISTRIBUTION' => 'DAGOLDEN/Perl-OSType-1.010.tar.gz',
         'FILES'        => q[cpan/Perl-OSType],
+        # iOS OS-type additions; upstream submission is pending.
+        'CUSTOMIZED'   => [
+            'lib/Perl/OSType.pm',
+        ],
         'EXCLUDED'     => [qw(tidyall.ini), qr/^xt/, qr{^t/00-}],
     },
 
@@ -989,6 +1014,10 @@ use File::Glob qw(:case);
     'Pod::Usage' => {
         'DISTRIBUTION' => 'ATOOMIC/Pod-Usage-2.01.tar.gz',
         'FILES'        => q[cpan/Pod-Usage],
+        # iOS portability change; upstream submission is pending.
+        'CUSTOMIZED'   => [
+            't/pod/pod2usage2.t',
+        ],
         'EXCLUDED' => [
             qr{^t/00-},
             qr{^xt/}
@@ -1264,6 +1293,10 @@ use File::Glob qw(:case);
     'Time::Piece' => {
         'DISTRIBUTION' => 'ESAYM/Time-Piece-1.3401.tar.gz',
         'FILES'        => q[cpan/Time-Piece],
+        # iOS portability change; upstream submission is pending.
+        'CUSTOMIZED'   => [
+            't/02core.t',
+        ],
         'EXCLUDED'     => [ qw[reverse_deps.txt] ],
     },
 

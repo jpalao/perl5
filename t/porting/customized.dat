@@ -1,9 +1,13 @@
 # Regenerate this file using:
 #     cd t
 #     ./perl -I../lib porting/customized.t --regen
+CPAN cpan/CPAN/lib/CPAN/HandleConfig.pm cb4717d5cdff4c6aa1e78359899eb807255ec04b
 ExtUtils::Constant cpan/ExtUtils-Constant/lib/ExtUtils/Constant/Base.pm 7560e1018f806db5689dee78728ccb8374aea741
 ExtUtils::Constant cpan/ExtUtils-Constant/t/Constant.t d26b115904cb0e57f8a2adbfc41f36747ee3948d
+File::Path cpan/File-Path/t/Path_root.t de702c53279364af6116ae8b86218d5394700743
+File::Temp cpan/File-Temp/t/lock.t 143a06c57915e95065a112090f6f47e2eb33c289
 Filter::Util::Call pod/perlfilter.pod 545265af2f45741a0e59eecdd0cfc0c9e490c1e8
+IO-Compress cpan/IO-Compress/t/011-streamzip.t 0f3e5b2ca6a3d9e9f1416f4a758afcd48edcecd1
 Locale::Maketext::Simple cpan/Locale-Maketext-Simple/lib/Locale/Maketext/Simple.pm 57ed38905791a17c150210cd6f42ead22a7707b6
 Math::Complex cpan/Math-Complex/lib/Math/Complex.pm 66f28a17647e2de166909ca66e4ced26f8a0a62e
 Math::Complex cpan/Math-Complex/t/Complex.t 17039e03ee798539e770ea9a0d19a99364278306
@@ -20,12 +24,17 @@ Net::Ping dist/Net-Ping/t/010_pingecho.t 218d7a9ee5b6d03ba2544210acaf6585f8dc550
 Net::Ping dist/Net-Ping/t/450_service.t f6578680f2872d7fc9f24dd75388d55654761875
 Net::Ping dist/Net-Ping/t/500_ping_icmp.t 3eeb60181c01b85f876bd6658644548fdf2e24d4
 Net::Ping dist/Net-Ping/t/501_ping_icmpv6.t cd719bca662b054b676dd2ee6e0c73c7a5e50cf9
+Perl::OSType cpan/Perl-OSType/lib/Perl/OSType.pm d8e8cebdbe8acfd83f100f2f87a637c306f91ba1
 Pod::Perldoc cpan/Pod-Perldoc/lib/Pod/Perldoc.pm 582be34c077c9ff44d99914724a0cc2140bcd48c
+Pod::Usage cpan/Pod-Usage/t/pod/pod2usage2.t 99352eed08ef67c0d01ff93e1fdc23690f57854c
 Socket cpan/Socket/Socket.pm a993d3a80844b2c89a63d1f815d2e0ed0034a4f5
 Socket cpan/Socket/Socket.xs 146541e7deb5593f0469740a6e38bfd0b42c0329
 Test::Harness cpan/Test-Harness/t/harness.t 38b13cfc479d37d91c104b97dd364a74dfde0f2f
+Time::Piece cpan/Time-Piece/t/02core.t 9671b3a8fac57d4635c002eb581ea16c70117cd1
 Win32API::File cpan/Win32API-File/File.pm 8fd212857f821cb26648878b96e57f13bf21b99e
 Win32API::File cpan/Win32API-File/File.xs beb870fed4490d2faa547b4a8576b8d64d1d27c5
+autodie cpan/autodie/t/exec.t 7008bd9fb506ed7a2abba16c13948187f22dd190
+autodie cpan/autodie/t/recv.t 380911241ebd852640ca444e537279e5dec1ecb3
 libnet cpan/libnet/lib/Net/Cmd.pm effaa3ba5c2ea320869d0c769aa206fb75d7dd89
 libnet cpan/libnet/lib/Net/Config.pm 0f60601c070988f06a89347df74350b2521f40f1
 libnet cpan/libnet/lib/Net/Domain.pm 2878b1a986a63a466e327b7864d35a42acc75315
