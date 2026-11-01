@@ -5,7 +5,6 @@ BEGIN {
       require './test.pl';
       skip_all_if_miniperl();
       skip_all_without_config(qw(d_fork));
-      skip_all('iOS: no fork') if $^O =~ /darwin-ios/;
 }
 
 use strict;
@@ -63,4 +62,3 @@ sub test_system {
 	"system() $subtest succeeded $got_zeroes times out of $expected_zeroes"
     );
 }
-

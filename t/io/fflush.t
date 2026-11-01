@@ -21,7 +21,6 @@ my $useperlio = defined $Config{useperlio} ? $Config{useperlio} eq 'define' ? 1 
 my $fflushNULL = defined $Config{fflushNULL} ? $Config{fflushNULL} eq 'define' ? 1 : 0 : 0;
 my $fflushall = defined $Config{fflushall} ? $Config{fflushall} eq 'define' ? 1 : 0 : 0;
 my $d_fork = defined $Config{d_fork} ? $Config{d_fork} eq 'define' ? 1 : 0 : 0;
-$d_fork = 0 if $^O =~ /darwin-ios/;
 
 skip_all('fflush(NULL) or equivalent not available')
     unless $useperlio || $fflushNULL || $fflushall;
