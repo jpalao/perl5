@@ -42,13 +42,16 @@ shift
 probe_bundle_id=$IOS_PROBE_BUNDLE_ID
 watch_companion_bundle_id=""
 
+# Mach-O platform numbers: device_platform is also the platform family
+# recorded by the legacy LC_VERSION_MIN_* load commands.
 simulator_platform=""
 device_platform=2
 case "$IOS_PLATFORM" in
     iphonesimulator) simulator_platform=7 ;;
-    appletvsimulator) simulator_platform=8 ;;
+    appletvsimulator) simulator_platform=8; device_platform=3 ;;
     watchsimulator)
         simulator_platform=9
+        device_platform=4
         watch_companion_bundle_id="${IOS_PROBE_COMPANION_BUNDLE_ID:-net.pytm.perl.watchrunner}"
         case "$probe_bundle_id" in
             "$watch_companion_bundle_id".*) ;;
@@ -56,6 +59,7 @@ case "$IOS_PLATFORM" in
         esac
         ;;
     appletvos) device_platform=3 ;;
+    watchos) device_platform=4 ;;
 esac
 simulator_probe=false
 if [ -n "$simulator_platform" ]; then
@@ -122,26 +126,39 @@ fi
 case "$executable" in /*) executable_path=$executable ;; *) executable_path=$PWD/$executable ;; esac
 [ -f "$executable_path" ] || { echo "run-ios: executable not found: $executable_path" >&2; exit 1; }
 architectures=$(lipo -archs "$executable_path" 2>/dev/null || true)
+case "$IOS_PLATFORM" in
+    *simulator) supported_architectures="arm64 x86_64" ;;
+    appletvos) supported_architectures="arm64" ;;
+    watchos) supported_architectures="armv7k arm64_32" ;;
+    *) supported_architectures="arm64 armv7 armv7s" ;;
+esac
+supported_slice=false
+for architecture in $supported_architectures; do
+    case " $architectures " in *" $architecture "*) supported_slice=true ;; esac
+done
+[ "$supported_slice" = true ] || {
+    echo "run-ios: executable has no $IOS_PLATFORM slice ($supported_architectures): $executable_path ($architectures)" >&2
+    exit 1
+}
+# Deployment targets before iOS/tvOS 12 and watchOS 5 use LC_VERSION_MIN_*,
+# which records only the platform family.
+platform=$(otool -l "$executable_path" 2>/dev/null | awk '
+    $1 == "platform" { print $2; exit }
+    $1 == "cmd" && $2 == "LC_VERSION_MIN_IPHONEOS" { print "legacy2"; exit }
+    $1 == "cmd" && $2 == "LC_VERSION_MIN_TVOS" { print "legacy3"; exit }
+    $1 == "cmd" && $2 == "LC_VERSION_MIN_WATCHOS" { print "legacy4"; exit }')
 if [ "$simulator_probe" = true ]; then
-    case " $architectures " in
-        *\ arm64\ *|*\ x86_64\ *) ;;
-        *) echo "run-ios: simulator executable has no supported slice: $executable_path ($architectures)" >&2; exit 1 ;;
-    esac
+    expected_platform=$simulator_platform
 else
-    case " $architectures " in *\ arm64\ *) ;; *) echo "run-ios: executable has no arm64 slice: $executable_path ($architectures)" >&2; exit 1 ;; esac
+    expected_platform=$device_platform
 fi
-platform=$(otool -l "$executable_path" 2>/dev/null | awk '$1 == "platform" { print $2; exit }')
-if [ "$simulator_probe" = true ]; then
-    [ "$platform" = "$simulator_platform" ] || {
+case "$platform" in
+    "$expected_platform"|"legacy$device_platform") ;;
+    *)
         echo "run-ios: executable is not a ${IOS_PLATFORM} Mach-O: $executable_path" >&2
         exit 1
-    }
-else
-    [ "$platform" = "$device_platform" ] || {
-        echo "run-ios: executable is not a ${IOS_PLATFORM} Mach-O: $executable_path" >&2
-        exit 1
-    }
-fi
+        ;;
+esac
 
 bundle_root=$IOS_PROBE_BUILD_ROOT/probe.app
 profile_plist=$IOS_PROBE_BUILD_ROOT/profile.plist
