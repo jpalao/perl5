@@ -113,12 +113,6 @@ print OUT <<'EOT';
 # enable debug/trace messages from DynaLoader perl code
 $dl_debug = $ENV{PERL_DL_DEBUG} || 0 unless defined $dl_debug;
 
-sub import {
-    return unless @_ == 2 && $^O =~ /darwin-ios/;
-    $ios_runtime_path = $_[1];
-    Internals::SvREADONLY($ios_runtime_path, 1);
-}
-
 #
 # Flags to alter dl_load_file behaviour.  Assigned bits:
 #   0x01  make symbols available for linking later dl_load_file's.

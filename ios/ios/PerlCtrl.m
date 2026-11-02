@@ -19,6 +19,25 @@
 - (void) dummyThread: (id)dummy;
 @end
 
+static void
+PerlCtrl_xs_init(pTHX)
+{
+    xs_init(aTHX);
+
+    PerlCtrl *controller = [PerlCtrl getPerlCtrlFromPerlInterpreter:PERL_GET_CONTEXT];
+    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
+    if (controller == nil || controller.perlVersionString == nil || resourcePath == nil)
+        croak("Cannot determine iOS Perl runtime path");
+
+    NSString *runtimePath = [NSString stringWithFormat:@"%@/perl5/%@/darwin-thread-multi-2level",
+                             resourcePath, controller.perlVersionString];
+    SV *path = get_sv("DynaLoader::ios_runtime_path", GV_ADD);
+    if (path == NULL || runtimePath.UTF8String == NULL)
+        croak("Cannot initialize iOS Perl runtime path");
+    sv_setpv(path, runtimePath.UTF8String);
+    SvREADONLY_on(path);
+}
+
 @implementation PerlCtrl
 
 @synthesize PerlCtrlInterpreter = _PerlCtrlInterpreter;
@@ -187,15 +206,12 @@ static Boolean perlInitialized = false;
         }
         emb[embSize++] = perlProgramName;
         NSArray * perlIncludes = [self getDefaultPerlIncludes];
-        NSString * runtimeLibraryPath = [NSString stringWithFormat:@"%@/perl5/%@/darwin-thread-multi-2level",
-                                          [[NSBundle mainBundle] resourcePath], self.perlVersionString];
-        NSString * runtimeLibraryOption = [NSString stringWithFormat:@"-MDynaLoader=%@", runtimeLibraryPath];
 
         for (NSString * perlInclude in perlIncludes){
             if (perlInclude != nil)
                 emb[embSize++] = (char *)[perlInclude UTF8String];
         }
-        emb[embSize++] = (char *)[runtimeLibraryOption UTF8String];
+        emb[embSize++] = "-MDynaLoader";
 
         if (options != nil){
             for (NSString * option in options)
@@ -284,7 +300,7 @@ static Boolean perlInitialized = false;
             installedDebuggerOptions = true;
         }
         @try {
-            result = perl_parse(_PerlCtrlInterpreter, xs_init, embSize, emb, (char **)NULL);
+            result = perl_parse(_PerlCtrlInterpreter, PerlCtrl_xs_init, embSize, emb, (char **)NULL);
         }
         @catch (NSException * exception ){
            NSLog(@"perl_parse threw exception %@", [exception description]);
