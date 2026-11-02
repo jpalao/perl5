@@ -47,7 +47,14 @@ fi
 
 export PERL_VERSION="5.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 
-: "${IOS_DEPLOYMENT_TARGET:=12.0}"
+if [ -n "${IOS_DEPLOYMENT_TARGET:-}" ] && [ -n "${MIN_VERSION:-}" ] &&
+   [ "$IOS_DEPLOYMENT_TARGET" != "$MIN_VERSION" ]; then
+    echo >&2 "IOS_DEPLOYMENT_TARGET and MIN_VERSION must match"
+    exit 1
+fi
+: "${IOS_DEPLOYMENT_TARGET:=${MIN_VERSION:-12.0}}"
+export IOS_DEPLOYMENT_TARGET
+export MIN_VERSION="$IOS_DEPLOYMENT_TARGET"
 
 : "${PERL_5_BRANCH:=ios_blead_test}"
 INSTALL_DIR_DEFAULTED=0
@@ -664,6 +671,15 @@ test_perl_device() {
     check_exit_code
 
     local install_root="$PWD/Build/Install"
+    local deployment_setting
+    case "$HARNESS_TARGET" in
+        iphoneos|iphonesimulator)
+            deployment_setting="IPHONEOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET" ;;
+        appletvos|appletvsimulator)
+            deployment_setting="TVOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET" ;;
+        watchos|watchsimulator)
+            deployment_setting="WATCHOS_DEPLOYMENT_TARGET=$IOS_DEPLOYMENT_TARGET" ;;
+    esac
 
     BUILD_CAMELBONES_BOOLEAN="NO"
     if [ $BUILD_CAMELBONES -eq 1 ]; then
@@ -671,6 +687,7 @@ test_perl_device() {
     fi
 
     xcodebuild -project "$HARNESS_PROJECT" -sdk "$HARNESS_TARGET" ARCHS="$ARCHS" \
+        "$deployment_setting" \
         EMBED_CAMELBONES_FRAMEWORK="$BUILD_CAMELBONES_BOOLEAN" \
         CAMELBONES_FRAMEWORK_PATH="$CAMELBONES_ROOT/CamelBones/build/Products/$CAMELBONES_BUILD_CONFIGURATION-$CAMELBONES_TARGET" \
         IOS_FRAMEWORK_PATH="$PERL_BUILD_DIR/ios/ios/Build/Products/$IOS_BUILD_CONFIGURATION-$IOS_TARGET" \

@@ -6,7 +6,14 @@
 : "${BITCODE:=0}"
 : "${DEBUG:=0}"
 : "${INSTALL_DIR:=local}"
-: "${MIN_VERSION:=12.0}"
+if [ -n "${IOS_DEPLOYMENT_TARGET:-}" ] && [ -n "${MIN_VERSION:-}" ] &&
+   [ "$IOS_DEPLOYMENT_TARGET" != "$MIN_VERSION" ]; then
+  echo >&2 "IOS_DEPLOYMENT_TARGET and MIN_VERSION must match"
+  exit 1
+fi
+: "${MIN_VERSION:=${IOS_DEPLOYMENT_TARGET:-12.0}}"
+export MIN_VERSION
+export IOS_DEPLOYMENT_TARGET="$MIN_VERSION"
 : "${PERL_APPLETV:=0}"
 : "${PERL_APPLEWATCH:=0}"
 
@@ -172,7 +179,6 @@ fi
 
 export IOS_PLATFORM
 export IOS_ARCH="$PERL_ARCH"
-export IOS_DEPLOYMENT_TARGET="$MIN_VERSION"
 export IOS_SDKROOT="$SDK_PATH"
 
 BUILD_FLAGS="$BUILD_FLAGS -D$PERL_PLATFORM_TAG"
@@ -364,6 +370,7 @@ build_ios_framework() {
       xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" \
       OTHER_CFLAGS="$framework_other_cflags" PERL_DIST_PATH="$PERL_BUILD_DIR" \
       LIBPERL_PATH="$PERL_BUILD_DIR" PERL_VERSION="$PERL_VERSION" \
+      IPHONEOS_DEPLOYMENT_TARGET="$MIN_VERSION" \
       ONLY_ACTIVE_ARCH=NO -scheme "$framework_scheme"
     fi
     check_exit_code

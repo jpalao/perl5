@@ -262,12 +262,6 @@ esac
 # Adds "-mmacosx-version-min=$2" to "$1" unless it already is there.
 add_macosx_version_min () {
   local v
-  case "$targetrun" in
-  darwin-ios)
-     # Configure sets the iOS/tvOS/watchOS minimum version instead.
-     return
-     ;;
-  esac
   eval "v=\$$1"
   case " $v " in
   *"-mmacosx-version-min"*)
@@ -279,6 +273,12 @@ add_macosx_version_min () {
   esac
 }
 
+# Mobile targets must not use the host's macOS version.
+case "$targetrun" in
+darwin-ios)
+   lddlflags="${ldflags} -bundle -undefined dynamic_lookup"
+   ;;
+*)
 # Perl bundles do not expect two-level namespace, added in Darwin 1.4.
 # But starting from perl 5.8.1/Darwin 7 the default is the two-level.
 case "$osvers" in  # Note: osvers is the kernel version, not the 10.x
@@ -364,6 +364,8 @@ EOM
     fi
 
    lddlflags="${ldflags} -bundle -undefined dynamic_lookup"
+   ;;
+esac
    ;;
 esac
 

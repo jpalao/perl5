@@ -173,6 +173,11 @@ be beneath the Perl installation prefix and must contain dependencies built
 for the selected SDK and architecture. Deployment, install-name changes and
 signing of external libraries are separate packaging steps.
 
+The following OS ranges describe intended targets, not a guarantee of
+compatibility with every listed OS and SDK. Older deployment targets require
+fresh configuration and device testing; some APIs used by the port were
+introduced after the earliest listed versions.
+
 =head2 iOS (iphone, ipad):
 
 =over 4
@@ -219,10 +224,13 @@ architecture that differs from the host is rejected.
 Build bitcode information into the binary. Does not apply to simulator
 builds. Default for device builds is 1 BITCODE=1
 
-=item IPHONE_MIN_VERSION
+=item MIN_VERSION
 
-Minimum iPhoneOS or AppleTVOS version compatible with built perl
-binaries. Default for device builds is 12.0 IPHONE_MIN_VERSION=12.0
+Minimum OS version used to compile Perl and the iOS framework. It defaults
+to C<IOS_DEPLOYMENT_TARGET> if set, otherwise C<12.0> for all target SDKs.
+If both variables are set, they must match. Set an appropriate value for the
+selected platform and SDK, for example C<MIN_VERSION=10.0> for a watchOS
+simulator build. The available SDK and Xcode may impose a newer minimum.
 
 =item DEBUG
 
@@ -364,6 +372,11 @@ contains some sensible defaults.
 =item  3. run 'sh test.sh'
 
 =back
+
+C<IOS_DEPLOYMENT_TARGET> controls the test build directory,
+Perl compiler target and harness deployment target; it defaults to
+C<MIN_VERSION> if set, otherwise C<12.0>. If both variables are set,
+they must match.
 
 Each run stores its TAP output in the working directory using a UTC
 timestamp and the exact Perl commit, for example:
