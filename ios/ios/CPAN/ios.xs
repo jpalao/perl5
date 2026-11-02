@@ -188,4 +188,3 @@ CBRunMakeCapture(...)
 SV*
 CBYield(ti)
     double ti;
-

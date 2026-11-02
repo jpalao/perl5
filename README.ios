@@ -54,7 +54,7 @@ contain that header.
 The following commands will try to build Perl (up to 'make test_prep'
 inclusive).
 
-It is not possible tu run 'make test' on the cross compiled target. This
+It is not possible to run 'make test' on the cross compiled target. This
 requires a test app running on the device or simulator to execute the
 tests and report the results. Please see the section TESTING.
 
@@ -71,9 +71,9 @@ used at runtime.
 If the build succeeds it will then execute 'make install' in
 $INSTALL_DIR.
 
-  curl -O http://www.cpan.org/src/perl-5.33.10.tar.gz tar -xzf
-  perl-5.33.10.tar.gz [VAR1=VALUE VAR2=VALUE] sh
-  perl-5.33.10/ios/build.sh/build.sh
+From the Perl source directory, for example:
+
+  IOS_TARGET=iphoneos PERL_ARCH=arm64 sh ios/build.sh
 
 =head2 System V IPC
 
@@ -221,8 +221,8 @@ architecture that differs from the host is rejected.
 
 =item BITCODE
 
-Build bitcode information into the binary. Does not apply to simulator
-builds. Default for device builds is 1 BITCODE=1
+Build bitcode information into the binary when set to C<1>. The default
+is C<0>; simulator builds do not use bitcode.
 
 =item MIN_VERSION
 
@@ -262,13 +262,15 @@ PERL_APPLETV=1
 Set to 1 if you want to build for Apple Watch instead of the default
 (iOS) PERL_APPLEWATCH=1
 
-=item DEVICE_SDK_PATH, SIMULATOR_SDK_PATH
+=item IOS_DEVICE_SDK_PATH, IOS_SIMULATOR_SDK_PATH
 
-Set a non default SDK location with your build
-SIMULATOR_SDK_PATH="/Applications/Xcode.app/Contents/Developer/
-Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk"
-DEVICE_SDK_PATH="/Applications/Xcode.app/Contents/Developer/
-Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS.sdk"
+=item APPLETV_DEVICE_SDK_PATH, APPLETV_SIMULATOR_SDK_PATH
+
+=item WATCHOS_DEVICE_SDK_PATH, WATCHOS_SIMULATOR_SDK_PATH
+
+Override the default SDK location for the corresponding device or
+simulator platform. Set C<PERL_APPLETV=1> or C<PERL_APPLEWATCH=1> when
+building for those platforms, in addition to selecting C<IOS_TARGET>.
 
 =back
 
@@ -294,20 +296,30 @@ flags and use the 'lipo' command to produce fat binaries from both
 builds that support both arm64 and armv7. This can also be done with
 .dSYM debugging symbols files.
 
-Simulator builds are x86_64 only. Apple TV device builds are arm64 only.
-Apple Watch device builds are armv7k only.
+Simulator builds use the host architecture. Apple TV device builds are
+arm64 only. The build script currently selects armv7k for Apple Watch
+device builds.
 
 x86_64 targets cannot be built with Apple bitcode support
 
 =head2 TESTING REQUIREMENTS
 
 
-Xcode's `devicectl` is used by default for installing the harness,
-copying files to and from its data container, and launching it on a
-physical device.
+In addition to Xcode, the test script requires C<git>, C<rsync> and a
+host Perl 5. For a physical device the default C<DEVICE_TRANSPORT> is
+C<ios-deploy>, and automatic launch uses C<idevicedebug> from
+libimobiledevice. They can be installed with a package manager such as
+Homebrew or MacPorts. A simulator uses C<xcrun simctl> instead.
 
-The following packages provide optional compatibility transports. You
-can use brew or MacPorts to install them.
+In libimobiledevice 1.4.0 builds where C<char> is signed, C<idevicedebug>
+may mishandle child exit codes from 128 to 255. Verify those statuses on the
+device or use a corrected debugger before relying on them.
+
+On supported devices, C<DEVICE_TRANSPORT=devicectl> requests Xcode's
+C<devicectl>; the script can fall back to C<ios-deploy>.
+C<DEVICE_TRANSPORT=auto> tries C<devicectl> first and then
+C<ios-deploy>. C<ifuse> is optional for manually mounting an app's
+Documents directory and is not used by the test script.
 
 =over
 
@@ -359,33 +371,41 @@ To start the perl test suite on the device:
 
 =over
 
-=item 1. copy ios/test.sh and ios/test_setup.sh to a convenient location
-for the build. The build takes around 1.1G of disk space
+=item 1. Copy C<ios/setup_test.sh> to a local configuration file, and
+set C<HARNESS_APP_ID> and C<IOS_DEVICE_UUID> for the signed app and
+physical device. For a simulator, set C<SIMULATOR_DEVICE_UUID> instead.
+Set C<HARNESS_TARGET> to the appropriate SDK and, for tvOS or watchOS,
+set C<PERL_APPLETV=1> or C<PERL_APPLEWATCH=1>.
 
-=item 2. fill in the mandatory variables in test_setup.sh. As a minimun
-you will need to set your IOS_DEVICE_UUID own device value. You can also
-set HARNESS_APP_ID with Apple App Id. The script test_setup.sh is
-sourced by test.sh. It does not need to be manually executed. You can
-also use this script to test other config variables. The script test.sh
-contains some sensible defaults.
+=item 2. Run the Bash test script from the source directory, pointing it
+at the local configuration:
 
-=item  3. run 'sh test.sh'
+  IOS_SETUP_FILE=/path/to/local-setup.sh bash ios/test.sh
 
-=back
-
-C<IOS_DEPLOYMENT_TARGET> controls the test build directory,
+C<IOS_SETUP_FILE> is sourced by the script. If it is unset, the script
+looks for C<setup_test.sh> in the working directory and then under
+C<ios/>. C<IOS_DEPLOYMENT_TARGET> controls the test build directory,
 Perl compiler target and harness deployment target; it defaults to
 C<MIN_VERSION> if set, otherwise C<12.0>. If both variables are set,
 they must match.
 
-Each run stores its TAP output in the working directory using a UTC
-timestamp and the exact Perl commit, for example:
+=back
 
-  perl-tests-20260815T194500Z-58a1aa5869abcdef1234567890abcdef12345678.txt
+The script replaces its generated build and installation directories,
+then uninstalls and reinstalls the selected app, clearing its data. Back
+up anything needed in those locations before running it. It clones the
+tracked source and applies tracked working-tree changes; untracked files
+are not generally included.
 
-The file is updated while the tests run, so partial output is retained
-if a run is interrupted. Set `TEST_LOG_PREFIX` to identify a targeted
-suite, such as `TEST_LOG_PREFIX=camelbones-tests`.
+Capture console output explicitly if a persistent build/test log is
+needed, for example:
+
+  set -o pipefail
+  IOS_SETUP_FILE=/path/to/local-setup.sh bash ios/test.sh 2>&1 | tee build-log.txt
+
+The Foundation runner writes C<perl-tests.txt> in its app data directory
+after the run. The script does not create timestamped logs or periodically
+download and tail that file.
 
 =head3 tvOS simulator
 
@@ -393,22 +413,15 @@ The Apple TV runner uses the shared Foundation runner and the same
 embedded Perl framework as the iOS and Watch runners. Xcode builds the
 tvOS framework and app separately for the selected simulator or device.
 
-To run the Perl suite on the configured Apple TV simulator from the Perl
-source root:
+For an Apple TV simulator, set C<HARNESS_TARGET=appletvsimulator>,
+C<PERL_APPLETV=1>, C<SIMULATOR_DEVICE_UUID>, and C<HARNESS_APP_ID> in
+the local setup file, then use the command above. For a connected Apple
+TV, use C<HARNESS_TARGET=appletvos> and C<IOS_DEVICE_UUID>. The device
+must be paired and configured for development. Simulator architecture
+follows the Mac host.
 
-  IOS_SETUP_FILE=ios/setup_test_appletvsimulator.sh bash ios/test.sh
-
-The simulator UUID is set in the setup file; update it if the simulator
-is recreated. The architecture follows the Mac host, and the deployment
-target is tvOS 12.0. Set C<AUTO_LAUNCH=0> to build, install, and stage
-the Perl tree without starting the suite automatically.
-
-For the connected Apple TV HD, run:
-
-  IOS_SETUP_FILE=ios/setup_test_appletvos.sh bash ios/test.sh
-
-The device UDID is set in that setup file. The Apple TV must be paired
-with the Mac and have developer mode enabled.
+For physical devices, C<AUTO_LAUNCH=0> requests a manual launch in an
+interactive terminal. Simulator runs launch automatically.
 
 =head2 TESTING PROCESS
 
@@ -470,32 +483,13 @@ can be executed by perl calls. The `harness` project contains a script
 that will copy and sign the needed Perl binaries from $PREFIX/lib/perl5
 that are then embedded within the harness.app.
 
-(6) `xcrun devicectl device install app` is used to install the newly
-built app onto the iOS device. The existing app is uninstalled first so
-its data is cleared before the next run.
+(6) The selected transport uninstalls and reinstalls the app. This clears
+the existing app data.
 
-(7) `xcrun devicectl device copy to` copies the perl build directory
-contents into the harness.app Documents folder. After installation
-harness.app can receive files in its Documents folder because it has
-the Apple iTunes file sharing key enabled.
-
-The real device transport is controlled by `DEVICE_TRANSPORT`, which must
-be either `devicectl`, `ios-deploy`, or `auto`. `ifuse` is not a device
-transport; it is an optional developer facility that mounts the app's
-Documents directory for direct file editing and debugging.
-
-`USE_IFUSE=1`, `USE_IFUSE=0`, and `USE_IFUSE=auto` remain supported for
-that purpose, but they are not a replacement for the active app transport.
-The default flow is devicectl-first, with `ios-deploy` as a compatibility
-fallback for older supported iOS devices up to iOS 16.
-
-When `USE_IFUSE` is enabled, the harness or any other file can be edited
-interactively with no recompilation needed. This is a developer option for
-local testing and debugging. Edit anything in the harness.app Documents
-folder and re-run the app. For example you can set ENV variables by
-editing t/harness directly (this can also be done within Xcode) or change
-some tests which can then be committed directly from the mounted
-directory if it contains a .git directory.
+(7) The test tree is copied into the app's data container. The default
+physical-device transport uses C<ios-deploy>; C<devicectl> or C<auto>
+can also be selected. Simulator runs use C<simctl>. The tvOS runner uses
+its Caches directory; the other runners use Documents.
 
 (8) Then all dynamic .bundle binaries are removed from Documents folder.
 These cannot be loaded from outside the harness.app bundle where the
@@ -504,20 +498,16 @@ on iOS if it is not properly installed and signed. This has a number of
 implications, for example it is not possible to install XS extensions
 after the app is installed, only at app build time.
 
-(9) `xcrun devicectl device process launch` is used to start the
-harness.app in the iOS device, which expects the build directory to be
-in the Documents folder to start the harness or else fails.
+(9) The physical-device default launches with C<idevicedebug>. With
+C<devicectl> selected, launch uses C<devicectl> and can fall back to
+C<idevicedebug>. Simulators launch with C<simctl>.
 
 (10) harness.app starts which in turn runs t/harness (this is hardcoded
 in the harness application. You can easily change this to run any other
 Perl script).
 
-The harness.app writes TAP output to `perl-tests.txt` file in
-`Documents` dir. With devicectl, the script periodically downloads newly
-written output and tails the local copy. With ifuse, Documents is mounted
-in macOS and the file is tailed directly. The test output can therefore
-be shown simultaneously in both the iOS device output view (stderr is
-shown in red and stdout in green) and macOS terminal.
+Capture the launch console output to retain the test report. The output
+file and display behavior depend on the selected runner.
 
 =head2 Known problems
 
@@ -526,7 +516,9 @@ execution. With the embedded iOS framework initialized, C<system> can
 dispatch Perl invocations to a separate embedded interpreter, but cannot
 run arbitrary programs. In taint mode (C<-T> or C<-t>), C<system> checks
 its arguments and environment before dispatch. The C<ios> module also
-provides limited backtick emulation; this is not a general shell.
+provides limited backtick emulation, not a general shell. In taint mode,
+backticks check the command and environment and mark captured output tainted;
+C<-t> warnings follow the caller's taint-warning settings.
 C<exec> performs the same taint checks, then fails with C<ENOSYS>.
 
 The perl binary that is built is of no use for Cocoa based programming
