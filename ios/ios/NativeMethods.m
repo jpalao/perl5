@@ -233,7 +233,7 @@ static NSArray *CBTokenizeSystemCommand(NSString *command)
             hasToken = YES;
         } else if ([whitespace characterIsMember:character]) {
             if (hasToken) {
-                [words addObject:[word copy]];
+                [words addObject:[NSString stringWithString:word]];
                 [word setString:@""];
                 hasToken = NO;
             }
@@ -247,7 +247,7 @@ static NSArray *CBTokenizeSystemCommand(NSString *command)
         return nil;
     }
     if (hasToken) {
-        [words addObject:[word copy]];
+        [words addObject:[NSString stringWithString:word]];
     }
     return words;
 }
@@ -311,7 +311,7 @@ static void CBWarnMissingSystemPath(PerlInterpreter *interpreter, NSString *path
     Perl_warn(aTHX_ "system: include path does not exist: %s", path.UTF8String);
 }
 
-int CBRunPerlSystem(void *context, int argc, char **argv)
+int CBRunPerlSystem(void *context, const char *selectedProgram, int argc, char **argv)
 {
 @autoreleasepool {
     PerlInterpreter *parentContext = (PerlInterpreter *)context;
@@ -322,21 +322,29 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
     dTHX;
 
     NSArray *words;
-    if (argc == 1) {
+    if (selectedProgram == NULL && argc == 1) {
         NSString *command = [NSString stringWithUTF8String:argv[0]];
         words = CBTokenizeSystemCommand(command);
         if (words == nil || words.count == 0) {
-            return -1;
+            return CBSystemArgumentError();
         }
     } else {
         NSMutableArray *list = [NSMutableArray arrayWithCapacity:(NSUInteger)argc];
         for (int index = 0; index < argc; index++) {
-            [list addObject:[NSString stringWithUTF8String:argv[index]]];
+            NSString *word = [NSString stringWithUTF8String:argv[index]];
+            if (word == nil)
+                return CBSystemArgumentError();
+            [list addObject:word];
         }
         words = list;
     }
 
     NSString *program = words[0];
+    if (selectedProgram != NULL && *selectedProgram != '\0') {
+        program = [NSString stringWithUTF8String:selectedProgram];
+        if (program == nil)
+            return CBSystemArgumentError();
+    }
     NSString *name = [program lastPathComponent];
     if ([program rangeOfString:@"/"].location != NSNotFound &&
         !CBSystemPathExists(CBResolveSystemPath(program))) {
@@ -399,7 +407,7 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
     }
 
     if (prog == nil && progfile == nil) {
-        return -1;
+        return CBSystemArgumentError();
     }
 
     NSMutableArray *childSwitches = [switches mutableCopy];
@@ -413,10 +421,10 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
     NSCondition *condition = [[NSCondition alloc] init];
     __block BOOL finished = NO;
     __block int childResult = -1;
-    __block int childErrorCode = 0;
     NSString *fileName = progfile;
     NSArray *childArguments = [args copy];
     NSString *childPwd = [pwd copy];
+    NSString *childProgramName = selectedProgram != NULL ? [words[0] copy] : nil;
 
     NSThread *worker = [[NSThread alloc] initWithBlock:^{
         @autoreleasepool {
@@ -428,13 +436,24 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
                     withDebugger:debuggerEnabledForSwitches(childSwitches)
                     withOptions:childSwitches
                     withArguments:childArguments
+                    withStdinBytes:nil
+                    withProgramName:childProgramName
                     error:&perlError
                     completion:^(int perlResult) {
                         childResult = perlResult;
                     }];
                 if (perlError != nil) {
-                    childErrorCode = (int)perlError.code;
-                    childResult = perlError.code;
+                    if ([perlError.domain isEqualToString:@"dev.perla.init"]) {
+                        NSString *reason = [perlError.userInfo objectForKey:@"reason"];
+                        if (reason == nil)
+                            reason = perlError.localizedDescription;
+                        fprintf(stderr, "CBRunPerlSystem initialization failed: %s\n",
+                            reason.UTF8String);
+                        fflush(stderr);
+                        childResult = -1;
+                    } else {
+                        childResult = (int)perlError.code;
+                    }
                 }
             }
             @catch (NSException *exception) {
@@ -460,11 +479,16 @@ int CBRunPerlSystem(void *context, int argc, char **argv)
     [worker release];
     [childArguments release];
     [childPwd release];
+    [childProgramName release];
     [childSwitches release];
     [condition release];
 
     PERL_SET_CONTEXT(parentContext);
-    return childResult < 0 ? -1 : ((childResult & 0xff) << 8);
+    if (childResult < 0) {
+        errno = EIO;
+        return -1;
+    }
+    return (childResult & 0xff) << 8;
 }
 }
 

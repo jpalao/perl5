@@ -66,7 +66,6 @@ if (!$vms_exit_mode) {
     skip("No POSIX wait macros", 3) unless $wait_macros_ok;
     ok(POSIX::WIFEXITED(${^CHILD_ERROR_NATIVE}), "WIFEXITED");
     ok(!POSIX::WIFSIGNALED(${^CHILD_ERROR_NATIVE}), "WIFSIGNALED");
-    skip("iOS: emulated 'system', WEXITSTATUS not set", 1) if $^O =~ /darwin-ios/;
     is(POSIX::WEXITSTATUS(${^CHILD_ERROR_NATIVE}), 42, "WEXITSTATUS");
   }
 

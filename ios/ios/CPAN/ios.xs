@@ -15,7 +15,7 @@
 
 #import <XSUB.h>
 
-extern void Perl_ios_set_system_callback(int (*callback)(void *, int, char **));
+extern void Perl_ios_set_system_callback(int (*callback)(void *, const char *, int, char **));
 
 static int
 iosRunMakeRecipe(const char *command, void *context)

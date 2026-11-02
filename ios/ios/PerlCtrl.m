@@ -122,7 +122,8 @@ static Boolean perlInitialized = false;
 - (NSArray *) getDirsInPerl5Dir {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString * bundlePath  = [[NSBundle mainBundle] resourcePath];
-    NSURL *directoryURL = [NSURL URLWithString:bundlePath];
+    if (bundlePath == nil) return nil;
+    NSURL *directoryURL = [NSURL fileURLWithPath:bundlePath isDirectory:YES];
     NSURL *perl5URL = [directoryURL URLByAppendingPathComponent:@"perl5"];
     // TODO handle error
     return [fileManager contentsOfDirectoryAtPath:perl5URL.path error: nil];
@@ -130,9 +131,10 @@ static Boolean perlInitialized = false;
 
 - (NSArray *) getDefaultPerlIncludes {
     NSString * bundlePath                   = [[NSBundle mainBundle] resourcePath];
+    self.perlVersionString = nil;
     NSArray * perl5Dirs = [self getDirsInPerl5Dir];
 
-    if (!perl5Dirs.count) return [NSMutableArray arrayWithCapacity:0].mutableCopy;
+    if (!perl5Dirs.count) return nil;
     
     for (id input in perl5Dirs) {
         NSString * exp = @"^(5\\.\\d+\\.\\d+)$";
@@ -150,7 +152,7 @@ static Boolean perlInitialized = false;
          self.perlVersionString = input;
     }
 
-    NSAssert(self.perlVersionString != nil, @"perlVersionString is nil");
+    if (self.perlVersionString == nil) return nil;
     NSString * incCaches = [NSString stringWithFormat:@"-I%@/Library/Caches", bundlePath];
     NSString * inc1 = [NSString stringWithFormat:@"-I%@/perl5/%@", bundlePath, self.perlVersionString];
     NSString * inc2 = [NSString stringWithFormat:@"-I%@/perl5/%@/darwin-thread-multi-2level", bundlePath, self.perlVersionString];
@@ -169,6 +171,13 @@ static Boolean perlInitialized = false;
 
 - (void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments withStdinBytes:(NSData *)stdinBytes error:(NSError **)error completion:(PerlCompletionBlock)completion
 {
+    [self initWithFileName:fileName withAbsolutePwd:pwd withDebugger:debuggerEnabled
+        withOptions:options withArguments:arguments withStdinBytes:stdinBytes
+        withProgramName:nil error:error completion:completion];
+}
+
+- (void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments withStdinBytes:(NSData *)stdinBytes withProgramName:(NSString *)programName error:(NSError **)error completion:(PerlCompletionBlock)completion
+{
 @autoreleasepool
 {
     int embSize = 0;
@@ -179,6 +188,15 @@ static Boolean perlInitialized = false;
 
     @synchronized(perlInstanceDict)
     {
+        NSArray * perlIncludes = [self getDefaultPerlIncludes];
+        if (perlIncludes.count == 0) {
+            NSString *reason = @"Cannot determine iOS Perl runtime path";
+            *error = [[NSError alloc] initWithDomain:@"dev.perla.init" code:01
+                userInfo:@{ @"reason": reason, NSLocalizedDescriptionKey: reason }];
+            if (completion) completion(1);
+            return;
+        }
+
         NSURL * filePathUrl = fileName ? [NSURL URLWithString: fileName] : nil;
         NSURL * dirPath = [filePathUrl URLByDeletingLastPathComponent];
         NSString * dirToChange = nil;
@@ -204,8 +222,20 @@ static Boolean perlInitialized = false;
                 putenv(pwdEnvCstring);
             }
         }
-        emb[embSize++] = perlProgramName;
-        NSArray * perlIncludes = [self getDefaultPerlIncludes];
+        if (programName != nil) {
+            const char *name = programName.UTF8String;
+            if (name == NULL) {
+                NSString *reason = @"Cannot encode the Perl program name";
+                *error = [[NSError alloc] initWithDomain:@"dev.perla.init" code:01
+                    userInfo:@{ @"reason": reason, NSLocalizedDescriptionKey: reason }];
+                if (completion) completion(1);
+                return;
+            }
+            NSMutableData *nameStorage = [NSMutableData dataWithBytes:name length:strlen(name) + 1];
+            emb[embSize++] = [nameStorage mutableBytes];
+        } else {
+            emb[embSize++] = perlProgramName;
+        }
 
         for (NSString * perlInclude in perlIncludes){
             if (perlInclude != nil)
@@ -360,18 +390,25 @@ static Boolean perlInitialized = false;
     }
 
     NSString *perlErrorReason = nil;
-    if (result != 0 && SvTRUE(ERRSV))
+    if (result != 0 && PL_errgv != NULL && SvTRUE(ERRSV))
         perlErrorReason = [NSString stringWithUTF8String:SvPV_nolen(ERRSV)];
+    else if (result != 0 && PL_errgv == NULL)
+        perlErrorReason = @"Perl initialization failed; see the diagnostic output";
 
     int destructResult = [self cleanUp];
-    result = destructResult;
+    if (result == 0)
+        result = destructResult;
     if (result != 0 || *error != nil) {
         if (perlErrorReason != nil)
             *error = [[NSError alloc] initWithDomain:@"dev.perla.run"
-                code:result userInfo:@{ @"reason": perlErrorReason }];
-        else if (*error == nil)
+                code:result userInfo:@{ @"reason": perlErrorReason,
+                                        NSLocalizedDescriptionKey: perlErrorReason }];
+        else if (*error == nil) {
+            NSString *reason = @"Perl failed; see the diagnostic output";
             *error = [[NSError alloc] initWithDomain:@"dev.perla.run"
-                code:result userInfo:@{ @"reason": @"Unspecified error\n" }];
+                code:result userInfo:@{ @"reason": reason,
+                                        NSLocalizedDescriptionKey: reason }];
+        }
     }
     if (completion) completion(result);
 }

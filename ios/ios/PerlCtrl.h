@@ -54,10 +54,11 @@ typedef void (^PerlCompletionBlock)(int perlRunResult);
 
 -(void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments withStdinBytes:(NSData *)stdinBytes error:(NSError **)error completion:(PerlCompletionBlock)completion;
 
+-(void) initWithFileName:(NSString*)fileName withAbsolutePwd:(NSString*)pwd withDebugger:(Boolean)debuggerEnabled withOptions:(NSArray *) options withArguments:(NSArray *) arguments withStdinBytes:(NSData *)stdinBytes withProgramName:(NSString *)programName error:(NSError **)error completion:(PerlCompletionBlock)completion;
+
 - (void) dealloc;
 
 // initXS: A version of init suitable for use within XS modules
 - (id) initXS;
 
 @end
-

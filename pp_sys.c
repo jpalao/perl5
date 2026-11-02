@@ -32,7 +32,8 @@
 #include "time64.h"
 
 #ifdef PERL_IOS
-typedef int (*Perl_ios_system_callback)(void *context, int argc, char **argv);
+typedef int (*Perl_ios_system_callback)(void *context, const char *program,
+                                        int argc, char **argv);
 static Perl_ios_system_callback PL_ios_system_callback;
 
 void
@@ -4362,6 +4363,11 @@ PP(pp_system)
     I32 argc = SP - MARK;
     char **argv;
     I32 index;
+    I32 status;
+    int saved_errno;
+    const I32 program_offset = (PL_op->op_flags & OPf_STACKED) ? 1 : 0;
+
+    assert(argc >= program_offset);
 
     for (index = 0; index < argc; index++) {
         SV *origsv = MARK[index + 1];
@@ -4379,22 +4385,35 @@ PP(pp_system)
         TAINT_PROPER("system");
     }
 
+    if (PL_ios_system_callback == NULL) {
+        SETERRNO(ENOSYS, LIB_INVARG);
+        STATUS_NATIVE_CHILD_SET(-1);
+        SP = ORIGMARK;
+        XPUSHi(STATUS_CURRENT);
+        RETURN;
+    }
+
+    ENTER;
     Newx(argv, argc + 1, char *);
+    SAVEFREEPV(argv);
     for (index = 0; index < argc; index++) {
         STRLEN len;
         const char *pv = SvPV_nomg(MARK[index + 1], len);
         argv[index] = savepvn(pv, len);
+        SAVEFREEPV(argv[index]);
     }
     argv[argc] = NULL;
 
-    PL_statusvalue = PL_ios_system_callback != NULL
-        ? PL_ios_system_callback(PERL_GET_CONTEXT, argc, argv) : -1;
-    for (index = 0; index < argc; index++) {
-        Safefree(argv[index]);
-    }
-    Safefree(argv);
+    status = PL_ios_system_callback(PERL_GET_CONTEXT,
+                                    program_offset ? argv[0] : NULL,
+                                    argc - program_offset,
+                                    argv + program_offset);
+    saved_errno = errno;
+    LEAVE;
+    errno = saved_errno;
+    STATUS_NATIVE_CHILD_SET(status);
     SP = ORIGMARK;
-    XPUSHi(PL_statusvalue);
+    XPUSHi(STATUS_CURRENT);
     RETURN;
 #else
     I32 value;
