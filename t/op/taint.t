@@ -157,7 +157,7 @@ my $TEST = 'TEST';
 
     SKIP: {
         skip "Environment tainting tests skipped", 11
-          if $Is_MSWin32 || $Is_VMS || $Is_Ios;
+          if $Is_MSWin32 || $Is_VMS;
 
 	my @vars = ('PATH', @MoreEnv);
 	while (my $v = $vars[0]) {
@@ -190,9 +190,6 @@ my $TEST = 'TEST';
     my $tmp;
     if ($^O eq 'os2' || $^O eq 'amigaos' || $Is_MSWin32) {
 	print "# all directories are writeable\n";
-    }
-    elsif ($Is_Ios) {
-	print "# iOS backticks do not check \$ENV{PATH}\n";
     }
     else {
 	$tmp = (grep { defined and -d and (stat _)[2] & 2 }

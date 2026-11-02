@@ -55,6 +55,30 @@ CBInit()
     [[PerlCtrl alloc] initXS];
     Perl_ios_set_system_callback(CBRunPerlSystem);
 
+void
+CBCheckReadpipeTaint(command, check_environment)
+    SV *command;
+    bool check_environment;
+    CODE:
+        if (TAINTING_get) {
+            ENTER;
+            /* Restore the interpreter's taint state even if a check croaks. */
+            SAVEBOOL(PL_tainted);
+            TAINT_set(SvTAINTED(command));
+            TAINT_PROPER("``");
+            if (check_environment) {
+                TAINT_ENV();
+                taint_proper("Insecure %s%s", "EXEC");
+            }
+            LEAVE;
+        }
+
+void
+CBTaintReadpipeResult(result)
+    SV *result;
+    CODE:
+        SvTAINTED_on(result);
+
 AV*
 CBRunPerlCaptureStdout(json)
     const char* json;

@@ -14,18 +14,24 @@ BEGIN {
         my $list_context = wantarray;
         my ($code, $result);
         my $command = "@_";
-        _require('Scalar/Util.pm');
-        my $tainted_interpreter = ${^TAINT}
-            && defined $^X
-            && index($command, $^X) == 0;
-        if (Scalar::Util::tainted($command) || $tainted_interpreter) {
-            my $switch = ${^TAINT} > 0 ? '-T' : '-t';
-            my $message = "Insecure dependency in `` while running with $switch switch";
-            die "$message\n" if ${^TAINT} > 0;
+        if (${^TAINT}) {
+            # Native popen skips the environment check for the fork-only form.
+            my $check_environment = $command ne '-';
             my $warn_bits = (caller 0)[9];
-            warn "$message\n"
-                if !defined $warn_bits
-                || vec($warn_bits, $warnings::Offsets{taint}, 1);
+            my $offset = $warnings::Offsets{taint};
+            $offset = $warnings::Offsets{all}
+                if defined $warn_bits && length($warn_bits) <= ($offset >> 3);
+            # Run the XS checks with the caller's taint-warning settings.
+            if (defined $warn_bits && vec($warn_bits, $offset + 1, 1)) {
+                use warnings FATAL => 'taint';
+                CBCheckReadpipeTaint($command, $check_environment);
+            } elsif (!defined $warn_bits || vec($warn_bits, $offset, 1)) {
+                use warnings 'taint';
+                CBCheckReadpipeTaint($command, $check_environment);
+            } else {
+                no warnings 'taint';
+                CBCheckReadpipeTaint($command, $check_environment);
+            }
         }
         eval {
             ($code, $result) = exec_cli(getcwd(), $command)
@@ -36,6 +42,7 @@ BEGIN {
         }
         $? = defined $code ? $code : -1;
         return $list_context ? () : undef if !defined $code || $code == -1;
+        CBTaintReadpipeResult($result) if ${^TAINT} && defined $result;
         if ($list_context && defined $result) {
             return _readpipe_records($result);
         }
