@@ -5553,7 +5553,11 @@ echo " ";
 echo "Checking if your compiler accepts $flag" >&4;
 [ "X$sysroot" != "X" ] && echo "For sysroot = $sysroot";
 echo "int main(void) { return 0; }" > gcctest.c;
-if $cc $_sysroot -O2 $flag -o gcctest gcctest.c 2>gcctest.out && $run ./gcctest; then
+case "$targetrun" in
+    darwin-ios) checkccflag_targetflags="$ccflags $ldflags" ;;
+    *) checkccflag_targetflags= ;;
+esac;
+if $cc $_sysroot $checkccflag_targetflags -O2 $flag -o gcctest gcctest.c 2>gcctest.out && $run ./gcctest; then
     echo "Yes, it does." >&4;
     if $test -s gcctest.out ; then
         echo "But your platform does not like it:";
