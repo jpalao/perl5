@@ -120,7 +120,7 @@ my $out = run_perl(prog => 'use threads 2.21' . $thread_exit_opt . ';' .
                    nolib => ($ENV{PERL_CORE}) ? 0 : 1,
                    switches => ($ENV{PERL_CORE}) ? [] : [ '-Mblib' ],
                    stderr => 1);
-SKIP: {
+{
     local $TODO = 'exit semantics not like POSIX exit semantics'
         if $^O eq 'VMS' || $^O =~ /darwin-ios/;
     is($?>>8, 99, "exit(status) in thread");
