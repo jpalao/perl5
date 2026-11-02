@@ -4880,6 +4880,7 @@ ios/config/watch/armv7k/config.sh.diff		config.sh diffs
 ios/config/watch/x86_64/config.h.diff		config.h diffs
 ios/config/watch/x86_64/config.sh.cc		Configure
 ios/config/watch/x86_64/config.sh.diff		config.sh diffs
+ios/ios/CPAN/t/03-time-hires-clock.t		iOS Time::HiRes clock tests
 ios/setup_test.sh		iOS test app
 ios/test.sh		iOS test app
 ios/test/fix_ios_dylibs.pl		iOS test app
