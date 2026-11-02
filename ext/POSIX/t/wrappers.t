@@ -42,9 +42,8 @@ if (locales_enabled('LC_MESSAGES')) {
 is(POSIX::abs(-42), 42, 'abs');
 is(POSIX::abs(-3.14), 3.14, 'abs');
 is(POSIX::abs(POSIX::exp(1)), CORE::exp(1), 'abs');
-if ($^O =~ /darwin-ios/) {
-    is(0, 0, 'skip: iOS: TODO POSIX::alarm(0) unreliable');
-} else {
+SKIP: {
+    skip('iOS: POSIX::alarm(0) is unreliable', 1) if $^O =~ /darwin-ios/;
     is(POSIX::alarm(0), 0, 'alarm');
 }
 is(eval {POSIX::assert(1); 1}, 1, 'assert(1)');
@@ -218,18 +217,16 @@ SKIP: {
     my $gotit = 0;
     $SIG{USR1} = sub { $gotit++ };
     is(POSIX::kill($$, 'SIGUSR1'), 1, 'kill');
-    skip('iOS: POSIX::kill does not deliver SIGUSR1', 1)
+    skip('iOS: signal delivery after POSIX::kill is unreliable', 3)
         if $^O =~ /darwin-ios/;
     is($gotit, 1, 'got first signal');
     is(POSIX::raise('SIGUSR1'), 1, 'raise');
-    skip('iOS: POSIX::raise does not deliver SIGUSR1', 1)
-        if $^O =~ /darwin-ios/;
     is($gotit, 2, 'got second signal');
 }
 
 SKIP: {
     foreach (qw(fork pipe)) {
-	skip("no $_", 8) unless $Config{"d_$_"} && $^O !~ /darwin-ios/;
+	skip("no $_", 9) unless $Config{"d_$_"};
     }
     # die with an uncaught SIGARLM if something goes wrong
     is(CORE::alarm(60), 0, 'no alarm set previously');
