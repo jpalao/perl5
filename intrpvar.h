@@ -1050,6 +1050,14 @@ PERLVARA(I, mem_log, 1 + 1 + TYPE_DIGITS(UV) + 1 + 3 + 1, char)
  * have to worry about SV refcounts during scope enter/exit. */
 PERLVAR(I, prevailing_version, U16)
 
+/* Definitions of user-defined \p{} properties, as the subs that define them
+ * are only called once. Cloned threads share this cache. */
+PERLVARI(I, user_def_props, HV *, NULL)
+#if defined(USE_ITHREADS)
+PERLVAR(I, user_def_props_aTHX, PerlInterpreter *)  /* aTHX that user_def_props
+                                                       was defined in */
+#endif
+
 /* If you are adding a U8 or U16, check to see if there are 'Space' comments
  * above on where there are gaps which currently will be structure padding.  */
 

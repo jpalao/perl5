@@ -275,13 +275,7 @@ PERLVARA(G, hash_chars, (1+256) * sizeof(U32), unsigned char) /* perl.c and hv.h
 PERLVAR(G, perllib_sep, char)
 #endif
 
-/* Definitions of user-defined \p{} properties, as the subs that define them
- * are only called once */
-PERLVARI(G, user_def_props,	HV *, NULL)
-
 #if defined(USE_ITHREADS)
-PERLVAR(G, user_def_props_aTHX, PerlInterpreter *)  /* aTHX that user_def_props
-                                                       was defined in */
 PERLVAR(G, user_prop_mutex, perl_mutex)    /* Mutex for manipulating
                                               PL_user_defined_properties */
 #endif
