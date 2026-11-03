@@ -140,17 +140,32 @@ sub make_path {
     return File::Path::make_path(@_);
 }
 
-our $parsewords_loaded;
-sub quotewords {
-    if (!$parsewords_loaded) {
-        my %main_symbols = map { $_ => 1 } keys %::;
-        _require('Text/ParseWords.pm');
-        delete @::{grep {
-            /^(?:\d+|[`'&])$/ && !$main_symbols{$_}
-        } keys %::};
-        $parsewords_loaded = 1;
+# Split a command line into words using POSIX sh quoting rules.
+# Returns an empty list for unbalanced quotes or a trailing backslash.
+sub _shell_words {
+    my ($line) = @_;
+    my (@words, $word);
+    while (1) {
+        if ($line =~ /\G\s+/gc) {
+            push @words, $word if defined $word;
+            undef $word;
+        } elsif ($line =~ /\G\z/gc) {
+            last;
+        } elsif ($line =~ /\G'([^']*)'/gc) {
+            $word .= $1;
+        } elsif ($line =~ /\G"((?:[^"\\]|\\.)*)"/gcs) {
+            (my $quoted = $1) =~ s/\\([\$`"\\\n])/$1 eq "\n" ? '' : $1/ge;
+            $word .= $quoted;
+        } elsif ($line =~ /\G\\(.)/gcs) {
+            $word .= $1 if $1 ne "\n";
+        } elsif ($line =~ /\G([^\s'"\\]+)/gc) {
+            $word .= $1;
+        } else {
+            return;
+        }
     }
-    return Text::ParseWords::quotewords(@_);
+    push @words, $word if defined $word;
+    return @words;
 }
 
 our $DEBUG = 0;
@@ -369,7 +384,7 @@ sub parse_test {
     print Dumper("parse_test t", $t) if $DEBUG;
 
     my @command = grep defined,
-        ref $t eq 'ARRAY' ? @$t : &quotewords('\s+', 0, $t);
+        ref $t eq 'ARRAY' ? @$t : _shell_words($t);
     shift @command while @command && $command[0] !~ /$PERL_RUNNER_NAME["']?$/;
     shift @command;
 
@@ -418,7 +433,7 @@ sub parse_cli {
     $cli =~ s/2>&1//;
 
     my @cmd_words = grep { defined && $_ !~ /^\s*$/ }
-        &quotewords('\s+', 0, $cli);
+        _shell_words($cli);
     my $interpreter_name = basename($^X // '');
     shift @cmd_words while @cmd_words
         && basename($cmd_words[0]) !~ /\A$PERL_RUNNER_NAME\z/
@@ -518,7 +533,7 @@ sub exec_cli {
     my ($pwd, $test) = @_;
     print "Executing: $test\nPWD: $pwd\n" if $DEBUG;
     my @words = grep { defined && $_ ne '' }
-        &quotewords('\s+', 0, $test);
+        _shell_words($test);
     if (@words && basename($words[0]) =~ /^(?:b?make|gmake)$/) {
         shift @words;
         @words = grep { $_ ne '2>&1' } @words;
@@ -581,7 +596,7 @@ sub _make_capture_once {
 sub _parse_recursive_make_recipe {
     my ($pwd, $command) = @_;
     my @words = grep { defined && $_ ne '' }
-        &quotewords('\s+', 0, $command);
+        _shell_words($command);
     return if @words < 4 || shift(@words) ne 'cd';
 
     my $directory = shift @words;
@@ -706,7 +721,7 @@ sub _run_make_recipe {
     }
 
     my @words = grep { defined && $_ ne '' }
-        &quotewords('\s+', 0, $command);
+        _shell_words($command);
     return 0 if !@words;
 
     if (grep { $_ eq '&&' } @words) {

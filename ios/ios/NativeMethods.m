@@ -215,12 +215,19 @@ static NSArray *CBTokenizeSystemCommand(NSString *command)
     for (NSUInteger index = 0; index < command.length; index++) {
         unichar character = [command characterAtIndex:index];
         if (escaped) {
-            [word appendFormat:@"%C", character];
             escaped = NO;
+            if (character == '\n') {
+                continue;
+            }
+            /* POSIX sh: inside double quotes only $ ` " \ are escapable. */
+            if (quote == '"' && character != '$' && character != '`'
+                && character != '"' && character != '\\') {
+                [word appendString:@"\\"];
+            }
+            [word appendFormat:@"%C", character];
             hasToken = YES;
         } else if (character == '\\' && quote != '\'') {
             escaped = YES;
-            hasToken = YES;
         } else if (quote != 0) {
             if (character == quote) {
                 quote = 0;
