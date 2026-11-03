@@ -20,7 +20,7 @@ sub IsCounted { $calls++; return "0041\n" }
 
 ok(eval q{'A' =~ /\p{IsCounted}/}, 'user-defined property matches');
 
-is(`$perl -le "sub IsCounted { qq(0042\\n) } print q(B) =~ /\\p{IsCounted}/ ? 1 : 0"`,
+is(`$perl -le 'sub IsCounted { qq(0042\\n) } print q(B) =~ /\\p{IsCounted}/ ? 1 : 0'`,
     "1\n", 'nested interpreter uses its own property definition');
 
 for my $i (1 .. $iterations) {
