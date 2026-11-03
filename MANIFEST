@@ -4885,6 +4885,7 @@ ios/ios/CPAN/t/04-dynaloader.t	iOS DynaLoader import and runtime path test
 ios/ios/CPAN/t/05-piped-open.t	iOS piped-open failure tests
 ios/ios/CPAN/t/06-system-program.t	iOS system program selection test
 ios/ios/CPAN/t/07-readpipe-taint.t	iOS backtick taint tests
+ios/ios/CPAN/t/08-nested-user-props.t	iOS nested interpreter user property cache test
 ios/setup_test.sh		iOS test app
 ios/test.sh		iOS test app
 ios/test/fix_ios_dylibs.pl		iOS test app
