@@ -396,7 +396,8 @@ static Boolean perlInitialized = false;
         perlErrorReason = @"Perl initialization failed; see the diagnostic output";
 
     int destructResult = [self cleanUp];
-    if (result == 0)
+    // perl_destruct runs END blocks and returns the final exit status.
+    if (*error == nil)
         result = destructResult;
     if (result != 0 || *error != nil) {
         if (perlErrorReason != nil)
