@@ -1,3 +1,6 @@
 unset SIMULATOR_DEVICE_UUID IOS_SIMULATOR_UUID IOS_PROBE_SIMULATOR_UDID IOS_PROBE_DEVICE_UDID PERL_APPLETV PERL_APPLEWATCH
-export IOS_DEVICE_UUID=2ec692021ee4f16a6fcc1ed86dc0433ee7d75928
-export HARNESS_APP_ID=net.pytm.perl
+# Values already in the environment win; set IOS_DEVICE_UUID to the
+# selected device or simulator UDID.
+: "${IOS_DEVICE_UUID:=}"
+: "${HARNESS_APP_ID:=net.pytm.perl}"
+export IOS_DEVICE_UUID HARNESS_APP_ID
