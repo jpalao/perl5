@@ -14,8 +14,6 @@ fi
 : "${MIN_VERSION:=${IOS_DEPLOYMENT_TARGET:-12.0}}"
 export MIN_VERSION
 export IOS_DEPLOYMENT_TARGET="$MIN_VERSION"
-: "${PERL_APPLETV:=0}"
-: "${PERL_APPLEWATCH:=0}"
 
 # Xcode
 : "${XCODE_PATH:=/Applications/Xcode.app}"
@@ -38,6 +36,38 @@ PERL_REVISION=5
 
 PERL_MAJOR_VERSION=`awk '/define[ 	]+PERL_VERSION/ {print $3}' "$SCRIPTPATH/../patchlevel.h"`
 PERL_MINOR_VERSION=`awk '/define[ 	]+PERL_SUBVERSION/ {print $3}' "$SCRIPTPATH/../patchlevel.h"`
+
+if [ -z "${IOS_TARGET:-}" ]; then
+  echo >&2 "IOS_TARGET must name the target SDK; PERL_ARCH cannot distinguish a device from a simulator"
+  exit 1
+fi
+
+case "$IOS_TARGET" in
+  iphoneos|appletvos|watchos)
+    SIMULATOR_BUILD=0
+    ;;
+  iphonesimulator|appletvsimulator|watchsimulator)
+    SIMULATOR_BUILD=1
+    ;;
+  *)
+    echo >&2 "Unsupported target SDK: $IOS_TARGET"
+    echo >&2 "Use iphoneos, iphonesimulator, appletvos, appletvsimulator, watchos, or watchsimulator"
+    exit 1
+    ;;
+esac
+
+case "$IOS_TARGET" in
+  iphoneos|iphonesimulator) target_appletv=0; target_applewatch=0 ;;
+  appletvos|appletvsimulator) target_appletv=1; target_applewatch=0 ;;
+  watchos|watchsimulator) target_appletv=0; target_applewatch=1 ;;
+esac
+if { [ -n "${PERL_APPLETV:-}" ] && [ "$PERL_APPLETV" != "$target_appletv" ]; } ||
+   { [ -n "${PERL_APPLEWATCH:-}" ] && [ "$PERL_APPLEWATCH" != "$target_applewatch" ]; }; then
+  echo >&2 "Ignoring PERL_APPLETV/PERL_APPLEWATCH values that conflict with IOS_TARGET=$IOS_TARGET"
+fi
+PERL_APPLETV=$target_appletv
+PERL_APPLEWATCH=$target_applewatch
+export PERL_APPLETV PERL_APPLEWATCH
 
 if [ $PERL_APPLETV -ne 0 ]; then
   PLATFORM_TAG="appletv"
@@ -63,25 +93,6 @@ WORKDIR=`pwd`
 PREFIX="$WORKDIR/$INSTALL_DIR"
 PERL_VERSION="$PERL_REVISION.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${PERL_BUILD_DIR:=$WORKDIR/perl-$PERL_VERSION}"
-
-if [ -z "${IOS_TARGET:-}" ]; then
-  echo >&2 "IOS_TARGET must name the target SDK; PERL_ARCH cannot distinguish a device from a simulator"
-  exit 1
-fi
-
-case "$IOS_TARGET" in
-  iphoneos|appletvos|watchos)
-    SIMULATOR_BUILD=0
-    ;;
-  iphonesimulator|appletvsimulator|watchsimulator)
-    SIMULATOR_BUILD=1
-    ;;
-  *)
-    echo >&2 "Unsupported target SDK: $IOS_TARGET"
-    echo >&2 "Use iphoneos, iphonesimulator, appletvos, appletvsimulator, watchos, or watchsimulator"
-    exit 1
-    ;;
-esac
 
 if [ "$SIMULATOR_BUILD" -eq 1 ]; then
   HOST_ARCH=$(uname -m)
@@ -161,22 +172,16 @@ if [ $SIMULATOR_BUILD -ne 0 ]; then
   BUILD_FLAGS="$BUILD_FLAGS -DNO_LOCALE"
   LINK_FLAGS="$SIMULATOR_LINK_FLAGS"
   SDK_PATH="$SIMULATOR_SDK_PATH"
-  case "$PLATFORM_TAG" in
-    iphone) IOS_PLATFORM="${IOS_PLATFORM:-iphonesimulator}" ;;
-    appletv) IOS_PLATFORM="${IOS_PLATFORM:-appletvsimulator}" ;;
-    watch) IOS_PLATFORM="${IOS_PLATFORM:-watchsimulator}" ;;
-  esac
 else
   BUILD_FLAGS="$DEVICE_BUILD_FLAGS"
   LINK_FLAGS="$DEVICE_LINK_FLAGS"
   SDK_PATH="$DEVICE_SDK_PATH"
-  case "$PLATFORM_TAG" in
-    iphone) IOS_PLATFORM="${IOS_PLATFORM:-iphoneos}" ;;
-    appletv) IOS_PLATFORM="${IOS_PLATFORM:-appletvos}" ;;
-    watch) IOS_PLATFORM="${IOS_PLATFORM:-watchos}" ;;
-  esac
 fi
 
+if [ -n "${IOS_PLATFORM:-}" ] && [ "$IOS_PLATFORM" != "$IOS_TARGET" ]; then
+  echo >&2 "Ignoring IOS_PLATFORM=$IOS_PLATFORM; IOS_TARGET=$IOS_TARGET selects the SDK"
+fi
+IOS_PLATFORM="$IOS_TARGET"
 export IOS_PLATFORM
 export IOS_ARCH="$PERL_ARCH"
 export IOS_SDKROOT="$SDK_PATH"

@@ -118,24 +118,24 @@ To build a debug version of Perl for iOS armv7 in './another' dir:
 IOS_TARGET=iphoneos PERL_ARCH=armv7 DEBUG=1 INSTALL_DIR='another' sh -x
 "perl-5.33.10/ios/build.sh"
 
-To build a release version of Perl for Apple TV arm64: PERL_APPLETV=1
+To build a release version of Perl for Apple TV arm64:
 IOS_TARGET=appletvos PERL_ARCH=arm64 MIN_VERSION=9.0 sh -x
 "perl-5.33.10/ios/build.sh"
 
-To build a debug version perl for Apple TV: PERL_APPLETV=1
+To build a debug version perl for Apple TV:
 IOS_TARGET=appletvos PERL_ARCH=arm64 MIN_VERSION=9.0 DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
 
-To build a debug version of Perl for Apple TV Simulator: PERL_APPLETV=1
+To build a debug version of Perl for Apple TV Simulator:
 IOS_TARGET=appletvsimulator MIN_VERSION=9.0 DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
 
-To build a debug version of Perl for Apple Watch: PERL_APPLEWATCH=1
+To build a debug version of Perl for Apple Watch:
 IOS_TARGET=watchos DEBUG=1 MIN_VERSION=3.0 sh -x
 "perl-5.33.10/ios/build.sh"
 
 To build a debug version of Perl for Apple Watch Simulator:
-IOS_TARGET=watchsimulator PERL_APPLEWATCH=1
+IOS_TARGET=watchsimulator
 MIN_VERSION=3.0 DEBUG=1 sh -x
 "perl-5.33.10/ios/build.sh"
 
@@ -143,7 +143,9 @@ MIN_VERSION=3.0 DEBUG=1 sh -x
 
 Select the target SDK with C<IOS_TARGET>. Simulator versus device builds
 are determined by this SDK, never by C<PERL_ARCH>; for example, both an
-Apple silicon simulator and a physical device may use C<arm64>.
+Apple silicon simulator and a physical device may use C<arm64>. The script
+derives C<PERL_APPLETV>, C<PERL_APPLEWATCH>, and C<IOS_PLATFORM> from the
+target; conflicting inherited values are ignored with a warning.
 
 The following environment variables control or customize your build:
 
@@ -252,16 +254,6 @@ $INSTALL_DIR allows the build to find other libraries for the target
 platform and arch if you want to build XS modules by using 'lib' and
 'include' directories within
 
-=item PERL_APPLETV
-
-Set to 1 if you want to build for Apple TV instead of the default (iOS)
-PERL_APPLETV=1
-
-=item PERL_APPLEWATCH
-
-Set to 1 if you want to build for Apple Watch instead of the default
-(iOS) PERL_APPLEWATCH=1
-
 =item IOS_DEVICE_SDK_PATH, IOS_SIMULATOR_SDK_PATH
 
 =item APPLETV_DEVICE_SDK_PATH, APPLETV_SIMULATOR_SDK_PATH
@@ -269,8 +261,7 @@ Set to 1 if you want to build for Apple Watch instead of the default
 =item WATCHOS_DEVICE_SDK_PATH, WATCHOS_SIMULATOR_SDK_PATH
 
 Override the default SDK location for the corresponding device or
-simulator platform. Set C<PERL_APPLETV=1> or C<PERL_APPLEWATCH=1> when
-building for those platforms, in addition to selecting C<IOS_TARGET>.
+simulator platform.
 
 =back
 
@@ -374,8 +365,7 @@ To start the perl test suite on the device:
 =item 1. Copy C<ios/setup_test.sh> to a local configuration file, and
 set C<HARNESS_APP_ID> and C<IOS_DEVICE_UUID> for the signed app and
 selected device or simulator.
-Set C<HARNESS_TARGET> to the appropriate SDK and, for tvOS or watchOS,
-set C<PERL_APPLETV=1> or C<PERL_APPLEWATCH=1>.
+Set C<HARNESS_TARGET> to the appropriate SDK.
 
 =item 2. Run the Bash test script from the source directory, pointing it
 at the local configuration:
@@ -414,7 +404,7 @@ embedded Perl framework as the iOS and Watch runners. Xcode builds the
 tvOS framework and app separately for the selected simulator or device.
 
 For an Apple TV simulator, set C<HARNESS_TARGET=appletvsimulator>,
-C<PERL_APPLETV=1>, C<IOS_DEVICE_UUID>, and C<HARNESS_APP_ID> in
+C<IOS_DEVICE_UUID>, and C<HARNESS_APP_ID> in
 the local setup file, then use the command above. For a connected Apple
 TV, use C<HARNESS_TARGET=appletvos> and C<IOS_DEVICE_UUID>. The device
 must be paired and configured for development. Simulator architecture

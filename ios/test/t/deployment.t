@@ -27,7 +27,9 @@ my $build_stub = "$temp/build.sh";
 open my $build_file, '>', $build_stub or die "$build_stub: $!";
 print {$build_file} <<'BUILD';
 #!/bin/sh
-printf '%s\n%s\n%s\n' "$IOS_DEPLOYMENT_TARGET" "$MIN_VERSION" "$IOS_DEVICE_UUID" > "$MOCK_WORK/build-env"
+printf '%s\n%s\n%s\n%s\n%s\n' \
+    "$IOS_DEPLOYMENT_TARGET" "$MIN_VERSION" "$IOS_DEVICE_UUID" \
+    "$IOS_TARGET" "$IOS_PLATFORM" > "$MOCK_WORK/build-env"
 exit 0
 BUILD
 close $build_file or die "$build_stub: $!";
@@ -112,6 +114,7 @@ sub run_script {
         MACOS_PERL_PATH => $^X,
         HARNESS_APP_ID => 'net.example.fixture',
         IOS_DEVICE_UUID => 'fixture-simulator',
+        IOS_PLATFORM => 'stale-platform',
         IOS_TEST_APP => 'foundation-runner',
         BUILD_CAMELBONES => 0,
         MOCK_WORK => $work,
@@ -146,8 +149,11 @@ for my $case (
         is($status, 19, 'stops at the mocked Xcode build') or diag "$stdout\n$stderr";
         is(read_file("$work/git-env"), "$version\n$version\n",
             'test and compiler deployment targets match during setup');
-        is(read_file("$work/build-env"), "$version\n$version\nfixture-simulator\n",
-            'build script receives deployment targets and selected simulator UUID');
+        my $target = $env->{HARNESS_TARGET};
+        is(read_file("$work/build-env"), "$version\n$version\nfixture-simulator\n$target\n$target\n",
+            'build script receives matching deployment, device and platform settings');
+        like($stderr, qr/Ignoring IOS_PLATFORM=stale-platform/,
+            'reports the stale platform setting');
         like(read_file("$work/xcode-args") // '',
             qr/^\Q${platform}_DEPLOYMENT_TARGET=$version\E$/m,
             'harness receives the same platform deployment target');
@@ -222,6 +228,97 @@ subtest 'direct build target settings' => sub {
     like($errors, qr/IOS_DEPLOYMENT_TARGET and MIN_VERSION must match/,
         'direct build reports the conflict');
     ok(!-e "$work/direct-build-env", 'direct build rejects the conflict before setup');
+    done_testing;
+};
+
+subtest 'target SDK determines platform settings' => sub {
+    my $tools = "$temp/platform-tools";
+    make_path($tools);
+    for my $command (
+        [ uname => "printf 'x86_64\\n'\n" ],
+        [ xcrun => "exit 0\n" ],
+        [ make => "exit 19\n" ],
+    ) {
+        my ($name, $body) = @$command;
+        my $path = "$tools/$name";
+        open my $file, '>', $path or die "$path: $!";
+        print {$file} "#!/bin/sh\n$body";
+        close $file or die "$path: $!";
+        chmod 0755, $path or die "chmod $path: $!";
+    }
+
+    my $configure = <<'CONFIGURE';
+#!/bin/sh
+{
+    printf 'IOS_PLATFORM=%s\nIOS_SDKROOT=%s\nPERL_APPLETV=%s\nPERL_APPLEWATCH=%s\n' \
+        "$IOS_PLATFORM" "$IOS_SDKROOT" "$PERL_APPLETV" "$PERL_APPLEWATCH"
+    printf '%s\n' "$@"
+} > "$MOCK_WORK/configure-args"
+CONFIGURE
+
+    for my $case (
+        [ iphoneos => '/sdk/iphone-device', '-miphoneos-version-min=10.0', 'PERL_IOS', 0, 0 ],
+        [ iphonesimulator => '/sdk/iphone-simulator', '-mios-simulator-version-min=10.0', 'PERL_IOS', 0, 0 ],
+        [ appletvos => '/sdk/tv-device', '-mappletvos-version-min=10.0', 'PERL_APPLETV', 1, 0 ],
+        [ appletvsimulator => '/sdk/tv-simulator', '-mappletvos-version-min=10.0', 'PERL_APPLETV', 1, 0 ],
+        [ watchos => '/sdk/watch-device', '-mwatchos-version-min=10.0', 'PERL_APPLEWATCH', 0, 1 ],
+        [ watchsimulator => '/sdk/watch-simulator', '-mwatchos-version-min=10.0', 'PERL_APPLEWATCH', 0, 1 ],
+    ) {
+        my ($target, $sdk, $minimum, $platform_define, $tv, $watch) = @$case;
+        for my $scenario (qw(clean stale)) {
+            my $work = "$temp/platform-$target-$scenario";
+            make_path("$work/build");
+            my $configure_path = "$work/build/Configure";
+            open my $file, '>', $configure_path or die "$configure_path: $!";
+            print {$file} $configure;
+            close $file or die "$configure_path: $!";
+            chmod 0755, $configure_path or die "chmod $configure_path: $!";
+
+            local %ENV = (
+                PATH => "$tools:/usr/bin:/bin:/usr/sbin:/sbin",
+                HOME => $temp,
+                MOCK_WORK => $work,
+                PERL_BUILD_DIR => "$work/build",
+                IOS_TARGET => $target,
+                IOS_DEVICE_UUID => 'fixture-device',
+                IOS_DEPLOYMENT_TARGET => '10.0',
+                IOS_DEVICE_SDK_PATH => '/sdk/iphone-device',
+                IOS_SIMULATOR_SDK_PATH => '/sdk/iphone-simulator',
+                APPLETV_DEVICE_SDK_PATH => '/sdk/tv-device',
+                APPLETV_SIMULATOR_SDK_PATH => '/sdk/tv-simulator',
+                WATCHOS_DEVICE_SDK_PATH => '/sdk/watch-device',
+                WATCHOS_SIMULATOR_SDK_PATH => '/sdk/watch-simulator',
+            );
+            if ($scenario eq 'stale') {
+                $ENV{IOS_PLATFORM} = $target eq 'iphonesimulator' ? 'watchsimulator' : 'iphonesimulator';
+                $ENV{PERL_APPLETV} = 1;
+                $ENV{PERL_APPLEWATCH} = 1;
+            }
+            my $stderr = gensym;
+            my $pid = open3(my $in, my $out, $stderr, '/bin/sh', '-c',
+                            'cd "$1" && exec /bin/sh "$2"', 'platform-build', $work, $direct_build);
+            close $in;
+            local $/;
+            my $stdout = <$out> // '';
+            my $errors = <$stderr> // '';
+            waitpid($pid, 0);
+            my $label = "$target ($scenario)";
+            is($? >> 8, 19, "$label reaches the mocked make") or diag "$stdout\n$errors";
+            my $args = read_file("$work/configure-args") // '';
+            like($args, qr/^IOS_PLATFORM=\Q$target\E$/m, "$label selects its own platform");
+            like($args, qr/^IOS_SDKROOT=\Q$sdk\E$/m, "$label selects its own SDK");
+            like($args, qr/^PERL_APPLETV=$tv$/m, "$label sets the Apple TV flag");
+            like($args, qr/^PERL_APPLEWATCH=$watch$/m, "$label sets the Apple Watch flag");
+            like($args, qr/^-Dccflags=.*\Q$minimum\E.*-isysroot \Q$sdk\E.*-D\Q$platform_define\E(?: |$)/m,
+                "$label passes matching compiler flags");
+            if ($scenario eq 'stale') {
+                like($errors, qr/Ignoring PERL_APPLETV\/PERL_APPLEWATCH/, "$label reports conflicting flags");
+                like($errors, qr/Ignoring IOS_PLATFORM=/, "$label reports the conflicting platform");
+            } else {
+                is($errors, '', "$label emits no conflict warning");
+            }
+        }
+    }
     done_testing;
 };
 
