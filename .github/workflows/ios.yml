@@ -90,7 +90,9 @@ jobs:
           xcrun simctl boot "$udid"
           xcrun simctl bootstatus "$udid" -b
 
+      # Stop before the job limit so the log upload still runs.
       - name: Build and test
+        timeout-minutes: 340
         env:
           HARNESS_TARGET: ${{ matrix.target }}
           IOS_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
