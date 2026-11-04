@@ -224,19 +224,6 @@ fi
 
 if [ "$simulator_probe" = true ]; then
     cp "$executable_path" "$probe_path"
-    if [ "$IOS_PLATFORM" = "watchsimulator" ]; then
-        if ! codesign --force --sign - "$extension_root"; then
-            echo >&2 "run-ios: failed to sign Watch simulator probe extension: $extension_root"
-            exit 1
-        fi
-        if ! codesign --force --sign - "$bundle_root"; then
-            echo >&2 "run-ios: failed to sign Watch simulator probe app: $bundle_root"
-            exit 1
-        fi
-    elif ! codesign --force --sign - "$probe_path"; then
-        echo >&2 "run-ios: failed to sign simulator probe: $probe_path"
-        exit 1
-    fi
     xcrun simctl uninstall "$IOS_DEVICE_UUID" "$probe_bundle_id" >/dev/null 2>&1 || true
     xcrun simctl install "$IOS_DEVICE_UUID" "$bundle_root" >/dev/null
     probe_container=$(xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$probe_bundle_id" app)

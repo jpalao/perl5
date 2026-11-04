@@ -302,6 +302,12 @@ C<ios-deploy>, and automatic launch uses C<idevicedebug> from
 libimobiledevice. They can be installed with a package manager such as
 Homebrew or MacPorts. A simulator uses C<xcrun simctl> instead.
 
+The Configure runner does not explicitly sign simulator probes; signatures
+produced by the compiler or linker are left intact. On Apple silicon,
+simulator executables must already have an ad-hoc or other valid signature.
+Physical-device probes still require a signing identity and provisioning
+profile.
+
 In libimobiledevice 1.4.0 builds where C<char> is signed, C<idevicedebug>
 may mishandle child exit codes from 128 to 255. Verify those statuses on the
 device or use a corrected debugger before relying on them.
