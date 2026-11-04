@@ -119,9 +119,16 @@ else
   : "${PERL_ARCH:=arm64}"
 fi
 
+# Device version flags select device Mach-O platforms for arm64 simulator builds.
 case "$IOS_TARGET" in
   iphonesimulator)
     MIN_VERSION_TAG="-mios-simulator-version-min=$MIN_VERSION"
+    ;;
+  appletvsimulator)
+    MIN_VERSION_TAG="-mtvos-simulator-version-min=$MIN_VERSION"
+    ;;
+  watchsimulator)
+    MIN_VERSION_TAG="-mwatchos-simulator-version-min=$MIN_VERSION"
     ;;
   *)
     MIN_VERSION_TAG="-m${PLATFORM_TAG}os-version-min=$MIN_VERSION"
@@ -162,7 +169,8 @@ fi
 ARCH_FLAGS="-arch $PERL_ARCH"
 
 SIMULATOR_BUILD_FLAGS="-DPERL_IOS -I$PREFIX/include -I$SIMULATOR_SDK_PATH/usr/include $ARCH_FLAGS $MIN_VERSION_TAG -isysroot $SIMULATOR_SDK_PATH"
-SIMULATOR_LINK_FLAGS="-DPERL_IOS $ARCH_FLAGS -L$PREFIX/lib -L$SIMULATOR_SDK_PATH/usr/lib"
+# Apple silicon only runs signed simulator executables, and ld does not sign every target.
+SIMULATOR_LINK_FLAGS="-DPERL_IOS $ARCH_FLAGS -L$PREFIX/lib -L$SIMULATOR_SDK_PATH/usr/lib -Wl,-adhoc_codesign"
 
 DEVICE_BUILD_FLAGS="-DPERL_IOS -I$PREFIX/include -I$DEVICE_SDK_PATH/usr/include $ARCH_FLAGS $MIN_VERSION_TAG -isysroot $DEVICE_SDK_PATH $BITCODE_BUILD_FLAGS"
 DEVICE_LINK_FLAGS="-DPERL_IOS $ARCH_FLAGS -L$PREFIX/include -L$DEVICE_SDK_PATH/usr/lib"
