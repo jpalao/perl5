@@ -36,7 +36,7 @@
 #Site-specific values:
 
 case "$perladmin" in
-'') perladmin='jose@joses-mac.local' ;;
+'') perladmin='user@localhost' ;;
 esac
 
 # Installation prefixes.  Allow a Configure -D override.  You

@@ -695,6 +695,7 @@ test_perl_device() {
         LIBPERL_PATH="$PERL_INSTALL_PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE" \
         PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
         MACOS_PERL_PATH="$MACOS_PERL_PATH" \
+        ${DEVELOPMENT_TEAM:+DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM"} \
         DSTROOT="$install_root" -configuration "$HARNESS_BUILD_CONFIGURATION" \
         -allowProvisioningUpdates -scheme "$HARNESS_SCHEME" clean install
     check_exit_code

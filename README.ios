@@ -371,7 +371,8 @@ To start the perl test suite on the device:
 =item 1. Copy C<ios/setup_test.sh> to a local configuration file, and
 set C<HARNESS_APP_ID> and C<IOS_DEVICE_UUID> for the signed app and
 selected device or simulator.
-Set C<HARNESS_TARGET> to the appropriate SDK.
+Set C<HARNESS_TARGET> to the appropriate SDK. Device builds also need
+C<DEVELOPMENT_TEAM> set to the Apple team ID used for signing.
 
 =item 2. Run the Bash test script from the source directory, pointing it
 at the local configuration:

@@ -9,8 +9,8 @@
 # Package name      : perl%PERL_REVISION%
 # Source directory  : .
 # Configuration time: Wed Jun  3 17:10:10 CEST 2020
-# Configured by     : jose
-# Target system     : darwin joses-mac.local %DARWIN_VERSION% darwin kernel version %DARWIN_VERSION%: thu jun 21 20:07:40 pdt 2018; root:xnu-3248.73.11~1release_x86_64 x86_64 
+# Configured by     : user
+# Target system     : darwin localhost %DARWIN_VERSION% darwin kernel version %DARWIN_VERSION%: thu jun 21 20:07:40 pdt 2018; root:xnu-3248.73.11~1release_x86_64 x86_64 
 
 : Configure command line arguments.
 config_arg0='./Configure'

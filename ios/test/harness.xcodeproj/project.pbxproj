@@ -557,7 +557,6 @@
 				CAMELBONES_FRAMEWORK_PATH = "$(PROJECT_DIR)/../../../camelbones/CamelBones/build/Products/$(CONFIGURATION)-$(PLATFORM_NAME)";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 6555P83K4D;
 				EMBED_CAMELBONES_FRAMEWORK = NO;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
@@ -609,7 +608,6 @@
 				CAMELBONES_FRAMEWORK_PATH = "$(PROJECT_DIR)/../../../camelbones/CamelBones/build/Products/$(CONFIGURATION)-$(PLATFORM_NAME)";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 6555P83K4D;
 				EMBED_CAMELBONES_FRAMEWORK = NO;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -656,7 +654,6 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 54A6KTCZ5F;
 				INFOPLIST_FILE = harnessTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -676,7 +673,6 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 54A6KTCZ5F;
 				INFOPLIST_FILE = harnessTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -695,7 +691,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 54A6KTCZ5F;
 				INFOPLIST_FILE = harnessUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -713,7 +708,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 54A6KTCZ5F;
 				INFOPLIST_FILE = harnessUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -733,7 +727,6 @@
 				"ARCHS[sdk=iphoneos*]" = "$(ARCHS_STANDARD)";
 				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 6555P83K4D;
 				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
 				HEADER_SEARCH_PATHS = ("$(LIBPERL_PATH)", "$(IOS_FRAMEWORK_PATH)/ios.framework/Headers");
 				INFOPLIST_FILE = foundation-runner/Info.plist;
@@ -759,7 +752,6 @@
 				"ARCHS[sdk=iphoneos*]" = arm64;
 				"ARCHS[sdk=iphonesimulator*]" = "$(NATIVE_ARCH_ACTUAL)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 6555P83K4D;
 				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
 				HEADER_SEARCH_PATHS = ("$(IOS_FRAMEWORK_PATH)/ios.framework/Headers", "$(LIBPERL_PATH)");
 				INFOPLIST_FILE = foundation-runner/Info.plist;
