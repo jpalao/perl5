@@ -1,0 +1,174 @@
+name: ios
+
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PERL_SKIP_TTY_TEST: 1
+  CONTINUOUS_INTEGRATION: 1
+
+jobs:
+  # Hosted images only ship Xcode 26, which cannot target iOS/tvOS before 15.
+  simulator:
+    name: "${{ matrix.target }} on ${{ matrix.runner }}"
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 360
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - macos-26
+          - macos-26-intel
+        target:
+          - iphonesimulator
+          - appletvsimulator
+          - watchsimulator
+        include:
+          - target: iphonesimulator
+            simulator_os: iOS
+            deployment_target: "15.0"
+            app_id: net.pytm.perl.foundation-runner
+            build_camelbones: 1
+            status_wait: 120
+          - target: appletvsimulator
+            simulator_os: tvOS
+            deployment_target: "15.0"
+            app_id: net.pytm.perl.appletv
+            build_camelbones: 0
+            status_wait: 3600
+          - target: watchsimulator
+            simulator_os: watchOS
+            deployment_target: "10.0"
+            app_id: net.pytm.perl.watchrunner
+            build_camelbones: 0
+            status_wait: 1800
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: perl5
+
+      - name: Show toolchain
+        run: |
+          uname -m
+          sw_vers
+          xcodebuild -version
+          command -v perl
+          perl -v | sed -n 2p
+
+      - name: Create and boot simulator
+        env:
+          SIMULATOR_OS: ${{ matrix.simulator_os }}
+        run: |
+          udid=$(xcrun simctl list -j runtimes devicetypes | perl -MJSON::PP -e '
+              my $os = $ENV{SIMULATOR_OS};
+              my $list = decode_json(do { local $/; <STDIN> });
+              my ($runtime) = sort {
+                  my @x = split /\./, $a->{version};
+                  my @y = split /\./, $b->{version};
+                  ($y[0] <=> $x[0]) || (($y[1] // 0) <=> ($x[1] // 0)) || (($y[2] // 0) <=> ($x[2] // 0))
+              } grep { $_->{isAvailable} && $_->{platform} eq $os } @{ $list->{runtimes} };
+              die "no available $os simulator runtime\n" unless $runtime;
+              my ($type) = @{ $runtime->{supportedDeviceTypes} || [] };
+              die "no device type for $runtime->{identifier}\n" unless $type;
+              print STDERR "Using $type->{name} with $runtime->{name}\n";
+              exec "xcrun", "simctl", "create", "perl-ci-$os", $type->{identifier}, $runtime->{identifier};
+          ')
+          echo "IOS_DEVICE_UUID=$udid" >> "$GITHUB_ENV"
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+
+      - name: Build and test
+        env:
+          HARNESS_TARGET: ${{ matrix.target }}
+          IOS_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
+          HARNESS_APP_ID: ${{ matrix.app_id }}
+          BUILD_CAMELBONES: ${{ matrix.build_camelbones }}
+          TEST_LOG_WAIT_TIMEOUT: ${{ matrix.status_wait }}
+        run: |
+          export PERL5_SOURCE_ROOT="$GITHUB_WORKSPACE/perl5"
+          export PERL5_REVISION="$GITHUB_SHA"
+          export PERL_IOS_WORKDIR="$RUNNER_TEMP/work"
+          mkdir -p "$PERL_IOS_WORKDIR"
+          set -o pipefail
+          bash perl5/ios/test.sh 2>&1 | tee "build-log-$HARNESS_TARGET-$(uname -m)"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ matrix.target }}-${{ matrix.runner }}
+          path: build-log-*
+          if-no-files-found: ignore
+
+  # Runs only where a self-hosted runner labelled perl-ios-device is registered
+  # and the repository variable PERL_IOS_DEVICE_RUNNER is 'true'.
+  device:
+    name: "${{ matrix.target }} device"
+    if: vars.PERL_IOS_DEVICE_RUNNER == 'true'
+    runs-on: [self-hosted, macOS, perl-ios-device]
+    timeout-minutes: 720
+
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - target: iphoneos
+            udid_var: PERL_IOS_IPAD_UDID
+            app_id: net.pytm.perl.foundation-runner
+            build_camelbones: 1
+            transport: ios-deploy
+            status_wait: 120
+          - target: appletvos
+            udid_var: PERL_IOS_APPLETV_UDID
+            app_id: net.pytm.perl.appletv
+            build_camelbones: 0
+            transport: devicectl
+            status_wait: 3600
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: perl5
+
+      - name: Build and test
+        env:
+          HARNESS_TARGET: ${{ matrix.target }}
+          IOS_DEPLOYMENT_TARGET: "12.0"
+          IOS_DEVICE_UUID: ${{ vars[matrix.udid_var] }}
+          HARNESS_APP_ID: ${{ matrix.app_id }}
+          BUILD_CAMELBONES: ${{ matrix.build_camelbones }}
+          DEVICE_TRANSPORT: ${{ matrix.transport }}
+          TEST_LOG_WAIT_TIMEOUT: ${{ matrix.status_wait }}
+        run: |
+          if [ -z "$IOS_DEVICE_UUID" ]; then
+              echo >&2 "Set the ${{ matrix.udid_var }} repository variable"
+              exit 1
+          fi
+          export PERL5_SOURCE_ROOT="$GITHUB_WORKSPACE/perl5"
+          export PERL5_REVISION="$GITHUB_SHA"
+          export PERL_IOS_WORKDIR="$RUNNER_TEMP/work"
+          mkdir -p "$PERL_IOS_WORKDIR"
+          set -o pipefail
+          bash perl5/ios/test.sh 2>&1 | tee "build-log-$HARNESS_TARGET"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ matrix.target }}-device
+          path: build-log-*
+          if-no-files-found: ignore
