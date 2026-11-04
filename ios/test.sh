@@ -29,10 +29,11 @@ if [ -z "$MACOS_PERL_PATH" ] || [ ! -x "$MACOS_PERL_PATH" ]; then
 fi
 export MACOS_PERL_PATH
 
-if [ -z "${IOS_DEVICE_UUID:-${SIMULATOR_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}" ];
-    then echo "IOS_DEVICE_UUID or a simulator UUID is unset. Please set it and try again" && exit 1;
-    else echo "IOS_DEVICE_UUID is set to '$IOS_DEVICE_UUID'";
+if [ -z "${IOS_DEVICE_UUID:-}" ]; then
+    echo >&2 "IOS_DEVICE_UUID is unset. Set it to the selected device or simulator UUID and try again"
+    exit 1
 fi
+echo "Selected device or simulator: $IOS_DEVICE_UUID"
 
 if [ -z ${HARNESS_APP_ID+x} ];
     then echo "HARNESS_APP_ID is unset. Please set it and try again" && exit 0;
@@ -93,12 +94,6 @@ if [ "$SIMULATOR_BUILD" -eq 1 ]; then
     ARCHS="$HOST_ARCH"
     echo "Using host architecture $ARCHS for simulator build"
 
-    : "${SIMULATOR_DEVICE_UUID:=${IOS_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}"
-    if [ -z "$SIMULATOR_DEVICE_UUID" ]; then
-        echo >&2 "SIMULATOR_DEVICE_UUID is unset. Set it to an available simulator UUID and try again"
-        exit 1
-    fi
-    IOS_DEVICE_UUID="$SIMULATOR_DEVICE_UUID"
     DEVICE_TRANSPORT=simulator
 else
     : "${ARCHS:=arm64}"
@@ -237,7 +232,7 @@ check_dependencies() {
 
     if [ "$SIMULATOR_BUILD" -eq 1 ]; then
         TRANSFER_TRANSPORT=simulator
-        echo "Using simulator $SIMULATOR_DEVICE_UUID"
+        echo "Using simulator $IOS_DEVICE_UUID"
         return 0
     fi
 

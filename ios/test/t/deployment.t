@@ -27,7 +27,7 @@ my $build_stub = "$temp/build.sh";
 open my $build_file, '>', $build_stub or die "$build_stub: $!";
 print {$build_file} <<'BUILD';
 #!/bin/sh
-printf '%s\n%s\n' "$IOS_DEPLOYMENT_TARGET" "$MIN_VERSION" > "$MOCK_WORK/build-env"
+printf '%s\n%s\n%s\n' "$IOS_DEPLOYMENT_TARGET" "$MIN_VERSION" "$IOS_DEVICE_UUID" > "$MOCK_WORK/build-env"
 exit 0
 BUILD
 close $build_file or die "$build_stub: $!";
@@ -111,7 +111,7 @@ sub run_script {
         PERL5_SOURCE_ROOT => $source,
         MACOS_PERL_PATH => $^X,
         HARNESS_APP_ID => 'net.example.fixture',
-        SIMULATOR_DEVICE_UUID => 'fixture-simulator',
+        IOS_DEVICE_UUID => 'fixture-simulator',
         IOS_TEST_APP => 'foundation-runner',
         BUILD_CAMELBONES => 0,
         MOCK_WORK => $work,
@@ -146,8 +146,8 @@ for my $case (
         is($status, 19, 'stops at the mocked Xcode build') or diag "$stdout\n$stderr";
         is(read_file("$work/git-env"), "$version\n$version\n",
             'test and compiler deployment targets match during setup');
-        is(read_file("$work/build-env"), "$version\n$version\n",
-            'build script receives both deployment targets');
+        is(read_file("$work/build-env"), "$version\n$version\nfixture-simulator\n",
+            'build script receives deployment targets and selected simulator UUID');
         like(read_file("$work/xcode-args") // '',
             qr/^\Q${platform}_DEPLOYMENT_TARGET=$version\E$/m,
             'harness receives the same platform deployment target');

@@ -13,7 +13,7 @@ profile_supports_device() {
 
     profile_device_index=0
     while profile_device=$(plutil -extract "ProvisionedDevices.$profile_device_index" raw -o - "$profile_path" 2>/dev/null); do
-        [ "$profile_device" = "$IOS_PROBE_DEVICE_UDID" ] && return 0
+        [ "$profile_device" = "$IOS_DEVICE_UUID" ] && return 0
         profile_device_index=$((profile_device_index + 1))
     done
     return 1
@@ -35,8 +35,6 @@ shift
 [ -n "$cwd" ] && cd "$cwd"
 
 : "${IOS_PLATFORM:=iphoneos}"
-: "${IOS_PROBE_DEVICE_UDID:=${IOS_DEVICE_UUID:-}}"
-: "${IOS_PROBE_SIMULATOR_UDID:=${SIMULATOR_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}"
 : "${IOS_PROBE_BUNDLE_ID:=net.pytm.perl.ios-configure-probe}"
 : "${IOS_PROBE_BUILD_ROOT:=${TMPDIR:-/tmp}/perl-ios-configure-probe}"
 probe_bundle_id=$IOS_PROBE_BUNDLE_ID
@@ -64,8 +62,8 @@ esac
 simulator_probe=false
 if [ -n "$simulator_platform" ]; then
     simulator_probe=true
-    [ -n "$IOS_PROBE_SIMULATOR_UDID" ] || {
-        echo "run-ios: IOS_PROBE_SIMULATOR_UDID is required" >&2
+    [ -n "${IOS_DEVICE_UUID:-}" ] || {
+        echo "run-ios: IOS_DEVICE_UUID is required for simulator probes" >&2
         exit 2
     }
 fi
@@ -78,7 +76,7 @@ if [ "$simulator_probe" = false ]; then
         *) echo "run-ios: unsupported device platform for provisioning: $IOS_PLATFORM" >&2; exit 2 ;;
     esac
 
-    [ -n "$IOS_PROBE_DEVICE_UDID" ] || { echo "run-ios: IOS_PROBE_DEVICE_UDID is required" >&2; exit 2; }
+    [ -n "${IOS_DEVICE_UUID:-}" ] || { echo "run-ios: IOS_DEVICE_UUID is required for device probes" >&2; exit 2; }
 
     : "${IOS_PROBE_SIGNING_IDENTITY:=${CODE_SIGN_IDENTITY:-}}"
     if [ -z "$IOS_PROBE_SIGNING_IDENTITY" ]; then
@@ -239,9 +237,9 @@ if [ "$simulator_probe" = true ]; then
         echo >&2 "run-ios: failed to sign simulator probe: $probe_path"
         exit 1
     fi
-    xcrun simctl uninstall "$IOS_PROBE_SIMULATOR_UDID" "$probe_bundle_id" >/dev/null 2>&1 || true
-    xcrun simctl install "$IOS_PROBE_SIMULATOR_UDID" "$bundle_root" >/dev/null
-    probe_container=$(xcrun simctl get_app_container "$IOS_PROBE_SIMULATOR_UDID" "$probe_bundle_id" app)
+    xcrun simctl uninstall "$IOS_DEVICE_UUID" "$probe_bundle_id" >/dev/null 2>&1 || true
+    xcrun simctl install "$IOS_DEVICE_UUID" "$bundle_root" >/dev/null
+    probe_container=$(xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$probe_bundle_id" app)
     if [ "$IOS_PLATFORM" = "watchsimulator" ]; then
         probe_path="$probe_container/PlugIns/probe.appex/probe"
     else
@@ -249,9 +247,9 @@ if [ "$simulator_probe" = true ]; then
     fi
     set +e
     if [ -n "$env_spec" ]; then
-        eval "env $env_spec xcrun simctl spawn \"\$IOS_PROBE_SIMULATOR_UDID\" \"\$probe_path\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
+        eval "env $env_spec xcrun simctl spawn \"\$IOS_DEVICE_UUID\" \"\$probe_path\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
     else
-        xcrun simctl spawn "$IOS_PROBE_SIMULATOR_UDID" "$probe_path" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
+        xcrun simctl spawn "$IOS_DEVICE_UUID" "$probe_path" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
     fi
     status=$?
     set -e
@@ -276,7 +274,7 @@ if [ "$profile_platform" != "$expected_profile_platform" ]; then
     exit 1
 fi
 if ! profile_supports_device "$profile_plist"; then
-    echo "run-ios: provisioning profile does not include device $IOS_PROBE_DEVICE_UDID" >&2
+    echo "run-ios: provisioning profile does not include device $IOS_DEVICE_UUID" >&2
     exit 1
 fi
 team_identifier=$(plutil -extract TeamIdentifier.0 raw -o - "$profile_plist")
@@ -307,15 +305,15 @@ cp "$IOS_PROBE_PROVISIONING_PROFILE" "$bundle_root/embedded.mobileprovision"
 xattr -cr "$bundle_root" 2>/dev/null || true
 codesign --force --sign "$IOS_PROBE_SIGNING_IDENTITY" --entitlements "$entitlements" "$bundle_root"
 codesign --verify --deep --strict "$bundle_root"
-ideviceinstaller -u "$IOS_PROBE_DEVICE_UDID" -U "$probe_bundle_id" >/dev/null 2>&1 || true
-ideviceinstaller -u "$IOS_PROBE_DEVICE_UDID" -i "$bundle_root" >/dev/null
-idevicedebug -u "$IOS_PROBE_DEVICE_UDID" kill "$probe_bundle_id" >/dev/null 2>&1 || true
+ideviceinstaller -u "$IOS_DEVICE_UUID" -U "$probe_bundle_id" >/dev/null 2>&1 || true
+ideviceinstaller -u "$IOS_DEVICE_UUID" -i "$bundle_root" >/dev/null
+idevicedebug -u "$IOS_DEVICE_UUID" kill "$probe_bundle_id" >/dev/null 2>&1 || true
 
 set +e
 if [ -n "$env_spec" ]; then
-    eval "env $env_spec idevicedebug -u \"\$IOS_PROBE_DEVICE_UDID\" run \"\$probe_bundle_id\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
+    eval "env $env_spec idevicedebug -u \"\$IOS_DEVICE_UUID\" run \"\$probe_bundle_id\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
 else
-    idevicedebug -u "$IOS_PROBE_DEVICE_UDID" run "$probe_bundle_id" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
+    idevicedebug -u "$IOS_DEVICE_UUID" run "$probe_bundle_id" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
 fi
 status=$?
 set -e

@@ -373,7 +373,7 @@ To start the perl test suite on the device:
 
 =item 1. Copy C<ios/setup_test.sh> to a local configuration file, and
 set C<HARNESS_APP_ID> and C<IOS_DEVICE_UUID> for the signed app and
-physical device. For a simulator, set C<SIMULATOR_DEVICE_UUID> instead.
+selected device or simulator.
 Set C<HARNESS_TARGET> to the appropriate SDK and, for tvOS or watchOS,
 set C<PERL_APPLETV=1> or C<PERL_APPLEWATCH=1>.
 
@@ -414,7 +414,7 @@ embedded Perl framework as the iOS and Watch runners. Xcode builds the
 tvOS framework and app separately for the selected simulator or device.
 
 For an Apple TV simulator, set C<HARNESS_TARGET=appletvsimulator>,
-C<PERL_APPLETV=1>, C<SIMULATOR_DEVICE_UUID>, and C<HARNESS_APP_ID> in
+C<PERL_APPLETV=1>, C<IOS_DEVICE_UUID>, and C<HARNESS_APP_ID> in
 the local setup file, then use the command above. For a connected Apple
 TV, use C<HARNESS_TARGET=appletvos> and C<IOS_DEVICE_UUID>. The device
 must be paired and configured for development. Simulator architecture

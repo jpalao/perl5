@@ -189,14 +189,14 @@ LINK_FLAGS="$LINK_FLAGS -D$PERL_PLATFORM_TAG"
 ######################################################
 
 boot_simulator_for_probes() {
-  local simulator_uuid="${IOS_PROBE_SIMULATOR_UDID:-${SIMULATOR_DEVICE_UUID:-${IOS_SIMULATOR_UUID:-}}}"
+  local simulator_uuid="${IOS_DEVICE_UUID:-}"
 
   case "$IOS_PLATFORM" in
     *simulator) ;;
     *) return 0 ;;
   esac
   if [ -z "$simulator_uuid" ]; then
-    echo >&2 "IOS_PROBE_SIMULATOR_UDID is unset. Set it to an available simulator UUID and try again"
+    echo >&2 "IOS_DEVICE_UUID is unset. Set it to the selected simulator UUID and try again"
     return 1
   fi
 
