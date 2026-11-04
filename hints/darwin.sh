@@ -277,6 +277,10 @@ add_macosx_version_min () {
 case "$targetrun" in
 darwin-ios)
    lddlflags="${ldflags} -bundle -undefined dynamic_lookup"
+   # Newer SDKs export these only for OS releases above our deployment
+   # targets, so the link-only probe finds them but headers hide them.
+   d_dup3='undef'
+   d_pipe2='undef'
    ;;
 *)
 # Perl bundles do not expect two-level namespace, added in Darwin 1.4.
