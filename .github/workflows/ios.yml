@@ -109,6 +109,8 @@ jobs:
 
       - name: Upload build log
         if: always()
+        # An artifact-service outage must not fail a job whose tests passed
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: build-log-${{ matrix.target }}-${{ matrix.runner }}
@@ -169,6 +171,8 @@ jobs:
 
       - name: Upload build log
         if: always()
+        # An artifact-service outage must not fail a job whose tests passed
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: build-log-${{ matrix.target }}-device
