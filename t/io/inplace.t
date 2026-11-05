@@ -12,11 +12,20 @@ my @tfiles_bak = map "$_$^I", @tfiles;
 
 END { unlink_all(@tfiles_bak); }
 
+sub create_input_file {
+    my ($file, $prog) = @_;
+    if ($^O eq 'darwin-ios') {
+        my $result = runperl(prog => $prog);
+        open my $fh, '>', $file or die "Cannot open >$file: $!";
+        print $fh $result or die "Cannot write >$file: $!";
+        close $fh or die "Cannot close >$file: $!";
+    } else {
+        runperl(prog => $prog, args => ['>', $file]);
+    }
+}
+
 for my $file (@tfiles) {
-    my $result = runperl( prog => 'print qq(foo\n);' );
-    open my $fh, '>', $file or die "Cannot open >$file: $!";
-    print $fh $result;
-    close $fh;
+    create_input_file($file, 'print qq(foo\n);');
 }
 
 @ARGV = @tfiles;
@@ -40,10 +49,7 @@ our @ifiles = ( tempfile(), tempfile(), tempfile() );
 
 {
     for my $file (@ifiles) {
-        my $result = runperl( prog => 'print qq(bar\n);');
-        open my $fh, '>', $file or die "Cannot open >$file: $!";
-        print $fh $result;
-        close $fh;
+        create_input_file($file, 'print qq(bar\n);');
     }
 
     local $^I = '';
@@ -67,10 +73,7 @@ our @ifiles = ( tempfile(), tempfile(), tempfile() );
 # test * equivalence RT #70802
 {
     for my $file (@ifiles) {
-        my $result = runperl( prog => 'print qq(bar\n);' );
-        open my $fh, '>', $file or die "Cannot open >$file: $!";
-        print $fh $result;
-        close $fh;
+        create_input_file($file, 'print qq(bar\n);');
     }
 
     local $^I = '*';

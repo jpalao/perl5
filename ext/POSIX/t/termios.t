@@ -208,7 +208,6 @@ SKIP: {
     skip('iOS: no tty', 1) if $Is_Ios;
     local $TODO = "dragonfly returns bad errno"
         if $^O eq 'dragonfly';
-    $TODO = "iOS: TODO" if $Is_Ios;
     cmp_ok($!, '==', POSIX::ENOTTY, 'and set errno to ENOTTY');
 }
 

@@ -91,14 +91,12 @@ else {
 SKIP:
 {
     skip ('iOS: cmd pipe not supported', 2) if $^O =~ /darwin-ios/;
-    if ($^O !~ /darwin-ios/) {
-        open $fh, "$echo_command $pass_arg|" or die $!;
-        do $fh or die;
+    open $fh, "$echo_command $pass_arg|" or die $!;
+    do $fh or die;
 
-        open $fh, "$echo_command $fail_arg|" or die $!;
+    open $fh, "$echo_command $fail_arg|" or die $!;
 
-        do [$fh, sub {s/$_[1]/pass/; return;}, 'fail'] or die;
-    }
+    do [$fh, sub {s/$_[1]/pass/; return;}, 'fail'] or die;
 }
 
 sub rot13_filter {
