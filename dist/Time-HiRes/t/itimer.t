@@ -48,11 +48,11 @@ ok(defined $virt && abs($virt / 0.5) - 1 < $limit,
    "ITIMER_VIRTUAL defined with sufficient granularity")
    or diag "virt=" . (defined $virt ? $virt : 'undef');
 
-TODO: {
+SKIP: {
     if ($^O =~ /darwin-ios/) {
         my $remaining = Time::HiRes::setitimer(&Time::HiRes::ITIMER_VIRTUAL, 0);
         die "Cannot stop virtual timer: $!" unless defined $remaining;
-        todo_skip("iOS: no watchdog for potentially hanging virtual timer", 1);
+        skip("iOS: no watchdog for potentially hanging virtual timer", 1);
     }
 
     printf("# getitimer: %s\n", join(" ",
