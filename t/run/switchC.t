@@ -34,7 +34,9 @@ SKIP: {
     if (exists $ENV{PERL_UNICODE} &&
 	($ENV{PERL_UNICODE} eq "" || $ENV{PERL_UNICODE} =~ /[SO]/)
 		|| $^O =~ /darwin-ios/) {
-	skip(qq[cannot test with PERL_UNICODE "" or /[SO]/], 1);
+	skip($^O =~ /darwin-ios/
+	    ? 'iOS does not support this -CI input test'
+	    : qq[cannot test with PERL_UNICODE "" or /[SO]/], 1);
     }
     $r = runperl( switches => [ '-CI', '-w' ],
 		  prog     => 'print ord(<STDIN>)',

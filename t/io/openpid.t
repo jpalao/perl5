@@ -10,7 +10,7 @@
 BEGIN {
     chdir 't' if -d 't';
     require './test.pl';
-    skip_all("iOS: openpid() not supported") if $^O =~ /darwin-ios/;
+    skip_all("iOS: piped open is not supported") if $^O =~ /darwin-ios/;
     set_up_inc('../lib');
 }
 
@@ -102,4 +102,3 @@ next_test();
 print "# waiting for process $pid4 to exit\n";
 $reap_pid = waitpid $pid4, 0;
 is( $reap_pid, $pid4, 'fourth process reaped' );
-
