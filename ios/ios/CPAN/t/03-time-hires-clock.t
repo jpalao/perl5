@@ -19,7 +19,7 @@ sub has_symbol {
 
 SKIP: {
     my ($platform, $major) = $Config::Config{ccflags} =~
-        /-m(iphoneos|ios-simulator|appletvos|tvos|watchos)-version-min=(\d+)/;
+        /-m(iphoneos|ios|appletvos|tvos|watchos)(?:-simulator)?-version-min=(\d+)/;
     unless (defined $major) {
         fail("cannot determine iOS deployment target from compiler flags");
         skip "unknown deployment target", 11;
