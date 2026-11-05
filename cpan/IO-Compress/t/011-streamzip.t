@@ -11,9 +11,9 @@ use strict;
 use warnings;
 use bytes;
 
-use Test::More;
+use Test::More ;
 use CompTestUtils;
-use IO::Uncompress::Unzip 'unzip';
+use IO::Uncompress::Unzip 'unzip' ;
 
 BEGIN
 {
