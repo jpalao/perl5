@@ -51,7 +51,7 @@ if (defined &Win32::GetCurrentProcessId
 }
 SKIP: {
     skip "can't register TZ changes in a pseudo-fork", 2 if $is_pseudo_fork;
-    skip "iOS: can't register TZ changes", 2 if $is_ios;
+    skip "iOS libc can't register TZ changes", 2 if $is_ios;
     local $ENV{TZ} = "EST5";
     Time::Piece::_tzset();  # register the environment change
     my $lt = localtime;
