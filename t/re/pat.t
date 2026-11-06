@@ -1612,7 +1612,10 @@ EOP
 
         # Compiling for all 100 nested captures blows the stack under
         # clang and ASan; reduce.
-        my $max_captures = $Config{ccflags} =~ /sanitize/ || $^O =~ /darwin-ios/ ? 20 : 100;
+        my $max_captures =
+            ($Config{ccflags} =~ /sanitize/ || $^O =~ /darwin-ios/)
+                ? 20
+                : 100;
 
         for my $i (1..100) {
             if ($i > $max_captures) {
