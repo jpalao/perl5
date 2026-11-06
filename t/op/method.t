@@ -437,12 +437,14 @@ is $kalled, 1, 'calling a class method via a magic variable';
 }
 
 
-fresh_perl_is(
+{
+    fresh_perl_is(
     q! sub T::DESTROY { $x = $_[0]; } bless [], "T";!,
     "DESTROY created new reference to dead object 'T' during global destruction.",
     {},
-    "DESTROY creating a new reference to the object generates a warning."
-);
+	"DESTROY creating a new reference to the object generates a warning."
+    );
+}
 
 # [perl #43663]
 {
@@ -471,20 +473,20 @@ fresh_perl_is(
       'foo->lv(local($foo,$bar)) is not called in lvalue context';
 }
 
-# AUTOLOAD and DESTROY can be declared without a leading sub,
-# like BEGIN and friends.
 {
-    package NoSub;
+   # AUTOLOAD and DESTROY can be declared without a leading sub,
+   # like BEGIN and friends.
+   package NoSub;
 
-    eval 'AUTOLOAD { our $AUTOLOAD; return $AUTOLOAD }';
-    ::ok( !$@, "AUTOLOAD without a leading sub is legal" );
+   eval 'AUTOLOAD { our $AUTOLOAD; return $AUTOLOAD }';
+   ::ok( !$@, "AUTOLOAD without a leading sub is legal" );
 
-    eval "DESTROY { ::pass( q!DESTROY without a leading sub is legal and gets called! ) }";
-    {
-        ::ok( NoSub->can("AUTOLOAD"), "...and sets up an AUTOLOAD normally" );
-        ::is( eval { NoSub->bluh }, "NoSub::bluh", "...which works as expected" );
-    }
-    { bless {}, "NoSub"; }
+   eval "DESTROY { ::pass( q!DESTROY without a leading sub is legal and gets called! ) }";
+   {
+      ::ok( NoSub->can("AUTOLOAD"), "...and sets up an AUTOLOAD normally" );
+      ::is( eval { NoSub->bluh }, "NoSub::bluh", "...which works as expected" );
+   }
+   { bless {}, "NoSub"; }
 }
 
 {

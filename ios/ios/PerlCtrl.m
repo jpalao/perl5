@@ -42,6 +42,26 @@ PerlCtrl_xs_init(pTHX)
 
 @synthesize PerlCtrlInterpreter = _PerlCtrlInterpreter;
 
+static int
+destructPerlInterpreter(PerlInterpreter *interpreter)
+{
+    dTHXa(interpreter);
+    dJMPENV;
+    int status;
+
+    JMPENV_PUSH(status);
+    if (status == 0) {
+        status = perl_destruct(interpreter);
+    } else if (PL_statusvalue != 0) {
+        status = PL_statusvalue;
+    } else {
+        status = STATUS_EXIT;
+    }
+    JMPENV_POP;
+
+    return status;
+}
+
 static NSMutableDictionary * perlInstanceDict = nil;
 static Boolean perlInitialized = false;
 
@@ -421,7 +441,7 @@ static Boolean perlInitialized = false;
         PERL_SET_CONTEXT([PerlCtrl getPerlInterpreter]);
         PL_perl_destruct_level = 1;
         [[PerlCtrl getPerlInstanceDictionary] removeObjectForKey:[NSString stringWithFormat:@"%llx", (unsigned long long) _PerlCtrlInterpreter]];
-        result = perl_destruct(_PerlCtrlInterpreter);
+        result = destructPerlInterpreter(_PerlCtrlInterpreter);
         perl_free(_PerlCtrlInterpreter);
         // NSInteger rc = [self retainCount];
         NSArray *syms = [NSThread callStackSymbols];
