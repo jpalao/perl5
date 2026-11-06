@@ -61,7 +61,7 @@ else { system "cat $tempfile" }
 print STDOUT "ok 8\n";
 
 if ($^O =~ /darwin-ios/) {
-    for my $i (9..12) { print "ok $i # SKIP iOS TODO\n"; }
+    for my $i (9..12) { print "ok $i # SKIP iOS: numeric fd duplication is unsupported\n"; }
 } else {
 
 open(F,">&",1) or die "Cannot dup to numeric 1: $!";
