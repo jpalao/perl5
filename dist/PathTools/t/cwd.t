@@ -124,7 +124,7 @@ SKIP: {
 	# Admittedly fixing this in the Cwd module would be better
 	# long-term solution but deleting $ENV{PWD} should not be
 	# done light-heartedly. --jhi
-	delete $ENV{PWD} if $^O =~ 'darwin';
+	delete $ENV{PWD} if $^O =~ /^darwin/;
 
 	my $cwd        = cwd;
 	my $getcwd     = getcwd;
@@ -219,7 +219,7 @@ SKIP: {
             like($pas,           qr|$want$|i, "Cwd::_perl_abs_path produced $pas");
         }
         else {
-            is($!+0, $^O =~ /darwin-ios/ ? EPERM: EACCES, "check we got the expected error on failure");
+            is($!+0, $^O =~ /darwin-ios/ ? EPERM : EACCES, "check we got the expected error on failure");
         }
     }
 

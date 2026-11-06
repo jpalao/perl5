@@ -38,6 +38,7 @@ SKIP: {
     is($ret,"","recv returns undying empty string for local sockets");
 
 }
+
 eval {
     my $string = "now is the time...";
     open(my $fh, '<', \$string) or die("Can't open \$string for read");
@@ -55,17 +56,14 @@ $buffer = "# Not an empty string\n";
 # Terminate writing for $sock1
 shutdown($sock1, 1);
 
-TODO: {
-    if ($^O !~ /darwin-ios/) {
-        eval {
-            use autodie qw(send);
-            # Writing to a socket terminated for writing should fail.
-            send($sock1,$buffer,0);
-        };
-    } else {
-        todo_skip 'iOS: #TODO send autodie', 2;
-    }
-
+SKIP: {
+    skip('iOS: send on a shutdown socket is not supported', 2)
+        if $^O =~ /darwin-ios/;
+    eval {
+        use autodie qw(send);
+        # Writing to a socket terminated for writing should fail.
+        send($sock1,$buffer,0);
+    };
     ok($@,'send dies on returning undef');
     isa_ok($@,'autodie::exception');
 }
