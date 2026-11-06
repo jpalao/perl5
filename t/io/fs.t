@@ -7,6 +7,8 @@ BEGIN {
 }
 
 use Config;
+use Cwd qw(getcwd);
+use File::Path ();
 
 my $Is_VMSish = ($^O eq 'VMS');
 
@@ -28,7 +30,6 @@ elsif ( $^O =~ /android/ || $^O eq 'nto' ) {
     $wd = `sh -c pwd`;
 }
 elsif ($^O =~ /darwin-ios/) {
-	use Cwd qw/getcwd/;
     $wd = getcwd();
 }
 else {
@@ -81,8 +82,7 @@ elsif ($^O eq 'VMS') {
     `create/directory [.$tmpdir]`;
 }
 elsif ($^O =~ /darwin-ios/) {
-	use File::Path;
-	File::Path::rmtree($tmpdir);
+    File::Path::rmtree($tmpdir);
 	mkdir $tmpdir;
 }
 else {

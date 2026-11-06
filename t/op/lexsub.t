@@ -390,7 +390,6 @@ like runperl(
   eval 'sub cvgv2 {42}'; # uses the stub already present
   is foo, 42, 'defining state sub body via package sub declaration';
 }
-
 SKIP: {
   skip 'iOS: debugger DB::sub not compatible', 2 if $^O =~ /darwin-ios/;
   local $ENV{PERL5DB} = 'sub DB::DB{}';
@@ -760,7 +759,6 @@ not_lexical11();
   eval q{ my sub george () { 2 } };
   is $w, undef, 'no double free from constant my subs';
 }
-
 like runperl(
       switches => [ '-Mfeature=lexical_subs,state' ],
       prog     => 'my sub a { foo ref } a()',
