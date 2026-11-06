@@ -2962,7 +2962,7 @@ my($a, $b);
 my $x = CORE::sprintf('%s%s', $a, $b);
 ####
 # multiconcat with backticks
-# SKIP ? $^O =~ /darwin-ios/ && "multiconcat with backticks: TODO"
+# SKIP ? $^O =~ /darwin-ios/ && "multiconcat with backticks is not supported on iOS"
 my($a, $b);
 our $x;
 $x = `$a-$b`;
