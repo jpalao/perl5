@@ -525,10 +525,6 @@ use File::Glob qw(:case);
     'File::Path' => {
         'DISTRIBUTION' => 'JKEENAN/File-Path-2.18.tar.gz',
         'FILES'        => q[cpan/File-Path],
-        # iOS portability change; upstream submission is pending.
-        'CUSTOMIZED'   => [
-            't/Path_root.t',
-        ],
         'EXCLUDED'     => [
             qw(t/Path-Class.t),
             qr{^xt/},

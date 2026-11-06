@@ -761,8 +761,6 @@ not_lexical11();
   is $w, undef, 'no double free from constant my subs';
 }
 
-SKIP: {
-    skip('iOS: crashing #TODO') if $^O =~ /darwin-ios/;
 like runperl(
       switches => [ '-Mfeature=lexical_subs,state' ],
       prog     => 'my sub a { foo ref } a()',
@@ -770,7 +768,6 @@ like runperl(
      ),
      qr/syntax error/,
     'referencing a my sub after a syntax error does not crash';
-}
 
 {
   state $stuff;

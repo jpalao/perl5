@@ -4,10 +4,9 @@
 CPAN cpan/CPAN/lib/CPAN/HandleConfig.pm cb4717d5cdff4c6aa1e78359899eb807255ec04b
 ExtUtils::Constant cpan/ExtUtils-Constant/lib/ExtUtils/Constant/Base.pm 7560e1018f806db5689dee78728ccb8374aea741
 ExtUtils::Constant cpan/ExtUtils-Constant/t/Constant.t d26b115904cb0e57f8a2adbfc41f36747ee3948d
-File::Path cpan/File-Path/t/Path_root.t de702c53279364af6116ae8b86218d5394700743
 File::Temp cpan/File-Temp/t/lock.t 143a06c57915e95065a112090f6f47e2eb33c289
 Filter::Util::Call pod/perlfilter.pod 545265af2f45741a0e59eecdd0cfc0c9e490c1e8
-IO-Compress cpan/IO-Compress/t/011-streamzip.t 0f3e5b2ca6a3d9e9f1416f4a758afcd48edcecd1
+IO-Compress cpan/IO-Compress/t/011-streamzip.t 6afbbcf8b4c0dd690aee54a3df53a40a825ec2dd
 Locale::Maketext::Simple cpan/Locale-Maketext-Simple/lib/Locale/Maketext/Simple.pm 57ed38905791a17c150210cd6f42ead22a7707b6
 Math::Complex cpan/Math-Complex/lib/Math/Complex.pm 66f28a17647e2de166909ca66e4ced26f8a0a62e
 Math::Complex cpan/Math-Complex/t/Complex.t 17039e03ee798539e770ea9a0d19a99364278306
