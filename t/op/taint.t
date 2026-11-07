@@ -2412,7 +2412,9 @@ end
 {
     SKIP: {
         skip "Environment tainting tests skipped", 1
-          if $Is_MSWin32 || $Is_VMS || $Is_Ios;
+          if $Is_MSWin32 || $Is_VMS;
+        skip "iOS: embedded fresh_perl cannot reinitialize environment taint state", 1
+          if $Is_Ios;
 
         local $ENV{XX} = '\p{IsB}';   # Making it an environment variable taints it
 
