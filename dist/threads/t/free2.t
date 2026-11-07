@@ -30,7 +30,9 @@ BEGIN {
     require Thread::Queue;
 
     $| = 1;
-    print("1..78\n");   ### Number of tests that will be run ###
+    # iOS also receives the initial "Thread 1 started" queue event.
+    my $tests = $^O =~ /darwin-ios/ ? 79 : 78;
+    print("1..$tests\n");   ### Number of tests that will be run ###
 }
 
 Test::watchdog(60);   # In case we get stuck
@@ -68,25 +70,12 @@ my $COUNT;
 share($COUNT);
 my %READY;
 share(%READY);
-# Normalize logical worker IDs to 2..18; the watchdog does not always create
-# a thread before the first worker.
-my $TID_OFFSET;
-share($TID_OFFSET);
-
-sub test_tid
-{
-    return threads->tid() - $TID_OFFSET;
-}
 
 # Init a thread
 sub th_start
 {
     my $q = shift;
-    {
-        lock($TID_OFFSET);
-        $TID_OFFSET = threads->tid() - 2 unless defined $TID_OFFSET;
-    }
-    my $tid = test_tid();
+    my $tid = threads->tid();
     $q->enqueue($tid, "Thread $tid started");
 
     threads->yield();
@@ -118,7 +107,7 @@ sub th_start
 sub th_done
 {
     my $q = shift;
-    my $tid = test_tid();
+    my $tid = threads->tid();
 
     lock($COUNT);
     $COUNT++;
@@ -133,7 +122,7 @@ sub th_signal
     my $q = shift;
     my $other = shift;
     $other++;
-    my $tid = test_tid();
+    my $tid = threads->tid();
 
     $q->enqueue($tid, "Thread $tid signalling $other");
 
@@ -234,7 +223,7 @@ sub th16
 sub th3
 {
     my $q = shift;
-    my $tid = test_tid();
+    my $tid = threads->tid();
     my $other = 5;
 
     th_start($q);
@@ -242,7 +231,7 @@ sub th3
     th_signal($q, $other);
     sleep(1);
     $q->enqueue(1, "Thread $tid getting return from thread $other");
-    my $ret = threads->object($other+1+$TID_OFFSET)->join();
+    my $ret = threads->object($other+1)->join();
     $q->enqueue($ret == $other+1, "Thread $tid saw that thread $other returned $ret");
     th_done($q);
 }
@@ -252,21 +241,21 @@ sub th5
     my $q = shift;
     th_start($q);
     th_done($q);
-    return (test_tid());
+    return (threads->tid());
 }
 
 
 sub th7
 {
     my $q = shift;
-    my $tid = test_tid();
+    my $tid = threads->tid();
     my $other = 9;
 
     th_start($q);
     threads->detach();
     th_signal($q, $other);
     $q->enqueue(1, "Thread $tid getting return from thread $other");
-    my $ret = threads->object($other+1+$TID_OFFSET)->join();
+    my $ret = threads->object($other+1)->join();
     $q->enqueue($ret == $other+1, "Thread $tid saw that thread $other returned $ret");
     th_done($q);
 }
@@ -277,14 +266,14 @@ sub th9
     th_start($q);
     sleep(1);
     th_done($q);
-    return (test_tid());
+    return (threads->tid());
 }
 
 
 sub th13
 {
     my $q = shift;
-    my $tid = test_tid();
+    my $tid = threads->tid();
     my $other = 11;
 
     th_start($q);
@@ -292,7 +281,7 @@ sub th13
     th_signal($q, $other);
     sleep(1);
     $q->enqueue(1, "Thread $tid getting return from thread $other");
-    my $ret = threads->object($other+1+$TID_OFFSET)->join();
+    my $ret = threads->object($other+1)->join();
     $q->enqueue($ret == $other+1, "Thread $tid saw that thread $other returned $ret");
     th_done($q);
 }
@@ -302,21 +291,21 @@ sub th11
     my $q = shift;
     th_start($q);
     th_done($q);
-    return (test_tid());
+    return (threads->tid());
 }
 
 
 sub th17
 {
     my $q = shift;
-    my $tid = test_tid();
+    my $tid = threads->tid();
     my $other = 15;
 
     th_start($q);
     threads->detach();
     th_signal($q, $other);
     $q->enqueue(1, "Thread $tid getting return from thread $other");
-    my $ret = threads->object($other+1+$TID_OFFSET)->join();
+    my $ret = threads->object($other+1)->join();
     $q->enqueue($ret == $other+1, "Thread $tid saw that thread $other returned $ret");
     th_done($q);
 }
@@ -327,7 +316,7 @@ sub th15
     th_start($q);
     sleep(1);
     th_done($q);
-    return (test_tid());
+    return (threads->tid());
 }
 
 

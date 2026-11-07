@@ -56,6 +56,9 @@ fi
 : "${IOS_DEPLOYMENT_TARGET:=${MIN_VERSION:-12.0}}"
 export IOS_DEPLOYMENT_TARGET
 export MIN_VERSION="$IOS_DEPLOYMENT_TARGET"
+unset MACOSX_DEPLOYMENT_TARGET IPHONEOS_DEPLOYMENT_TARGET
+unset TVOS_DEPLOYMENT_TARGET WATCHOS_DEPLOYMENT_TARGET
+unset APPLETV_DEPLOYMENT_TARGET
 
 : "${PERL_5_BRANCH:=ios_blead_test}"
 INSTALL_DIR_DEFAULTED=0
@@ -148,6 +151,13 @@ case "$IOS_TEST_APP" in
         : "${HARNESS_PROJECT:=appletv-runner.xcodeproj}"
         ;;
     watch-runner)
+        case "$HARNESS_TARGET" in
+            watchos|watchsimulator) ;;
+            *)
+                echo >&2 "watch-runner requires HARNESS_TARGET=watchos or watchsimulator"
+                exit 1
+                ;;
+        esac
         : "${HARNESS_SCHEME:=watch-runner}"
         : "${HARNESS_PRODUCT_NAME:=watch-runner}"
         : "${HARNESS_PROJECT:=watch-runner.xcodeproj}"
