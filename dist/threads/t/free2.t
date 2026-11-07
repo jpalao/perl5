@@ -30,8 +30,9 @@ BEGIN {
     require Thread::Queue;
 
     $| = 1;
-    # iOS also receives the initial "Thread 1 started" queue event.
-    my $tests = $^O =~ /darwin-ios/ ? 79 : 78;
+    my $tests = 78;
+    # iOS: watchdog is disabled and "Thread 1 started" event is received
+    $tests++ if $^O =~ /darwin-ios/;
     print("1..$tests\n");   ### Number of tests that will be run ###
 }
 
