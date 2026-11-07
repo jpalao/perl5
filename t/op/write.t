@@ -1997,7 +1997,8 @@ EXPECT
 	      { stderr => 1 }, '#123245 panic in sv_chop');
 
 SKIP: {
-skip('iOS: TODO: STDOUT STDERR capture race cond.', 1) if $^O =~ /darwin-ios/;
+skip('iOS: embedded capture does not guarantee STDOUT/STDERR ordering', 1)
+    if $^O =~ /darwin-ios/;
 fresh_perl_is(<<'EOP', <<'EXPECT',
 use warnings 'syntax' ;
 format STDOUT =
