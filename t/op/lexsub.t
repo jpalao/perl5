@@ -390,8 +390,7 @@ like runperl(
   eval 'sub cvgv2 {42}'; # uses the stub already present
   is foo, 42, 'defining state sub body via package sub declaration';
 }
-SKIP: {
-  skip 'iOS: debugger DB::sub not compatible', 2 if $^O =~ /darwin-ios/;
+{
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
@@ -766,7 +765,6 @@ like runperl(
      ),
      qr/syntax error/,
     'referencing a my sub after a syntax error does not crash';
-
 {
   state $stuff;
   package A {
@@ -798,8 +796,7 @@ like runperl(
 # We would have crashed by now if it weren’t fixed.
 pass "pad taking ownership once more of packagified my-sub";
 
-SKIP: {
-  skip 'iOS: debugger DB::sub incompatibility', 1 if $^O =~ /darwin-ios/;
+{
   local $ENV{PERL5DB} = 'sub DB::DB{}';
   is(
     runperl(
