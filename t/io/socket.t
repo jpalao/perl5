@@ -273,7 +273,7 @@ SKIP:
 
 SKIP: {
     skip "no fcntl", 1 unless $Config{d_fcntl};
-    skip "iOS: this test throws 'illegal seek'", 1 if $^O =~ /darwin-ios/;
+    skip "iOS: cannot exec with inherited sockets", 1 if $^O =~ /darwin-ios/;
     my $sock;
     socket($sock, PF_INET, SOCK_STREAM, $tcp) or die "socket: $!";
     my $sockfd = fileno($sock);
@@ -328,3 +328,4 @@ sub is_child {
 sub end_child {
     print @child_tests;
 }
+
