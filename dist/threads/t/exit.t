@@ -47,8 +47,9 @@ ok($thr, 'Created: threads->exit()');
 my $rc = $thr->join();
 ok(! defined($rc), 'Exited: threads->exit()');
 
+my $thread_exit_opt = $^O =~ /darwin-ios/ ? ' qw(exit thread_only)' : '';
 
-run_perl(prog => 'use threads 2.21;' .
+run_perl(prog => 'use threads 2.21' . $thread_exit_opt . ';' .
                  'threads->exit(86);' .
                  'exit(99);',
          nolib => ($ENV{PERL_CORE}) ? 0 : 1,
@@ -107,9 +108,6 @@ run_perl(prog => 'use threads 2.21 qw(exit thread_only);' .
     local $TODO = 'VMS exit semantics not like POSIX exit semantics' if $^O eq 'VMS';
     is($?>>8, 86, "'use threads 'exit' => 'thread_only'");
 }
-
-# iOS will exit the harness without 'exit' 'thread_only'
-my $thread_exit_opt = $^O =~ /darwin-ios/ ? ' qw(exit thread_only)' : '';
 
 my $out = run_perl(prog => 'use threads 2.21' . $thread_exit_opt . ';' .
                            'threads->create(sub {' .
