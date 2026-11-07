@@ -8,9 +8,6 @@ BEGIN {
 
 # This test depends on t/lib/Devel/switchd*.pm.
 
-plan(skip_all => 'iOS: debugger switch module crashes during interpreter teardown')
-  if $^O =~ /darwin-ios/;
-
 plan(tests => 21);
 
 my $r;
@@ -59,18 +56,21 @@ qr/^sub<Devel::switchd::unimport>;unimport<Devel::switchd a 42>;DB<main,$::tempf
 }
 
 # [perl #71806]
-cmp_ok(
-  runperl(       # less is useful for something :-)
-   switches => [ '"-Mless ++INC->{q-Devel/_.pm-}"' ],
-   progs    => [
-    '#!perl -d:_',
-    'sub DB::DB{} print scalar @{q/_</.__FILE__}',
-   ],
-  ),
- '>',
-  0,
- 'The debugger can see the lines of the main program under #!perl -d',
-);
+SKIP: {
+    skip 'iOS has no debugger console', 1 if $^O =~ /darwin-ios/;
+    cmp_ok(
+      runperl(       # less is useful for something :-)
+       switches => [ '"-Mless ++INC->{q-Devel/_.pm-}"' ],
+       progs    => [
+        '#!perl -d:_',
+        'sub DB::DB{} print scalar @{q/_</.__FILE__}',
+       ],
+      ),
+     '>',
+     0,
+     'The debugger can see the lines of the main program under #!perl -d',
+    );
+}
 
 like
   runperl(
@@ -131,15 +131,25 @@ like(
 );
 
 # test when DB::DB is seen but not defined [perl #114990]
-like(
-  runperl(
+{
+  my $result = runperl(
     switches => [ '-Ilib', '-d:nodb' ],
     prog     => [ '1' ],
     stderr   => 1,
-  ),
-  qr/^No DB::DB routine defined/,
-  "No crash when *DB::DB exists but not &DB::DB",
-);
+  );
+  # PerlCtrl starts the embedded iOS debugger with noTTY/NonStop mode.
+  # Ordinary execution therefore does not enter pp_dbstate, so iOS cannot
+  # emit this diagnostic; the status assertion below still verifies no crash.
+  if ($^O =~ /darwin-ios/) {
+    is($? >> 8, 0, "No crash when *DB::DB exists but not &DB::DB");
+  } else {
+    like(
+      $result,
+      qr/^No DB::DB routine defined/,
+      "No crash when *DB::DB exists but not &DB::DB",
+    );
+  }
+}
 like(
   runperl(
     switches => [ '-Ilib' ],

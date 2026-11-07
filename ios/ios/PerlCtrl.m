@@ -275,7 +275,20 @@ static Boolean perlInitialized = false;
                     }
                     else if ([option isKindOfClass: [NSString class]])
                     {
-                        emb[embSize++] = (char *)[option UTF8String];
+                        if ([option hasPrefix:@"-d:"] && option.length > 3) {
+                            NSString *debuggerModule = [option substringFromIndex:3];
+                            if ([debuggerModule hasPrefix:@"-"]) {
+                                debuggerModule = [NSString stringWithFormat:@"-M-Devel::%@",
+                                    [debuggerModule substringFromIndex:1]];
+                            } else {
+                                debuggerModule = [NSString stringWithFormat:@"-MDevel::%@",
+                                    debuggerModule];
+                            }
+                            emb[embSize++] = "-d";
+                            emb[embSize++] = (char *)[debuggerModule UTF8String];
+                        } else {
+                            emb[embSize++] = (char *)[option UTF8String];
+                        }
                     }
                     else if ([option isKindOfClass: [NSArray class]])
                     {

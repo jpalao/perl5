@@ -3834,7 +3834,17 @@ Perl_magic_setdebugvar(pTHX_ SV *sv, MAGIC *mg) {
 #endif
     assert(mg->mg_private < DBVARMG_COUNT);
 
+#if PERL_IOS
+    /*
+     * The embedded iOS debugger can recursively re-enter overload dispatch
+     * while updating its private integer copy of an overloaded control
+     * scalar.  Avoid that recursion on iOS; preserve normal overload
+     * conversion semantics on other platforms.
+     */
+    PL_DBcontrol[mg->mg_private] = sv_2iv_flags(sv, SV_SKIP_OVERLOAD);
+#else
     PL_DBcontrol[mg->mg_private] = SvIV_nomg(sv);
+#endif
 
     return 1;
 }

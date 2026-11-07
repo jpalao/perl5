@@ -350,6 +350,9 @@ sub runperl {
         if ref $_[0] and ref $_[0] eq 'HASH';
 
     my %args = @_;
+    if (ref $args{prog} eq 'ARRAY') {
+        $args{progs} = delete $args{prog};
+    }
     my $result;
     local $@;
     my $ok = eval {
