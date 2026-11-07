@@ -38,10 +38,8 @@ $cmd = sprintf "$echo 1>&2", 5;
 print `$cmd`;
 
 if ($^O =~ /darwin-ios/) {
-    $cmd = sprintf $echo, 6;
-    print `$cmd`;
-    $cmd = sprintf "$echo 1>&2", 7;
-    print `$cmd`;
+    print `${\sprintf $echo, 6}`;
+    print `${\sprintf "$echo 1>&2", 7}`;
 } else {
     system sprintf $echo, 6;
     system sprintf "$echo 1>&2", 7;
