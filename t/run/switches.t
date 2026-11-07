@@ -216,8 +216,6 @@ SWTESTPM
 
     {
         local $TODO = '';  # this one works on VMS
-	 skip('iOS: module lookup differs for embedded runs', 1)
-	     if $^O =~ /darwin-ios/;
         is( $r, '', '-m' );
     }
     $r = runperl(
