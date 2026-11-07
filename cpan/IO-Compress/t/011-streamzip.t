@@ -20,7 +20,7 @@ BEGIN
     plan(skip_all => "Needs Perl 5.005 or better - you have Perl $]" )
         if $] < 5.005 ;
 
-    plan(skip_all => "iOS: no shell redirection" )
+    plan(skip_all => "iOS: backticks do not support <infile or >outfile redirection" )
         if $^O =~ /darwin-ios/;
 
     # use Test::NoWarnings, if available
