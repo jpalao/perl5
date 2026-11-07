@@ -535,9 +535,12 @@ void* CBRunPerl (char * json)
                 NSString * absPwd = [cbRunPerlDict objectForKey:@"absPwd"];
                 BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
 
-                if (!fileExists && ![filePath isAbsolutePath] && absPwd != nil)
+                if (![filePath isAbsolutePath] && absPwd != nil)
                 {
-                    NSString * pathWithCwd = [NSString stringWithFormat:@"%@/%@", absPwd, filePath];
+                    NSString * basePath = [absPwd isAbsolutePath]
+                        ? absPwd
+                        : [[NSFileManager defaultManager] currentDirectoryPath];
+                    NSString * pathWithCwd = [basePath stringByAppendingPathComponent:filePath];
                     fileExists =  [[NSFileManager defaultManager] fileExistsAtPath:pathWithCwd];
                     if (fileExists)
                     {
