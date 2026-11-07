@@ -83,7 +83,7 @@ elsif ($^O eq 'VMS') {
 }
 elsif ($^O =~ /darwin-ios/) {
     File::Path::rmtree($tmpdir);
-	mkdir $tmpdir;
+    mkdir $tmpdir;
 }
 else {
     `rm -f $tmpdir 2>/dev/null; mkdir $tmpdir 2>/dev/null`;
