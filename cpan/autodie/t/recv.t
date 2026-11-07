@@ -56,11 +56,14 @@ $buffer = "# Not an empty string\n";
 # Terminate writing for $sock1
 shutdown($sock1, 1);
 
-eval {
-    use autodie qw(send);
-    # Writing to a socket terminated for writing should fail.
-    send($sock1,$buffer,0);
-};
-
-ok($@,'send dies on returning undef');
-isa_ok($@,'autodie::exception');
+SKIP: {
+    skip('iOS: send on a shutdown socket is not supported', 2)
+        if $^O =~ /darwin-ios/;
+    eval {
+        use autodie qw(send);
+        # Writing to a socket terminated for writing should fail.
+        send($sock1,$buffer,0);
+    };
+    ok($@,'send dies on returning undef');
+    isa_ok($@,'autodie::exception');
+}

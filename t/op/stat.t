@@ -46,6 +46,7 @@ my $Is_VMS     = $^O eq 'VMS';
 my $Is_MPRAS   = $^O =~ /svr4/ && -f '/etc/.relid';
 my $Is_Android = $^O =~ /android/;
 my $Is_Dfly    = $^O eq 'dragonfly';
+my $Is_Ios     = $^O =~ /darwin-ios/;
 
 my $Is_Dosish  = $Is_OS2 || $Is_MSWin32;
 
@@ -341,6 +342,7 @@ SKIP: {
     # but not likely to be *all* setuid files.
     my @bin = grep {-d && -r && -x} qw(/sbin /usr/sbin /bin /usr/bin);
     skip "Can't find a setuid file to test with", 3 unless @bin;
+    skip "iOS: Can't find a setuid file to test with", 3 if $^O =~ /darwin-ios/;
 
     for my $bin (@bin) {
         opendir BIN, $bin or die "Can't opendir $bin: $!";
@@ -372,7 +374,8 @@ SKIP: {
 
     SKIP: {
         skip "Test uses unixisms", 2 if $Is_MSWin32;
-        skip "No TTY to test -t with", 2 unless -e $TTY;
+        # iOS simulator can see the device but cannot use it
+        skip "No TTY to test -t with", 2 unless (-e $TTY && !$Is_Ios);
 
         open(TTY, $TTY) ||
           warn "Can't open $TTY--run t/TEST outside of make.\n";
@@ -383,7 +386,7 @@ SKIP: {
     ok(! -t TTY,    '!-t on closed TTY filehandle');
 
     {
-        local our $TODO = 'STDIN not a tty when output is to pipe' if $Is_VMS;
+        local our $TODO = 'STDIN not a tty when output is to pipe' if $Is_VMS || $Is_Ios;
         ok(-t,          '-t on STDIN');
     }
 }

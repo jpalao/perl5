@@ -42,7 +42,10 @@ if (locales_enabled('LC_MESSAGES')) {
 is(POSIX::abs(-42), 42, 'abs');
 is(POSIX::abs(-3.14), 3.14, 'abs');
 is(POSIX::abs(POSIX::exp(1)), CORE::exp(1), 'abs');
-is(POSIX::alarm(0), 0, 'alarm');
+SKIP: {
+    skip('iOS: POSIX::alarm(0) is unreliable', 1) if $^O =~ /darwin-ios/;
+    is(POSIX::alarm(0), 0, 'alarm');
+}
 is(eval {POSIX::assert(1); 1}, 1, 'assert(1)');
 is(eval {POSIX::assert(0); 1}, undef, 'assert(0)');
 like($@, qr/Assertion failed at/, 'assert throws an error');
@@ -142,6 +145,7 @@ is_deeply([POSIX::stat($temp_file)], [stat $temp_file], 'stat');
 
 is(POSIX::strstr('BBFRPRAFPGHPP', 'FP'), 7, 'strstr');
 SKIP: {
+    skip('iOS: system() cannot launch CLI commands', 1) if $^O =~ /darwin-ios/;
     my $true;
     foreach (qw(/bin/true /usr/bin/true)) {
 	if (-x $_) {
@@ -213,6 +217,8 @@ SKIP: {
     my $gotit = 0;
     $SIG{USR1} = sub { $gotit++ };
     is(POSIX::kill($$, 'SIGUSR1'), 1, 'kill');
+    skip('iOS: signal delivery after POSIX::kill is unreliable', 3)
+        if $^O =~ /darwin-ios/;
     is($gotit, 1, 'got first signal');
     is(POSIX::raise('SIGUSR1'), 1, 'raise');
     is($gotit, 2, 'got second signal');
@@ -220,7 +226,7 @@ SKIP: {
 
 SKIP: {
     foreach (qw(fork pipe)) {
-	skip("no $_", 8) unless $Config{"d_$_"};
+	skip("no $_", 9) unless $Config{"d_$_"};
     }
     # die with an uncaught SIGARLM if something goes wrong
     is(CORE::alarm(60), 0, 'no alarm set previously');

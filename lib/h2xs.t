@@ -178,6 +178,7 @@ while (my ($args, $version, $expectation) = splice @tests, 0, 3) {
   is ($result, $expectation, "running $prog");
 
   my (%got);
+  chdir ($up) if $^O =~ /darwin-ios/;
   find (sub {$got{$File::Find::name}++ unless -d $_}, $name);
 
   foreach ($expectation =~ /Writing\s+(\S+)/gm) {

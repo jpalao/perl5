@@ -373,6 +373,12 @@ files in F<ext/> and F<lib/> are best summarized in L</Modules and Pragmata>.
 Disabling the C<bareword_filehandles> feature no longer treats C<print
 Class->method> as an error.  [github #19704]
 
+=item *
+
+The user-defined Unicode property cache is now associated with its interpreter.
+Previously, destroying an embedded interpreter could leave a later C<\p{}> lookup
+in another interpreter accessing freed memory.
+
 =back
 
 =head1 Known Problems

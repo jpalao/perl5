@@ -688,6 +688,14 @@ STATIC perl_mutex darwin_time_mutex;
 
 #  include <mach/mach_time.h>
 
+#  if defined(PERL_IOS) && defined(CLOCK_PROCESS_CPUTIME_ID)
+#    if defined(__has_builtin)
+#      if __has_builtin(__builtin_available)
+#        define TIME_HIRES_IOS_NATIVE_CLOCK
+#      endif
+#    endif
+#  endif
+
 static uint64_t absolute_time_init;
 static mach_timebase_info_data_t timebase_info;
 static struct timespec timespec_init;
@@ -718,6 +726,10 @@ static int darwin_time_init() {
 
 #  ifdef TIME_HIRES_CLOCK_GETTIME_EMULATION
 static int th_clock_gettime(clockid_t clock_id, struct timespec *ts) {
+#    ifdef TIME_HIRES_IOS_NATIVE_CLOCK
+    if (__builtin_available(iOS 10.0, tvOS 10.0, watchOS 3.0, *))
+        return clock_gettime(clock_id, ts);
+#    endif
     if (darwin_time_init() && timebase_info.denom) {
         switch (clock_id) {
         case CLOCK_REALTIME:
@@ -755,6 +767,10 @@ static int th_clock_gettime(clockid_t clock_id, struct timespec *ts) {
 
 #  ifdef TIME_HIRES_CLOCK_GETRES_EMULATION
 static int th_clock_getres(clockid_t clock_id, struct timespec *ts) {
+#    ifdef TIME_HIRES_IOS_NATIVE_CLOCK
+    if (__builtin_available(iOS 10.0, tvOS 10.0, watchOS 3.0, *))
+        return clock_getres(clock_id, ts);
+#    endif
     if (darwin_time_init() && timebase_info.denom) {
         switch (clock_id) {
         case CLOCK_REALTIME:

@@ -1,0 +1,73 @@
+#!./perl
+
+$|=1;
+use open ":std", ":encoding(UTF-8)";
+use IO::Handle;
+STDOUT->autoflush(1);
+use strict;
+use warnings;
+use Config;
+use Cwd qw/getcwd/;
+use JSON::PP;
+
+use ios;
+use TAP::Parser::Iterator::iOS;
+use TAP::Parser::SourceHandler::iOSExecutable;
+use TAP::Parser::SourceHandler::iOSPerl;
+
+BEGIN {
+    *CORE::GLOBAL::exit = sub {
+        $::ios_harness_status = shift // 0;
+    };
+}
+
+$ENV{LC_ALL} = 'C';
+$ENV{LC_CTYPE} = 'C';
+$ENV{PERL_TEST_ABORT_FIRST_FAILURE} = 0;
+$ENV{HOME} = getcwd();
+# $ENV{PERL_TEST_TIME_OUT_FACTOR} = 15;
+# $ENV{PERL_SKIP_PSYCHO_TEST} = 1;
+# $ENV{PERL_BENCHMARK} = 1;
+# $ENV{PERL_TEST_MEMORY} = 1;
+# $ENV{PERL_TEST_HARNESS_ASAP} = 1;
+# $ENV{PERL_USE_UNSAFE_INC}
+# $ENV{PERL_DEBUG_FULL_TEST}
+if (!grep { $_ !~ /^-/ } @ARGV) {
+    my @options = @ARGV;
+    $::do_nothing = $::do_nothing = 1;
+    require './TEST';
+
+    my @tests;
+    for my $directory (qw(base comp run cmd io re opbasic op uni mro lib porting perf)) {
+        @ARGV = ();
+        _find_tests($directory);
+        push @tests, @ARGV;
+    }
+
+    my ($extensions, $known_extensions);
+    open(my $config, '<', '../config.sh') or die "Cannot open ../config.sh: $!";
+    while (my $line = <$config>) {
+        $extensions = $1 if $line =~ /^extensions=['"](.*)['"]$/;
+        $known_extensions = $1 if $line =~ /^known_extensions=['"](.*)['"]$/;
+    }
+    close($config);
+    push @tests, _tests_from_manifest($extensions, $known_extensions);
+
+    @ARGV = ();
+    _find_tests('../ext/ios/t');
+    push @tests, @ARGV;
+
+    # ExtUtils-MakeMaker needs make and a compiler, which will come from
+    # the optional ios::make module.  Test-Harness needs piped open, and
+    # 01_IPC-Cmd.t needs pipelines and fork; these come with pipe, popen
+    # and pseudofork support.
+    my $unsupported = qr{^\.\./cpan/(?:ExtUtils-MakeMaker/|Test-Harness/|IPC-Cmd/t/01_IPC-Cmd\.t$)};
+    my %seen;
+    @tests = grep { $_ !~ $unsupported && !$seen{$_}++ } @tests;
+
+    @ARGV = (@options, @tests);
+}
+
+do './harness';
+
+CORE::exit($::ios_harness_status // 0);

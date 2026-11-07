@@ -15460,6 +15460,12 @@ perl_clone_using(PerlInterpreter *proto_perl, UV flags,
 
     PL_sub_generation	= proto_perl->Isub_generation;
 
+    /* User-defined property definitions are shared between cloned threads. */
+    PL_user_def_props = proto_perl->Iuser_def_props;
+#ifdef USE_ITHREADS
+    PL_user_def_props_aTHX = proto_perl->Iuser_def_props_aTHX;
+#endif
+
     /* funky return mechanisms */
     PL_forkprocess	= proto_perl->Iforkprocess;
 

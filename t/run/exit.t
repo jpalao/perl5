@@ -70,8 +70,8 @@ if (!$vms_exit_mode) {
   }
 
   SKIP: {
-    skip("Skip signals and core dump tests on Win32 and VMS", 7) 
-        if ($^O eq 'MSWin32' || $^O eq 'VMS');
+    skip("Skip signals and core dump tests on Win32 and VMS and iOS", 7)
+        if ($^O eq 'MSWin32' || $^O eq 'VMS' || $^O =~ /darwin-ios/);
 
     #TODO VMS will backtrace on this test and exits with code of 0
     #instead of 15.

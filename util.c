@@ -2568,6 +2568,10 @@ Perl_my_popen_list(pTHX_ const char *mode, int n, SV **args)
         taint_env();
         taint_proper("Insecure %s%s", "EXEC");
     }
+#if PERL_IOS
+    SETERRNO(ENOSYS, LIB_INVARG);
+    return NULL;
+#endif
     if (PerlProc_pipe_cloexec(p) < 0)
         return NULL;
     /* Try for another pipe pair for error return */
@@ -2740,6 +2744,10 @@ Perl_my_popen(pTHX_ const char *cmd, const char *mode)
         taint_env();
         taint_proper("Insecure %s%s", "EXEC");
     }
+#if PERL_IOS
+    SETERRNO(ENOSYS, LIB_INVARG);
+    return NULL;
+#endif
     if (PerlProc_pipe_cloexec(p) < 0)
         return NULL;
     if (doexec && PerlProc_pipe_cloexec(pp) >= 0)

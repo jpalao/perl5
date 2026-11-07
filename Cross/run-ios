@@ -1,0 +1,309 @@
+#!/bin/sh
+set -eu
+
+usage() {
+    echo "usage: $0 [-cwd DIR] [-env ENV] EXECUTABLE [ARGS...]" >&2
+    exit 2
+}
+
+profile_supports_device() {
+    profile_path=$1
+    provisions_all_devices=$(plutil -extract ProvisionsAllDevices raw -o - "$profile_path" 2>/dev/null || true)
+    [ "$provisions_all_devices" = true ] && return 0
+
+    profile_device_index=0
+    while profile_device=$(plutil -extract "ProvisionedDevices.$profile_device_index" raw -o - "$profile_path" 2>/dev/null); do
+        [ "$profile_device" = "$IOS_DEVICE_UUID" ] && return 0
+        profile_device_index=$((profile_device_index + 1))
+    done
+    return 1
+}
+
+cwd=""
+env_spec=""
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -cwd) [ "$#" -ge 2 ] || usage; cwd=$2; shift 2 ;;
+        -env) [ "$#" -ge 2 ] || usage; env_spec=$2; shift 2 ;;
+        *) break ;;
+    esac
+done
+
+[ "$#" -gt 0 ] || usage
+executable=$1
+shift
+[ -n "$cwd" ] && cd "$cwd"
+
+: "${IOS_PLATFORM:=iphoneos}"
+: "${IOS_PROBE_BUNDLE_ID:=net.pytm.perl.ios-configure-probe}"
+: "${IOS_PROBE_BUILD_ROOT:=${TMPDIR:-/tmp}/perl-ios-configure-probe}"
+probe_bundle_id=$IOS_PROBE_BUNDLE_ID
+watch_companion_bundle_id=""
+
+# Mach-O platform numbers: device_platform is also the platform family
+# recorded by the legacy LC_VERSION_MIN_* load commands.
+simulator_platform=""
+device_platform=2
+case "$IOS_PLATFORM" in
+    iphonesimulator) simulator_platform=7 ;;
+    appletvsimulator) simulator_platform=8; device_platform=3 ;;
+    watchsimulator)
+        simulator_platform=9
+        device_platform=4
+        watch_companion_bundle_id="${IOS_PROBE_COMPANION_BUNDLE_ID:-net.pytm.perl.watchrunner}"
+        case "$probe_bundle_id" in
+            "$watch_companion_bundle_id".*) ;;
+            *) probe_bundle_id="$watch_companion_bundle_id.configure-probe" ;;
+        esac
+        ;;
+    appletvos) device_platform=3 ;;
+    watchos) device_platform=4 ;;
+esac
+simulator_probe=false
+if [ -n "$simulator_platform" ]; then
+    simulator_probe=true
+    [ -n "${IOS_DEVICE_UUID:-}" ] || {
+        echo "run-ios: IOS_DEVICE_UUID is required for simulator probes" >&2
+        exit 2
+    }
+fi
+
+if [ "$simulator_probe" = false ]; then
+    case "$IOS_PLATFORM" in
+        iphoneos) expected_profile_platform=iOS ;;
+        appletvos) expected_profile_platform=tvOS ;;
+        watchos) expected_profile_platform=watchOS ;;
+        *) echo "run-ios: unsupported device platform for provisioning: $IOS_PLATFORM" >&2; exit 2 ;;
+    esac
+
+    [ -n "${IOS_DEVICE_UUID:-}" ] || { echo "run-ios: IOS_DEVICE_UUID is required for device probes" >&2; exit 2; }
+
+    : "${IOS_PROBE_SIGNING_IDENTITY:=${CODE_SIGN_IDENTITY:-}}"
+    if [ -z "$IOS_PROBE_SIGNING_IDENTITY" ]; then
+        IOS_PROBE_SIGNING_IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null |
+            awk '/Apple Development:/{print $2; exit}')
+    fi
+
+    : "${IOS_PROBE_PROVISIONING_PROFILE:=${PROVISIONING_PROFILE_PATH:-}}"
+    if [ -z "$IOS_PROBE_PROVISIONING_PROFILE" ]; then
+        for candidate in "$HOME"/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision; do
+            [ -f "$candidate" ] || continue
+            profile_plist=${TMPDIR:-/tmp}/perl-ios-profile.$$
+            if security cms -D -i "$candidate" -o "$profile_plist" 2>/dev/null; then
+                profile_bundle_id=$(plutil -extract Entitlements.application-identifier raw -o - "$profile_plist" 2>/dev/null)
+                profile_bundle_id=${profile_bundle_id#*.}
+                case "$IOS_PROBE_BUNDLE_ID" in
+                    $profile_bundle_id) ;;
+                    *) rm -f "$profile_plist"; continue ;;
+                esac
+
+                profile_platform=$(plutil -extract Platform.0 raw -o - "$profile_plist" 2>/dev/null || true)
+                if [ "$profile_platform" != "$expected_profile_platform" ] ||
+                    ! profile_supports_device "$profile_plist"; then
+                    rm -f "$profile_plist"
+                    continue
+                fi
+
+                rm -f "$profile_plist"
+                IOS_PROBE_PROVISIONING_PROFILE=$candidate
+                break
+            else
+                rm -f "$profile_plist"
+            fi
+        done
+    fi
+
+    [ -n "$IOS_PROBE_SIGNING_IDENTITY" ] || { echo "run-ios: IOS_PROBE_SIGNING_IDENTITY is required" >&2; exit 2; }
+    [ -n "$IOS_PROBE_PROVISIONING_PROFILE" ] || {
+        echo "run-ios: no $expected_profile_platform development profile found for bundle ID $IOS_PROBE_BUNDLE_ID and this device; set IOS_PROBE_PROVISIONING_PROFILE to a matching profile" >&2
+        exit 2
+    }
+    [ -f "$IOS_PROBE_PROVISIONING_PROFILE" ] || { echo "run-ios: provisioning profile not found: $IOS_PROBE_PROVISIONING_PROFILE" >&2; exit 2; }
+fi
+
+case "$executable" in /*) executable_path=$executable ;; *) executable_path=$PWD/$executable ;; esac
+[ -f "$executable_path" ] || { echo "run-ios: executable not found: $executable_path" >&2; exit 1; }
+architectures=$(lipo -archs "$executable_path" 2>/dev/null || true)
+case "$IOS_PLATFORM" in
+    *simulator) supported_architectures="arm64 x86_64" ;;
+    appletvos) supported_architectures="arm64" ;;
+    watchos) supported_architectures="armv7k arm64_32" ;;
+    *) supported_architectures="arm64 armv7 armv7s" ;;
+esac
+supported_slice=false
+for architecture in $supported_architectures; do
+    case " $architectures " in *" $architecture "*) supported_slice=true ;; esac
+done
+[ "$supported_slice" = true ] || {
+    echo "run-ios: executable has no $IOS_PLATFORM slice ($supported_architectures): $executable_path ($architectures)" >&2
+    exit 1
+}
+# Deployment targets before iOS/tvOS 12 and watchOS 5 use LC_VERSION_MIN_*,
+# which records only the platform family.
+platform=$(otool -l "$executable_path" 2>/dev/null | awk '
+    $1 == "platform" { print $2; exit }
+    $1 == "cmd" && $2 == "LC_VERSION_MIN_IPHONEOS" { print "legacy2"; exit }
+    $1 == "cmd" && $2 == "LC_VERSION_MIN_TVOS" { print "legacy3"; exit }
+    $1 == "cmd" && $2 == "LC_VERSION_MIN_WATCHOS" { print "legacy4"; exit }')
+if [ "$simulator_probe" = true ]; then
+    expected_platform=$simulator_platform
+else
+    expected_platform=$device_platform
+fi
+case "$platform" in
+    "$expected_platform"|"legacy$device_platform") ;;
+    *)
+        echo "run-ios: executable is not a ${IOS_PLATFORM} Mach-O: $executable_path" >&2
+        exit 1
+        ;;
+esac
+
+bundle_root=$IOS_PROBE_BUILD_ROOT/probe.app
+profile_plist=$IOS_PROBE_BUILD_ROOT/profile.plist
+entitlements=$IOS_PROBE_BUILD_ROOT/entitlements.plist
+probe_path="$bundle_root/probe"
+rm -Rf "$IOS_PROBE_BUILD_ROOT"
+mkdir -p "$bundle_root"
+if [ "$IOS_PLATFORM" = "watchsimulator" ]; then
+    extension_root="$bundle_root/PlugIns/probe.appex"
+    probe_path="$extension_root/probe"
+    watch_app_stub="$IOS_SDKROOT/Library/Application Support/WatchKit/WK"
+    [ -f "$watch_app_stub" ] || {
+        echo "run-ios: WatchKit app stub not found: $watch_app_stub" >&2
+        exit 1
+    }
+    cp "$watch_app_stub" "$bundle_root/probe-app"
+    mkdir -p "$extension_root"
+    cat > "$bundle_root/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>probe-app</string>
+<key>CFBundleIdentifier</key><string>$probe_bundle_id</string>
+<key>CFBundleName</key><string>Perl Configure Probe</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>WKWatchKitApp</key><true/>
+<key>WKCompanionAppBundleIdentifier</key><string>$watch_companion_bundle_id</string>
+</dict></plist>
+EOF
+    cat > "$extension_root/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>probe</string>
+<key>CFBundleIdentifier</key><string>$probe_bundle_id.extension</string>
+<key>CFBundleName</key><string>Perl Configure Probe</string>
+<key>CFBundlePackageType</key><string>XPC!</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>NSExtension</key><dict>
+<key>NSExtensionAttributes</key><dict>
+<key>WKAppBundleIdentifier</key><string>$probe_bundle_id</string>
+</dict>
+<key>NSExtensionPointIdentifier</key><string>com.apple.watchkit</string>
+</dict>
+</dict></plist>
+EOF
+else
+    cat > "$bundle_root/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>probe</string>
+<key>CFBundleIdentifier</key><string>$probe_bundle_id</string>
+<key>CFBundleName</key><string>Perl Configure Probe</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>LSRequiresIPhoneOS</key><true/>
+</dict></plist>
+EOF
+fi
+
+if [ "$simulator_probe" = true ]; then
+    cp "$executable_path" "$probe_path"
+    xcrun simctl uninstall "$IOS_DEVICE_UUID" "$probe_bundle_id" >/dev/null 2>&1 || true
+    xcrun simctl install "$IOS_DEVICE_UUID" "$bundle_root" >/dev/null
+    probe_container=$(xcrun simctl get_app_container "$IOS_DEVICE_UUID" "$probe_bundle_id" app)
+    if [ "$IOS_PLATFORM" = "watchsimulator" ]; then
+        probe_path="$probe_container/PlugIns/probe.appex/probe"
+    else
+        probe_path="$probe_container/probe"
+    fi
+    set +e
+    if [ -n "$env_spec" ]; then
+        eval "env $env_spec xcrun simctl spawn \"\$IOS_DEVICE_UUID\" \"\$probe_path\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
+    else
+        xcrun simctl spawn "$IOS_DEVICE_UUID" "$probe_path" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
+    fi
+    status=$?
+    set -e
+    sed -e 's/\r$//' -e '/^Exit status: [0-9][0-9]*$/d' "$IOS_PROBE_BUILD_ROOT/output"
+    rm -Rf "$IOS_PROBE_BUILD_ROOT"
+    exit "$status"
+fi
+
+security cms -D -i "$IOS_PROBE_PROVISIONING_PROFILE" -o "$profile_plist"
+profile_application_identifier=$(plutil -extract Entitlements.application-identifier raw -o - "$profile_plist")
+profile_bundle_id=${profile_application_identifier#*.}
+case "$IOS_PROBE_BUNDLE_ID" in
+    $profile_bundle_id) ;;
+    *)
+        echo "run-ios: provisioning profile does not allow bundle ID $IOS_PROBE_BUNDLE_ID" >&2
+        exit 1
+        ;;
+esac
+profile_platform=$(plutil -extract Platform.0 raw -o - "$profile_plist" 2>/dev/null || true)
+if [ "$profile_platform" != "$expected_profile_platform" ]; then
+    echo "run-ios: provisioning profile is for ${profile_platform:-an unknown platform}, not $expected_profile_platform" >&2
+    exit 1
+fi
+if ! profile_supports_device "$profile_plist"; then
+    echo "run-ios: provisioning profile does not include device $IOS_DEVICE_UUID" >&2
+    exit 1
+fi
+team_identifier=$(plutil -extract TeamIdentifier.0 raw -o - "$profile_plist")
+cat > "$bundle_root/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>probe</string>
+<key>CFBundleIdentifier</key><string>$probe_bundle_id</string>
+<key>CFBundleName</key><string>Perl Configure Probe</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.0</string>
+<key>LSRequiresIPhoneOS</key><true/>
+</dict></plist>
+EOF
+cat > "$entitlements" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>application-identifier</key><string>$team_identifier.$probe_bundle_id</string>
+<key>com.apple.developer.team-identifier</key><string>$team_identifier</string>
+<key>get-task-allow</key><true/>
+</dict></plist>
+EOF
+cp "$executable_path" "$bundle_root/probe"
+cp "$IOS_PROBE_PROVISIONING_PROFILE" "$bundle_root/embedded.mobileprovision"
+xattr -cr "$bundle_root" 2>/dev/null || true
+codesign --force --sign "$IOS_PROBE_SIGNING_IDENTITY" --entitlements "$entitlements" "$bundle_root"
+codesign --verify --deep --strict "$bundle_root"
+ideviceinstaller -u "$IOS_DEVICE_UUID" -U "$probe_bundle_id" >/dev/null 2>&1 || true
+ideviceinstaller -u "$IOS_DEVICE_UUID" -i "$bundle_root" >/dev/null
+idevicedebug -u "$IOS_DEVICE_UUID" kill "$probe_bundle_id" >/dev/null 2>&1 || true
+
+set +e
+if [ -n "$env_spec" ]; then
+    eval "env $env_spec idevicedebug -u \"\$IOS_DEVICE_UUID\" run \"\$probe_bundle_id\" \"\$@\"" > "$IOS_PROBE_BUILD_ROOT/output"
+else
+    idevicedebug -u "$IOS_DEVICE_UUID" run "$probe_bundle_id" "$@" > "$IOS_PROBE_BUILD_ROOT/output"
+fi
+status=$?
+set -e
+sed -e 's/\r$//' -e '/^Exit status: [0-9][0-9]*$/d' "$IOS_PROBE_BUILD_ROOT/output"
+rm -Rf "$IOS_PROBE_BUILD_ROOT"
+exit "$status"

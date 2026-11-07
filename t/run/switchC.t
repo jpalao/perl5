@@ -32,8 +32,11 @@ like( $r, qr/^$b(?:\r?\n)?$/s, '-C2: no warning on UTF-8 output' );
 
 SKIP: {
     if (exists $ENV{PERL_UNICODE} &&
-	($ENV{PERL_UNICODE} eq "" || $ENV{PERL_UNICODE} =~ /[SO]/)) {
-	skip(qq[cannot test with PERL_UNICODE "" or /[SO]/], 1);
+	($ENV{PERL_UNICODE} eq "" || $ENV{PERL_UNICODE} =~ /[SO]/)
+		|| $^O =~ /darwin-ios/) {
+	skip($^O =~ /darwin-ios/
+	    ? 'iOS does not support this -CI input test'
+	    : qq[cannot test with PERL_UNICODE "" or /[SO]/], 1);
     }
     $r = runperl( switches => [ '-CI', '-w' ],
 		  prog     => 'print ord(<STDIN>)',

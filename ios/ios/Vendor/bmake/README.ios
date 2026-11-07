@@ -1,0 +1,19 @@
+Embedded bmake
+==============
+
+Source: https://github.com/xnuports/bmake
+Revision: 65b4adf01a42a6497cbf3238292330776170a36e
+License: BSD-3-Clause (see LICENSE)
+
+Only the source and headers required by the portable bmake engine are
+vendored. The iOS integration:
+
+* exposes ios_make_run as an in-process callback API;
+* forces single-job compatibility mode;
+* redirects recipes to the host callback;
+* rejects shell command substitution;
+* removes fork and exec paths from the linked framework; and
+* resets upstream global state so the API can be called repeatedly.
+
+The Perl bridge supports pure-Perl MakeMaker recipes. It intentionally
+rejects compiler, linker, arbitrary shell, and process-launch recipes.

@@ -3017,7 +3017,8 @@ $define|true|[yY]*)
       rm -rf $src/host
       mkdir $src/host
       cd $src/host
-      $src/Configure -des -Dusedevel -Dmksymlinks
+      # PERL_IOS describes the target, not the host helper being built here.
+      (unset PERL_IOS; $src/Configure -des -Dusedevel -Dmksymlinks)
       $make miniperl
       case "$hostgenerate" in
       '') $make generate_uudmap
@@ -3070,15 +3071,104 @@ case "$targethost" in
 	    from=$pwd/Cross/from
 	    ;;
 	esac
-	case "$targetrun" in
-	'') targetrun=ssh ;;
-	esac
-	case "$targetto" in
-	'') targetto=scp ;;
-	esac
-	case "$targetfrom" in
-	'') targetfrom=scp ;;
-	esac
+		case "$targetrun" in
+		darwin-ios)
+			: "${IOS_PLATFORM:=iphoneos}"
+			: "${IOS_ARCH:=arm64}"
+			: "${IOS_DEPLOYMENT_TARGET:=12.0}"
+			: "${IOS_SDKROOT:=$(xcrun --sdk "$IOS_PLATFORM" --show-sdk-path 2>/dev/null)}"
+			ccflags=`echo "$ccflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
+			ldflags=`echo "$ldflags" | sed 's/[[:space:]]-mmacosx-version-min=[^[:space:]]*//g'`
+			case "$IOS_SDKROOT" in
+			'') echo "Cannot determine the iOS SDK path; set IOS_SDKROOT." >&4
+				exit 1
+				;;
+			esac
+			case "$IOS_PLATFORM" in
+			iphonesimulator)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-ios$IOS_DEPLOYMENT_TARGET-simulator"
+				IOS_MIN_VERSION_FLAG="-mios-simulator-version-min"
+				;;
+			iphoneos)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-ios$IOS_DEPLOYMENT_TARGET"
+				IOS_MIN_VERSION_FLAG="-miphoneos-version-min"
+				;;
+			appletvsimulator)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-tvos$IOS_DEPLOYMENT_TARGET-simulator"
+				IOS_MIN_VERSION_FLAG="-mtvos-version-min"
+				;;
+			appletvos)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-tvos$IOS_DEPLOYMENT_TARGET"
+				IOS_MIN_VERSION_FLAG="-mtvos-version-min"
+				;;
+			watchsimulator)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-watchos$IOS_DEPLOYMENT_TARGET-simulator"
+				IOS_MIN_VERSION_FLAG="-mwatchos-version-min"
+				;;
+			watchos)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-watchos$IOS_DEPLOYMENT_TARGET"
+				IOS_MIN_VERSION_FLAG="-mwatchos-version-min"
+				;;
+			*)
+				IOS_TARGET_TRIPLE="$IOS_ARCH-apple-ios$IOS_DEPLOYMENT_TARGET"
+				IOS_MIN_VERSION_FLAG="-miphoneos-version-min"
+				;;
+			esac
+			case "$ccflags" in
+			*"-target "*) ;;
+			*) ccflags="$ccflags -target $IOS_TARGET_TRIPLE" ;;
+			esac
+			case "$ccflags" in
+			*"-isysroot "*) ;;
+			*) ccflags="$ccflags -isysroot $IOS_SDKROOT" ;;
+			esac
+			case "$ccflags" in
+			*"$IOS_MIN_VERSION_FLAG="*) ;;
+			*) ccflags="$ccflags $IOS_MIN_VERSION_FLAG=$IOS_DEPLOYMENT_TARGET" ;;
+			esac
+			case "$ccflags" in
+			*"-arch "*) ;;
+			*) ccflags="$ccflags -arch $IOS_ARCH" ;;
+			esac
+			case "$ldflags" in
+			*"-target "*) ;;
+			*) ldflags="$ldflags -target $IOS_TARGET_TRIPLE" ;;
+			esac
+			case "$ldflags" in
+			*"-isysroot "*) ;;
+			*) ldflags="$ldflags -isysroot $IOS_SDKROOT" ;;
+			esac
+			case "$ldflags" in
+			*"$IOS_MIN_VERSION_FLAG="*) ;;
+			*) ldflags="$ldflags $IOS_MIN_VERSION_FLAG=$IOS_DEPLOYMENT_TARGET" ;;
+			esac
+			case "$ldflags" in
+			*"-arch "*) ;;
+			*) ldflags="$ldflags -arch $IOS_ARCH" ;;
+			esac
+			export IOS_PLATFORM IOS_ARCH IOS_DEPLOYMENT_TARGET IOS_SDKROOT
+			;;
+		esac
+		case "$targetrun" in
+		'') targetrun=ssh ;;
+		darwin-ios)
+			: "${targetto:=cp}"
+			: "${targetfrom:=cp}"
+			;;
+		esac
+		case "$targetrun" in
+		darwin-ios)
+			targetto=cp
+			targetfrom=cp
+			targetmkdir=mkdir
+			;;
+		esac
+		case "$targetto" in
+		'') targetto=scp ;;
+		esac
+		case "$targetfrom" in
+		'') targetfrom=scp ;;
+		esac
 	run=$run-$targetrun
 	to=$to-$targetto
 	from=$from-$targetfrom
@@ -3102,6 +3192,16 @@ case "$targethost" in
 	*)	q='' ;;
 	esac
 	case "$targetrun" in
+		darwin-ios)
+			# $run is the tracked Cross/run-darwin-ios wrapper, which
+			# execs the run-ios script beside it.
+			runios=`dirname "$run"`/run-ios
+			if $test ! -f "$run" || $test ! -f "$runios"; then
+				echo "Cannot find $run or $runios." >&4
+				exit 1
+			fi
+			$chmod a+rx "$run" "$runios"
+			;;
 	ssh|rsh)
 	    cat >$run <<EOF
 #!/bin/sh
@@ -3136,8 +3236,13 @@ EOF
 	    exit 1
 	    ;;
 	esac
-	case "$targetmkdir" in
-	*/Cross/mkdir)
+		case "$targetrun" in
+		darwin-ios)
+			:
+			;;
+		*)
+		case "$targetmkdir" in
+		*/Cross/mkdir)
 	    cat >$targetmkdir <<EOF
 #!/bin/sh
 $targetrun -p $targetport -l $targetuser $targethost "mkdir -p \$@"
@@ -3148,6 +3253,8 @@ EOF
 	    exit 1
 	    ;;
 	esac
+		;;
+		esac
 	case "$targetto" in
 	scp|rcp)
 	    cat >$to <<EOF
@@ -3170,16 +3277,16 @@ EOF
 	    ;;
 	cp) cat >$to <<EOF
 #!/bin/sh
-for f in \$@
+	for f in "\$@"
 do
   case "\$f" in
   /*)
-    $mkdir -p $targetdir/\`dirname \$f\`
-    $cp \$f $targetdir/\$f || exit 1
+	    $mkdir -p "$targetdir/\$(dirname "\$f")"
+	    $cp -R "\$f" "$targetdir/\$f" || exit 1
     ;;
   *)
-    $targetmkdir $targetdir/\`dirname \$f\`
-    $cp \$f $targetdir/\$f || exit 1
+	    $targetmkdir -p "$targetdir/\$(dirname "\$f")"
+	    $cp -R "\$f" "$targetdir/\$f" || exit 1
     ;;
   esac
 done
@@ -3835,12 +3942,31 @@ cd UU
 	hint=previous
 	;;
 esac
+
+# Reset implicit search paths after hints/config.sh; optdef.sh preserves
+# explicitly supplied target dependency paths.
+case "$targetrun" in
+darwin-ios)
+	glibpth="$IOS_SDKROOT/usr/lib"
+	xlibpth=''
+	plibpth=''
+	locincpth=' '
+	loclibpth=' '
+	incpth=''
+	libpth=''
+	usrinc="$IOS_SDKROOT/usr/include"
+	;;
+esac
 . ./optdef.sh
 
 : Restore computed paths
 for file in $loclist $trylist; do
 	eval $file="\$_$file"
 done
+
+if test "X$PERL_IOS" != X; then
+	osname=darwin-ios
+fi
 
 cat << EOM
 
@@ -3865,6 +3991,9 @@ case "$ans" in
 none)  osname='' ;;
 *) osname=`echo "$ans" | $sed -e 's/[ 	][	]*/_/g' | ./tr '[A-Z]' '[a-z]'`;;
 esac
+if test "X$PERL_IOS" != X; then
+	osname=darwin-ios
+fi
 echo " "
 case "$osvers" in
 	''|' ')
@@ -4699,7 +4828,7 @@ int main(int argc, char **argv) {
 EOCP
 c99_for=no
 for flag in '' '-std=gnu99' '-std=c99'; do
-    if $cc -o try $flag $ccflags $ldflags try.c 2>/dev/null && ./try; then
+    if $cc -o try $flag $ccflags $ldflags try.c 2>/dev/null && $run ./try; then
         c99_for="$flag"
         break;
     fi
@@ -4932,7 +5061,14 @@ case "$ccname" in
     gcc)
 	realpath=`which realpath 2>/dev/null | sed 's/no realpath in.*//'`
 	$echo 'extern int foo;' > try.c
-	set X `$cppstdin -v try.c 2>&1 | $awk '/^#include </,/^End of search /'|$cppfilter $grep '/include'`
+	case "$targetrun" in
+	darwin-ios)
+		set X `$cc $ccflags -E -v try.c 2>&1 | $awk '/^#include </,/^End of search /'|$cppfilter $grep '/include'`
+		;;
+	*)
+		set X `$cppstdin -v try.c 2>&1 | $awk '/^#include </,/^End of search /'|$cppfilter $grep '/include'`
+		;;
+	esac
 	shift
 	inclibpth=""
 	if $test $# -gt 0; then
@@ -4942,9 +5078,13 @@ case "$ccname" in
 		esac
 		incpth="$incpth $i"
 		j="`$echo $i | $sed 's,/include[^/]*,/lib,'`"
-		if $test -d $j; then
-		    inclibpth="$inclibpth $j"
-		fi
+		case "$targetrun" in
+		darwin-ios) ;; # toolchain lib dirs hold host libraries
+		*)  if $test -d $j; then
+			inclibpth="$inclibpth $j"
+		    fi
+		    ;;
+		esac
 	    done
 	    incpth="`$echo $incpth | $sed 's/^ //'`"
 	    for xxx in $inclibpth $loclibpth $plibpth $glibpth; do
@@ -5413,7 +5553,11 @@ echo " ";
 echo "Checking if your compiler accepts $flag" >&4;
 [ "X$sysroot" != "X" ] && echo "For sysroot = $sysroot";
 echo "int main(void) { return 0; }" > gcctest.c;
-if $cc $_sysroot -O2 $flag -o gcctest gcctest.c 2>gcctest.out && $run ./gcctest; then
+case "$targetrun" in
+    darwin-ios) checkccflag_targetflags="$ccflags $ldflags" ;;
+    *) checkccflag_targetflags= ;;
+esac;
+if $cc $_sysroot $checkccflag_targetflags -O2 $flag -o gcctest gcctest.c 2>gcctest.out && $run ./gcctest; then
     echo "Yes, it does." >&4;
     if $test -s gcctest.out ; then
         echo "But your platform does not like it:";
@@ -5715,8 +5859,9 @@ and I got the following output:
 EOM
 dflt=y
 if $sh -c "$cc -o try $optimize $ccflags $ldflags try.c $libs" >>try.msg 2>&1; then
-	if $sh -c "$run ./try " >>try.msg 2>&1; then
-		xxx=`$run ./try`
+	if $sh -c "$run ./try " >try.run 2>&1; then
+		$cat try.run >>try.msg
+		xxx=`$cat try.run`
 		case "$xxx" in
 		"Ok") dflt=n ;;
 		*)    echo 'The program compiled OK, but produced no output.' >> try.msg ;;
@@ -5751,7 +5896,7 @@ y)
 	;;
 n) echo "OK, that should do.";;
 esac
-$rm_try gcctest gcctest.out
+$rm_try gcctest gcctest.out try.run
 
 : define a shorthand compile call
 compile='
@@ -8445,7 +8590,7 @@ EOM
 		    esac
 		    ;;
 		*)  case "$osname" in
-			darwin) dflt='none' ;;
+			darwin*) dflt='none' ;;
 			*linux*|svr4*|esix*|solaris|nonstopux) dflt='-fPIC' ;;
 			*)	dflt='-fpic' ;;
 		    esac ;;
@@ -13380,6 +13525,12 @@ eval $setvar
 : see if fork exists
 set fork d_fork
 eval $inlibc
+case "$targetrun" in
+darwin-ios)
+	d_fork="$undef"
+	d_vfork="$undef"
+	;;
+esac
 
 : see if pipe exists
 set pipe d_pipe
@@ -16158,7 +16309,7 @@ int main(int argc, char *argv[])
 }
 EOCP
 set try
-if eval $compile && ./try; then
+if eval $compile && $run ./try; then
     $echo "lchown() found." >&4
     val="$define"
 else
@@ -16648,6 +16799,16 @@ else
 fi
 set d_msg
 eval $setvar
+case "$targetrun" in
+darwin-ios)
+	# The SDK has SysV IPC symbols, but sandboxed apps cannot use them.
+	d_msg="$undef"
+	d_msgctl="$undef"
+	d_msgget="$undef"
+	d_msgsnd="$undef"
+	d_msgrcv="$undef"
+	;;
+esac
 
 : Check for msghdr_s
 echo " "
@@ -17479,6 +17640,12 @@ case "$d_vfork" in
 $define) usevfork='true';;
 *) usevfork='false';;
 esac
+case "$targetrun" in
+darwin-ios)
+	d_vfork="$undef"
+	usevfork='false'
+	;;
+esac
 
 : see whether the pthread_atfork exists
 $cat >try.c <<EOP
@@ -17865,6 +18032,14 @@ else
 fi
 set d_sem
 eval $setvar
+case "$targetrun" in
+darwin-ios)
+	d_sem="$undef"
+	d_semctl="$undef"
+	d_semget="$undef"
+	d_semop="$undef"
+	;;
+esac
 
 : see whether sys/sem.h defines union semun
 echo " "
@@ -18777,6 +18952,15 @@ else
 fi
 set d_shm
 eval $setvar
+case "$targetrun" in
+darwin-ios)
+	d_shm="$undef"
+	d_shmat="$undef"
+	d_shmctl="$undef"
+	d_shmdt="$undef"
+	d_shmget="$undef"
+	;;
+esac
 
 : see if we have sigaction
 echo " "
@@ -19763,11 +19947,21 @@ eval $inlibc
 : see if syscall exists
 set syscall d_syscall
 eval $inlibc
+case "$targetrun" in
+darwin-ios)
+	d_syscall="$undef"
+	;;
+esac
 
 : see if prototype for syscall is available
 echo " "
 set d_syscallproto syscall $i_unistd unistd.h
 eval $hasproto
+case "$targetrun" in
+darwin-ios)
+	d_syscallproto="$undef"
+	;;
+esac
 
 : see if sysconf exists
 set sysconf d_sysconf
@@ -20089,7 +20283,7 @@ eval $setvar
 
 : Check if is a multiplatform env
 case "$osname" in
-darwin) multiarch="$define" ;;
+darwin*) multiarch="$define" ;;
 esac
 case "$multiarch" in
 ''|[nN]*) multiarch="$undef" ;;
@@ -20955,6 +21149,12 @@ else
        ;;
     esac
 fi
+case "$IOS_PLATFORM:$longdblkind" in
+appletvos:0)
+	longdblinfbytes=$doubleinfbytes
+	longdblnanbytes=$doublenanbytes
+	;;
+esac
 # In case the program crashed the values are empty, turn them undef.
 case "$doubleinfbytes" in
 '') doubleinfbytes=$undef ;;
@@ -21726,11 +21926,22 @@ echo " "
 $echo "Checking the format strings to be used for Perl's internal types..." >&4
 
 if $test X"$ivsize" = X8; then
-	ivdformat="$sPRId64"
-	uvuformat="$sPRIu64"
-	uvoformat="$sPRIo64"
-	uvxformat="$sPRIx64"
-	uvXUformat="$sPRIXU64"
+	case "$IOS_PLATFORM:$ivtype:$uvtype" in
+	'appletvos:long:unsigned long')
+		ivdformat='"ld"'
+		uvuformat='"lu"'
+		uvoformat='"lo"'
+		uvxformat='"lx"'
+		uvXUformat='"lX"'
+		;;
+	*)
+		ivdformat="$sPRId64"
+		uvuformat="$sPRIu64"
+		uvoformat="$sPRIo64"
+		uvxformat="$sPRIx64"
+		uvXUformat="$sPRIXU64"
+		;;
+	esac
 else
 	if $test X"$ivsize" = X"$longsize"; then
 		ivdformat='"ld"'
@@ -25845,4 +26056,3 @@ $rm -f kit*isdone ark*isdone
 $rm -rf UU
 
 : End of Configure
-

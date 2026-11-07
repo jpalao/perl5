@@ -8,6 +8,9 @@ BEGIN {
 
 # This test depends on t/lib/Devel/switchd*.pm.
 
+plan(skip_all => 'iOS: debugger switch module crashes during interpreter teardown')
+  if $^O =~ /darwin-ios/;
+
 plan(tests => 21);
 
 my $r;

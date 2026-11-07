@@ -55,6 +55,7 @@ my $Is_MSWin32  = $^O eq 'MSWin32';
 my $Is_Cygwin   = $^O eq 'cygwin';
 my $Is_OpenBSD  = $^O eq 'openbsd';
 my $Is_MirBSD   = $^O eq 'mirbsd';
+my $Is_Ios      = $^O =~ /darwin-ios/;
 my $Invoke_Perl = $Is_VMS      ? 'MCR Sys$Disk:[]Perl.exe' :
                   $Is_MSWin32  ? '.\perl'               :
                                  './perl'               ;
@@ -2411,7 +2412,7 @@ end
 {
     SKIP: {
         skip "Environment tainting tests skipped", 1
-          if $Is_MSWin32 || $Is_VMS;
+          if $Is_MSWin32 || $Is_VMS || $Is_Ios;
 
         local $ENV{XX} = '\p{IsB}';   # Making it an environment variable taints it
 

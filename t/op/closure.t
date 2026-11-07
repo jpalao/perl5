@@ -14,6 +14,8 @@ BEGIN {
 
 use Config;
 
+plan skip_all => 'iOS: no fork, no pipe' if $^O =~ /darwin-ios/;
+
 my $i = 1;
 sub foo { $i = shift if @_; $i }
 
