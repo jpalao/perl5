@@ -42,7 +42,8 @@ $args = {
 };
 $args->{core} = 1 if $ENV{PERL_CORE};
 SKIP: {
-skip 'iOS: TODO', 1 if $^O =~ /darwin-ios/;
+skip 'iOS: podroot/podpath resolution differs for embedded temp paths', 1
+    if $^O =~ /darwin-ios/;
 xconvert($args);
 }
 
@@ -75,7 +76,8 @@ $args = {
     debug => $debug,
 };
 SKIP: {
-skip 'iOS: TODO', 1 if $^O =~ /darwin-ios/;
+skip 'iOS: podroot/podpath resolution differs for embedded temp paths', 1
+    if $^O =~ /darwin-ios/;
 xconvert($args);
 }
 
