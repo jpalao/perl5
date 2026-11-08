@@ -24,6 +24,7 @@ struct Perl_ios_pseudofork_child {
     int complete;
     int joining;
     int joined;
+    int reaping;
     int status;
 };
 
@@ -59,6 +60,17 @@ ios_pseudofork_allocate_pid_locked(void)
     return -id;
 }
 
+static void
+ios_pseudofork_wait_for_thread(
+    Perl_ios_pseudofork_child *child)
+{
+    pthread_mutex_lock(&ios_pseudofork_mutex);
+    while (!child->thread_set)
+        (void)pthread_cond_wait(&ios_pseudofork_condition,
+                                &ios_pseudofork_mutex);
+    pthread_mutex_unlock(&ios_pseudofork_mutex);
+}
+
 static void *
 ios_pseudofork_start_child(void *arg)
 {
@@ -71,6 +83,7 @@ ios_pseudofork_start_child(void *arg)
     volatile int oldscope;
 
     free(child_arg);
+    ios_pseudofork_wait_for_thread(child);
     PERL_SET_THX(my_perl);
     if (Perl_ios_pseudofork_set_current_pid(
             Perl_ios_pseudofork_child_pid(child)) == -1) {
@@ -141,6 +154,8 @@ Perl_ios_pseudofork_child_create(pTHX_ PerlInterpreter *parent,
     Perl_ios_pseudofork_child *child;
 
     Newxz(child, 1, Perl_ios_pseudofork_child);
+    if (child == NULL)
+        return NULL;
     child->parent = parent;
     child->parent_pid = parent_pid;
 
@@ -241,6 +256,22 @@ ios_pseudofork_find_child_locked(PerlInterpreter *parent,
     return NULL;
 }
 
+static Perl_ios_pseudofork_child *
+ios_pseudofork_find_completed_child_locked(PerlInterpreter *parent,
+                                           Pid_t pid)
+{
+    Perl_ios_pseudofork_child *child = ios_pseudofork_children;
+
+    while (child != NULL) {
+        if (child->parent == parent
+            && (pid == -1 || child->pid == pid)
+            && child->complete && !child->reaping)
+            return child;
+        child = child->next;
+    }
+    return NULL;
+}
+
 Pid_t
 Perl_ios_pseudofork_wait(pTHX_ Pid_t pid, int *statusp, int flags)
 {
@@ -255,13 +286,20 @@ Perl_ios_pseudofork_wait(pTHX_ Pid_t pid, int *statusp, int flags)
     }
 
     pthread_mutex_lock(&ios_pseudofork_mutex);
-    child = ios_pseudofork_find_child_locked(aTHX_ pid);
-    if (child == NULL) {
+    if (ios_pseudofork_find_child_locked(aTHX_ pid) == NULL) {
         pthread_mutex_unlock(&ios_pseudofork_mutex);
         errno = ECHILD;
         return -1;
     }
-    while (!child->complete) {
+    for (;;) {
+        child = ios_pseudofork_find_completed_child_locked(aTHX_ pid);
+        if (child != NULL)
+            break;
+        if (ios_pseudofork_find_child_locked(aTHX_ pid) == NULL) {
+            pthread_mutex_unlock(&ios_pseudofork_mutex);
+            errno = ECHILD;
+            return -1;
+        }
         if (flags & WNOHANG) {
             pthread_mutex_unlock(&ios_pseudofork_mutex);
             return 0;
@@ -274,11 +312,17 @@ Perl_ios_pseudofork_wait(pTHX_ Pid_t pid, int *statusp, int flags)
             return -1;
         }
     }
+    child->reaping = TRUE;
     status = child->status;
     pthread_mutex_unlock(&ios_pseudofork_mutex);
 
-    if (Perl_ios_pseudofork_child_join(child) == -1)
+    if (Perl_ios_pseudofork_child_join(child) == -1) {
+        pthread_mutex_lock(&ios_pseudofork_mutex);
+        child->reaping = FALSE;
+        pthread_cond_broadcast(&ios_pseudofork_condition);
+        pthread_mutex_unlock(&ios_pseudofork_mutex);
         return -1;
+    }
     if (statusp != NULL)
         *statusp = status;
     child_pid = child->pid;
@@ -449,14 +493,22 @@ Perl_ios_pseudofork_join_all(pTHX_ PerlInterpreter *parent)
     for (;;) {
         pthread_mutex_lock(&ios_pseudofork_mutex);
         child = ios_pseudofork_children;
-        while (child != NULL && child->parent != parent)
+        while (child != NULL
+               && (child->parent != parent || child->reaping))
             child = child->next;
+        if (child != NULL)
+            child->reaping = TRUE;
         pthread_mutex_unlock(&ios_pseudofork_mutex);
 
         if (child == NULL)
             return;
-        if (Perl_ios_pseudofork_child_join(child) == -1)
+        if (Perl_ios_pseudofork_child_join(child) == -1) {
+            pthread_mutex_lock(&ios_pseudofork_mutex);
+            child->reaping = FALSE;
+            pthread_cond_broadcast(&ios_pseudofork_condition);
+            pthread_mutex_unlock(&ios_pseudofork_mutex);
             return;
+        }
         Perl_ios_pseudofork_child_reap(aTHX_ child);
     }
 }
