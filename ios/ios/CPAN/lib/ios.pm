@@ -263,14 +263,6 @@ sub _perl_switches_with_environment {
         return \@result;
 }
 
-sub _runperl_switches {
-        my ($switches, $nolib) = @_;
-        my @result = @{$switches || []};
-
-        unshift @result, '-I.' unless $nolib;
-        return _perl_switches_with_environment(\@result);
-}
-
 # runperl, run_perl - Runs a separate perl interpreter and returns its output.
 # Arguments :
 #   switches => [ command-line switches ]
@@ -361,7 +353,6 @@ sub runperl {
     if (ref $args{prog} eq 'ARRAY') {
         $args{progs} = delete $args{prog};
     }
-    $args{switches} = _runperl_switches($args{switches}, $args{nolib});
     my $result;
     local $@;
     my $ok = eval {
