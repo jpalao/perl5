@@ -687,11 +687,6 @@ CBRunPerlCaptureStdout (char * json) {
 
     exit_code = CBRunPerl(json);
 
-    PerlIO_flush(PerlIO_stdout());
-    PerlIO_flush(PerlIO_stderr());
-    fflush(stdout);
-    fflush(stderr);
-
     int new_fd = dup2(saved_stdout, STDOUT_FILENO);
         new_fd = dup2(saved_stderr, STDERR_FILENO);
 
