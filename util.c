@@ -24,6 +24,9 @@
 #include "EXTERN.h"
 #define PERL_IN_UTIL_C
 #include "perl.h"
+#ifdef PERL_IOS
+#  include "ios_pseudofork.h"
+#endif
 #include "reentr.h"
 
 #if defined(USE_PERLIO)
@@ -3256,6 +3259,9 @@ Perl_wait4pid(pTHX_ Pid_t pid, int *statusp, int flags)
 {
     I32 result = 0;
     PERL_ARGS_ASSERT_WAIT4PID;
+#if defined(PERL_IOS) && defined(USE_ITHREADS)
+    return Perl_ios_pseudofork_wait(aTHX_ pid, statusp, flags);
+#endif
 #ifdef PERL_USES_PL_PIDSTATUS
     if (!pid) {
         /* PERL_USES_PL_PIDSTATUS is only defined when neither

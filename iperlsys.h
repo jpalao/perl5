@@ -1127,8 +1127,15 @@ struct IPerlProcInfo
 #  define PerlProc_setjmp(b, n) Sigsetjmp((b), (n))
 #  define PerlProc_longjmp(b, n)Siglongjmp((b), (n))
 #  define PerlProc_signal(n, h) signal((n), (h))
-#  define PerlProc_fork()       my_fork()
-#  define PerlProc_getpid()     getpid()
+#  if defined(PERL_IOS) && defined(USE_ITHREADS)
+Pid_t Perl_ios_pseudofork_fork(pTHX);
+Pid_t Perl_ios_pseudofork_getpid(void);
+#    define PerlProc_fork()       Perl_ios_pseudofork_fork(aTHX)
+#    define PerlProc_getpid()   Perl_ios_pseudofork_getpid()
+#  else
+#    define PerlProc_fork()       my_fork()
+#    define PerlProc_getpid()   getpid()
+#  endif
 #  define PerlProc_gettimeofday(t,z)    gettimeofday((t),(z))
 
 #  ifdef WIN32

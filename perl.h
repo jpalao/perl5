@@ -4027,7 +4027,13 @@ out there, Solaris being the most prominent.
 #endif
 
 #ifndef PERL_WAIT_FOR_CHILDREN
-#  define PERL_WAIT_FOR_CHILDREN	NOOP
+#  if defined(PERL_IOS) && defined(USE_ITHREADS)
+void Perl_ios_pseudofork_join_all(pTHX_ PerlInterpreter *);
+#    define PERL_WAIT_FOR_CHILDREN \
+        Perl_ios_pseudofork_join_all(aTHX_ my_perl)
+#  else
+#    define PERL_WAIT_FOR_CHILDREN	NOOP
+#  endif
 #endif
 
 /* the traditional thread-unsafe notion of "current interpreter". */
