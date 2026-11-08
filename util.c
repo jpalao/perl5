@@ -3259,7 +3259,7 @@ Perl_wait4pid(pTHX_ Pid_t pid, int *statusp, int flags)
 {
     I32 result = 0;
     PERL_ARGS_ASSERT_WAIT4PID;
-#if defined(PERL_IOS) && defined(USE_ITHREADS)
+#if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
     return Perl_ios_pseudofork_wait(aTHX_ pid, statusp, flags);
 #endif
 #ifdef PERL_USES_PL_PIDSTATUS

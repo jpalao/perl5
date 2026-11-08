@@ -4271,7 +4271,7 @@ PP(pp_fork)
     }
     PUSHi(childpid);
     RETURN;
-#elif (defined(USE_ITHREADS) && defined(PERL_IMPLICIT_SYS)) || defined(__amigaos4__) || (defined(PERL_IOS) && defined(USE_ITHREADS))
+#elif (defined(USE_ITHREADS) && defined(PERL_IMPLICIT_SYS)) || defined(__amigaos4__) || (defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK))
     dSP; dTARGET;
     Pid_t childpid;
 
@@ -4327,7 +4327,7 @@ PP(pp_waitpid)
     result = amigaos_waitpid(aTHX_ optype, pid, &argflags);
     STATUS_NATIVE_CHILD_SET((result >= 0) ? argflags : -1);
     result = result == 0 ? pid : -1;
-#elif defined(PERL_IOS) && defined(USE_ITHREADS)
+#elif defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
     int argflags = 0;
     result = wait4pid(pid, &argflags, optype);
     STATUS_NATIVE_CHILD_SET((result >= 0) ? argflags : -1);
@@ -4348,7 +4348,7 @@ PP(pp_waitpid)
 #  else
     STATUS_NATIVE_CHILD_SET((result > 0) ? argflags : -1);
 #  endif
-# endif /* __amigaos4__ || PERL_IOS && USE_ITHREADS */
+# endif /* __amigaos4__ || PERL_IOS && USE_ITHREADS && HAS_PSEUDOFORK */
     SETi(result);
     RETURN;
 #else

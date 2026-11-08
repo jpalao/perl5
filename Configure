@@ -17644,6 +17644,9 @@ case "$targetrun" in
 darwin-ios)
 	d_vfork="$undef"
 	usevfork='false'
+	case "$usethreads" in
+	$define) d_pseudofork="$define";;
+	esac
 	;;
 esac
 

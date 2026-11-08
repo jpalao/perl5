@@ -1127,7 +1127,7 @@ struct IPerlProcInfo
 #  define PerlProc_setjmp(b, n) Sigsetjmp((b), (n))
 #  define PerlProc_longjmp(b, n)Siglongjmp((b), (n))
 #  define PerlProc_signal(n, h) signal((n), (h))
-#  if defined(PERL_IOS) && defined(USE_ITHREADS)
+#  if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
 Pid_t Perl_ios_pseudofork_fork(pTHX);
 Pid_t Perl_ios_pseudofork_getpid(void);
 #    define PerlProc_fork()       Perl_ios_pseudofork_fork(aTHX)

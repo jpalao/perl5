@@ -3,7 +3,7 @@
 
 #include "perl.h"
 
-#if defined(PERL_IOS) && defined(USE_ITHREADS)
+#if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
 
 #include <pthread.h>
 
@@ -71,6 +71,6 @@ Perl_ios_pseudofork_clear_current_pid(void);
 void
 Perl_ios_pseudofork_join_all(pTHX_ PerlInterpreter *parent);
 
-#endif /* PERL_IOS && USE_ITHREADS */
+#endif /* PERL_IOS && USE_ITHREADS && HAS_PSEUDOFORK */
 
 #endif /* PERL_IOS_PSEUDOFORK_H */

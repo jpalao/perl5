@@ -4027,7 +4027,7 @@ out there, Solaris being the most prominent.
 #endif
 
 #ifndef PERL_WAIT_FOR_CHILDREN
-#  if defined(PERL_IOS) && defined(USE_ITHREADS)
+#  if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
 void Perl_ios_pseudofork_join_all(pTHX_ PerlInterpreter *);
 #    define PERL_WAIT_FOR_CHILDREN \
         Perl_ios_pseudofork_join_all(aTHX_ my_perl)
