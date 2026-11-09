@@ -765,6 +765,8 @@ Use of uninitialized value $m1 in addition (+) at - line 7.
 Use of uninitialized value $m1 in subtraction (-) at - line 8.
 Use of uninitialized value $m1 in subtraction (-) at - line 8.
 ########
+# The iOS readpipe bridge cannot preserve the core backtick op's pad name.
+# SKIP ? $^O =~ /darwin-ios/
 use warnings 'uninitialized';
 my ($m1, $v);
 our ($g1);
