@@ -210,7 +210,7 @@ SWTESTPM
     );
     is( $r, "<$package><foo>", '-M with import parameter' );
     $r = runperl(
-	switches    => [ "-I.", "-m$package" ],
+	switches    => [ "-m$package" ],
 	prog	    => '1',
     );
 
