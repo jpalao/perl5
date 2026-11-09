@@ -1,30 +1,31 @@
-#!./perl
+#!perl
 
-BEGIN {
-    chdir 't' if -d 't';
-    require './test.pl';
-    set_up_inc('../lib');
-    require Config;
-    skip_all('no pseudofork')
-        unless $Config::Config{d_pseudofork};
-    skip_all('no POSIX::WNOHANG')
-        unless eval 'use POSIX qw(WNOHANG); 1';
-}
+use strict;
+use warnings;
+use Config;
+use Test::More;
+
+plan skip_all => 'iOS pseudofork support is not enabled'
+    unless $^O =~ /darwin-ios/ && $Config::Config{d_pseudofork};
+my $wnohang = eval {
+    require POSIX;
+    POSIX::WNOHANG();
+};
+plan skip_all => 'no POSIX::WNOHANG' unless defined $wnohang;
 
 $| = 1;
-watchdog(20);
 
 my $parent_pid = $$;
 my $pid = fork();
 ok(defined $pid, 'fork creates a pseudo-child');
 if ($pid == 0) {
-    exit 17;
+    exit($$ < 0 ? 17 : 18);
 }
 else {
     ok($pid < 0, 'pseudo-child has a negative PID');
     isnt($pid, $parent_pid, 'pseudo-child PID differs from parent PID');
     is(waitpid($pid, 0), $pid, 'waitpid returns the pseudo-child PID');
-    is($? >> 8, 17, 'waitpid returns the child exit status');
+    is($? >> 8, 17, 'child sees its pseudo-PID');
     is($$, $parent_pid, 'parent interpreter remains usable');
 }
 
@@ -34,7 +35,7 @@ if ($pid == 0) {
     exit 23;
 }
 else {
-    is(waitpid($pid, WNOHANG), 0, 'WNOHANG does not reap a running child');
+    is(waitpid($pid, $wnohang), 0, 'WNOHANG does not reap a running child');
     is(waitpid($pid, 0), $pid, 'WNOHANG child can subsequently be waited for');
     is($? >> 8, 23, 'WNOHANG child status is preserved');
 }
@@ -79,4 +80,3 @@ else {
 }
 
 done_testing();
-
