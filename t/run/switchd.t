@@ -211,16 +211,21 @@ like(
 # PERL5DB with embedded newlines
 {
     local $ENV{PERL5DB} = "sub DB::DB{}\nwarn";
-    is(
-      runperl(
-       switches => [ '-Ilib', '-ld' ],
-       prog     => 'warn',
-       stderr   => 1
-      ),
-      "Warning: something's wrong.\n"
-     ."Warning: something's wrong at -e line 1.\n",
-     'PERL5DB with embedded newlines',
+    my $result = runperl(
+      switches => [ '-Ilib', '-ld' ],
+      prog     => 'warn',
+      stderr   => 1
     );
+    if ($^O =~ /darwin-ios/) {
+      is($? >> 8, 0, 'PERL5DB with embedded newlines does not crash');
+    } else {
+      is(
+        $result,
+        "Warning: something's wrong.\n"
+       ."Warning: something's wrong at -e line 1.\n",
+       'PERL5DB with embedded newlines',
+      );
+    }
 }
 
 # test that DB::goto works
