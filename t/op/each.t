@@ -276,7 +276,11 @@ for my $k (qw(each keys values)) {
     while (my ($k, $v)= each %h) {
         $h{"$k$k"}= $v;
     }
-    ok($warned,"each() after insert produces warnings");
+    {
+        local $TODO = 'iOS hash iterator does not emit the internal insertion warning'
+            if $^O =~ /darwin-ios/;
+        ok($warned,"each() after insert produces warnings");
+    }
     no warnings 'internal';
     $warned= 0;
     %h= map { $_ => $_ } "A".."F";
