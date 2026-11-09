@@ -6,7 +6,7 @@ ExtUtils::Constant cpan/ExtUtils-Constant/lib/ExtUtils/Constant/Base.pm 7560e101
 ExtUtils::Constant cpan/ExtUtils-Constant/t/Constant.t d26b115904cb0e57f8a2adbfc41f36747ee3948d
 File::Temp cpan/File-Temp/t/lock.t 143a06c57915e95065a112090f6f47e2eb33c289
 Filter::Util::Call pod/perlfilter.pod 545265af2f45741a0e59eecdd0cfc0c9e490c1e8
-IO-Compress cpan/IO-Compress/t/011-streamzip.t 6afbbcf8b4c0dd690aee54a3df53a40a825ec2dd
+IO-Compress cpan/IO-Compress/t/011-streamzip.t 717896b65ebc78ccc24a3cf394953d0d30b42f84
 Locale::Maketext::Simple cpan/Locale-Maketext-Simple/lib/Locale/Maketext/Simple.pm 57ed38905791a17c150210cd6f42ead22a7707b6
 Math::Complex cpan/Math-Complex/lib/Math/Complex.pm 66f28a17647e2de166909ca66e4ced26f8a0a62e
 Math::Complex cpan/Math-Complex/t/Complex.t 17039e03ee798539e770ea9a0d19a99364278306
