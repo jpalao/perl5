@@ -17603,7 +17603,9 @@ val=''
 set vfork val
 eval $inlibc
 
-d_pseudofork=$undef
+if test "X$d_pseudofork" = X; then
+	d_pseudofork=$undef
+fi
 
 : Ok, but do we want to use it. vfork is reportedly unreliable in
 : perl on Solaris 2.x, and probably elsewhere.
