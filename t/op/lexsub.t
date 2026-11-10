@@ -766,7 +766,6 @@ like runperl(
      ),
      qr/syntax error/,
     'referencing a my sub after a syntax error does not crash';
-
 {
   state $stuff;
   package A {
