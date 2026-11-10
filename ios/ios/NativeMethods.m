@@ -110,6 +110,7 @@ NSMutableDictionary * parseRunPerl (char * json)
             {
                 NSMutableArray * mutable = [[result objectForKey:@"switches"] mutableCopy];
                 [mutable addObject:@"-I../lib"];
+                [mutable addObject:@"-I."];
                 switches = [mutable copy];
                 [result setObject:switches forKey:@"switches"];
             }
