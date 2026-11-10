@@ -277,7 +277,7 @@ for my $k (qw(each keys values)) {
         $h{"$k$k"}= $v;
     }
     {
-        local $TODO = 'iOS hash iterator does not emit the internal insertion warning'
+        local $main::TODO = 'iOS hash iterator does not emit the internal insertion warning'
             if $^O =~ /darwin-ios/;
         ok($warned,"each() after insert produces warnings");
     }
