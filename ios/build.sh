@@ -264,6 +264,7 @@ build_perl() {
     -U i_gdbm_ndbm \
     -Duseshrplib \
     -Dusethreads \
+    -Dd_pseudofork=define \
     -Dtargethost=physical-device \
     -Dtargetrun=darwin-ios \
     -Dtargetarch="${PERL_ARCH}-darwin" \
