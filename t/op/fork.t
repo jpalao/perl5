@@ -42,6 +42,7 @@ SKIP: {
 done_testing();
 
 __END__
+# SKIP ?$^O =~ /darwin-ios/ && !$Config::Config{d_fork}
 $| = 1;
 if ($cid = fork) {
     sleep 1;
@@ -62,6 +63,7 @@ OPTION random
 ok 1
 ok 2
 ########
+# SKIP ?$^O =~ /darwin-ios/ && !$Config::Config{d_fork}
 $| = 1;
 if ($cid = fork) {
     sleep 1;
