@@ -81,7 +81,7 @@ SKIP: {
 }
 # check plain tilde expansion
 SKIP: {
-    skip('iOS: ~ expands to /var/mobile', 2) if $^O =~ /darwin-ios/;
+    skip('iOS: ~ expands to /var/mobile', 3) if $^O =~ /darwin-ios/;
     my $tilde_check = sub {
         my @a = bsd_glob('~');
 
