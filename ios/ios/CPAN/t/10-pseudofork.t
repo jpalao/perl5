@@ -82,4 +82,14 @@ else {
     is($? >> 8, 43, 'nested child joined its own child before exit');
 }
 
+$pid = fork();
+if ($pid == 0) {
+    system($^X, '-e', 'exit 29');
+    exit($? >> 8 == 29 ? 0 : 1);
+}
+else {
+    is(waitpid($pid, 0), $pid, 'parent waits for child running system');
+    is($? >> 8, 0, 'child can run system and preserve its result');
+}
+
 done_testing();

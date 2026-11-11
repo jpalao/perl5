@@ -26,6 +26,8 @@ struct Perl_ios_pseudofork_child {
     int joining;
     int joined;
     int reaping;
+    I32 exit_status;
+    int exit_status_set;
     int status;
 };
 
@@ -35,8 +37,6 @@ static Pid_t ios_pseudofork_next_pid = 2;
 static Perl_ios_pseudofork_child *ios_pseudofork_children;
 static pthread_once_t ios_pseudofork_pid_once = PTHREAD_ONCE_INIT;
 static pthread_key_t ios_pseudofork_pid_key;
-static __thread I32 ios_pseudofork_exit_status;
-static __thread int ios_pseudofork_exit_status_set;
 
 static int
 ios_pseudofork_ignore_sigpipe(void)
@@ -107,8 +107,6 @@ ios_pseudofork_start_child(void *arg)
         perl_free(my_perl);
         return NULL;
     }
-    ios_pseudofork_exit_status_set = FALSE;
-
     {
         dSP;
         dTARGET;
@@ -515,18 +513,41 @@ Perl_ios_pseudofork_clear_current_pid(void)
 void
 Perl_ios_pseudofork_record_exit_status(I32 status)
 {
-    ios_pseudofork_exit_status = status;
-    ios_pseudofork_exit_status_set = TRUE;
+    Perl_ios_pseudofork_child *child;
+    Pid_t pid;
+
+    pid = Perl_ios_pseudofork_getpid();
+    pthread_mutex_lock(&ios_pseudofork_mutex);
+    child = ios_pseudofork_children;
+    while (child != NULL && child->pid != pid)
+        child = child->next;
+    if (child != NULL) {
+        child->exit_status = status;
+        child->exit_status_set = TRUE;
+    }
+    pthread_mutex_unlock(&ios_pseudofork_mutex);
 }
 
 int
 Perl_ios_pseudofork_get_exit_status(I32 *statusp)
 {
-    if (!ios_pseudofork_exit_status_set)
-        return FALSE;
-    if (statusp != NULL)
-        *statusp = ios_pseudofork_exit_status;
-    return TRUE;
+    Perl_ios_pseudofork_child *child;
+    int result;
+    Pid_t pid;
+
+    pid = Perl_ios_pseudofork_getpid();
+    pthread_mutex_lock(&ios_pseudofork_mutex);
+    child = ios_pseudofork_children;
+    while (child != NULL && child->pid != pid)
+        child = child->next;
+    result = child != NULL && child->exit_status_set;
+    if (result && statusp != NULL)
+        *statusp = child->exit_status;
+    pthread_mutex_unlock(&ios_pseudofork_mutex);
+    if (result) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 void

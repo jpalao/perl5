@@ -5226,8 +5226,7 @@ Perl_my_exit(pTHX_ U32 status)
         break;
     }
 #if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
-    if (Perl_ios_pseudofork_getpid() < 0)
-        Perl_ios_pseudofork_record_exit_status((I32)status);
+    Perl_ios_pseudofork_record_exit_status((I32)status);
 #endif
     my_exit_jump();
 }
