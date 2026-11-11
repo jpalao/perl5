@@ -6,6 +6,7 @@
 
 #include <errno.h>
 #include <pthread.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -34,6 +35,17 @@ static Pid_t ios_pseudofork_next_pid = 2;
 static Perl_ios_pseudofork_child *ios_pseudofork_children;
 static pthread_once_t ios_pseudofork_pid_once = PTHREAD_ONCE_INIT;
 static pthread_key_t ios_pseudofork_pid_key;
+
+static int
+ios_pseudofork_ignore_sigpipe(void)
+{
+    struct sigaction action;
+
+    action.sa_handler = SIG_IGN;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = 0;
+    return sigaction(SIGPIPE, &action, NULL);
+}
 
 static void
 ios_pseudofork_free_pid(void *value)
@@ -345,6 +357,14 @@ Perl_ios_pseudofork_fork(pTHX)
     pthread_t thread;
     int result;
     Pid_t parent_pid;
+
+    /*
+     * Pseudofork children share the native process, so SIGPIPE cannot be
+     * isolated to one child. Convert broken-pipe writes into EPIPE instead
+     * of allowing one interpreter to terminate the entire runner.
+     */
+    if (ios_pseudofork_ignore_sigpipe() == -1)
+        return -1;
 
     parent_pid = Perl_ios_pseudofork_getpid();
     interp = perl_clone(parent, CLONEf_COPY_STACKS | CLONEf_CLONE_HOST);
