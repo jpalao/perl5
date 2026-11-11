@@ -17,11 +17,14 @@ $| = 1;
 
 my $parent_pid = $$;
 my $pid = fork();
-ok(defined $pid, 'fork creates a pseudo-child');
-if ($pid == 0) {
+if (!defined $pid) {
+    ok(0, 'fork creates a pseudo-child');
+}
+elsif ($pid == 0) {
     exit($$ < 0 ? 17 : 18);
 }
 else {
+    ok(1, 'fork creates a pseudo-child');
     ok($pid < 0, 'pseudo-child has a negative PID');
     isnt($pid, $parent_pid, 'pseudo-child PID differs from parent PID');
     is(waitpid($pid, 0), $pid, 'waitpid returns the pseudo-child PID');
