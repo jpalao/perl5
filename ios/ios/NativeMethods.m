@@ -9,9 +9,6 @@
 #import "NativeMethods.h"
 
 #include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 // The BYTEORDER macro is also #defined by perl, and Perl's use
 // of it should be fully expanded by now.
@@ -19,84 +16,6 @@
 
 static dispatch_once_t onceToken = 0;
 static dispatch_queue_t stdioQueue = nil;
-
-typedef struct {
-    int fd;
-    int saved_fd;
-} IOSExecClosedFD;
-
-static void ios_restore_closed_fds(IOSExecClosedFD *closed, size_t count);
-
-static size_t ios_exec_fd_limit(void)
-{
-    long limit = sysconf(_SC_OPEN_MAX);
-    if (limit < 0 || limit > 10240)
-        return 10240;
-    return (size_t)limit;
-}
-
-static int ios_close_on_exec_fds(const int *preserve, size_t preserve_count,
-                                 IOSExecClosedFD **closed_out)
-{
-    size_t capacity = 16;
-    size_t count = 0;
-    IOSExecClosedFD *closed = malloc(capacity * sizeof(*closed));
-    if (closed == NULL)
-        return -1;
-
-    for (size_t fd = 3; fd < ios_exec_fd_limit(); fd++) {
-        int flags = fcntl((int)fd, F_GETFD);
-        if (flags == -1 || !(flags & FD_CLOEXEC))
-            continue;
-
-        BOOL keep = NO;
-        for (size_t i = 0; i < preserve_count; i++) {
-            if ((int)fd == preserve[i]) {
-                keep = YES;
-                break;
-            }
-        }
-        if (keep)
-            continue;
-
-        int saved_fd = dup((int)fd);
-        if (saved_fd == -1) {
-            ios_restore_closed_fds(closed, count);
-            return -1;
-        }
-        if (close((int)fd) == -1) {
-            close(saved_fd);
-            ios_restore_closed_fds(closed, count);
-            return -1;
-        }
-
-        if (count == capacity) {
-            capacity *= 2;
-            IOSExecClosedFD *grown = realloc(
-                closed, capacity * sizeof(*closed));
-            if (grown == NULL) {
-                close(saved_fd);
-                ios_restore_closed_fds(closed, count);
-                return -1;
-            }
-            closed = grown;
-        }
-        closed[count++] = (IOSExecClosedFD){ (int)fd, saved_fd };
-    }
-
-    *closed_out = closed;
-    return (int)count;
-}
-
-static void ios_restore_closed_fds(IOSExecClosedFD *closed, size_t count)
-{
-    for (size_t i = 0; i < count; i++) {
-        (void)close(closed[i].fd);
-        (void)dup2(closed[i].saved_fd, closed[i].fd);
-        (void)close(closed[i].saved_fd);
-    }
-    free(closed);
-}
 
 static BOOL debuggerEnabledForSwitches(NSArray *switches)
 {
@@ -588,8 +507,7 @@ void * CBYield(double ti)
     return (void *)ret;
 }
 
-static void* CBRunPerlWithPreservedFDs(
-    char * json, const int *preserve_fds, size_t preserve_fd_count)
+void* CBRunPerl (char * json)
 {
 @autoreleasepool {
     // Define a Perl context
@@ -600,9 +518,6 @@ static void* CBRunPerlWithPreservedFDs(
 
     __block int retval = 0;
     __block BOOL  wait_for_perl = TRUE;
-    IOSExecClosedFD *closed_fds = NULL;
-    int closed_fd_count = ios_close_on_exec_fds(
-        preserve_fds, preserve_fd_count, &closed_fds);
 
     SV *ret = newSV(retval);
 
@@ -678,17 +593,9 @@ static void* CBRunPerlWithPreservedFDs(
         [NSThread sleepForTimeInterval: 0.1];
     }
 
-    if (closed_fd_count >= 0)
-        ios_restore_closed_fds(closed_fds, (size_t)closed_fd_count);
-
     sv_setiv(ret, (int)((retval & 0xff) << 8));
     return (void *)ret;
 } // autoreleasepool
-}
-
-void* CBRunPerl (char * json)
-{
-    return CBRunPerlWithPreservedFDs(json, NULL, 0);
 }
 
 static void drainPipe(int readFD, NSMutableData *streamOutput, NSMutableData *combinedOutput) {
@@ -776,14 +683,7 @@ CBRunPerlCaptureStdout (char * json) {
         });
     }
 
-    int preserve_fds[] = {
-        stdoutReadFD,
-        stderrReadFD,
-        [stdoutPipeIn fileDescriptor],
-        [stderrPipeIn fileDescriptor]
-    };
-    exit_code = CBRunPerlWithPreservedFDs(
-        json, preserve_fds, sizeof(preserve_fds) / sizeof(preserve_fds[0]));
+    exit_code = CBRunPerl(json);
 
     int new_fd = dup2(saved_stdout, STDOUT_FILENO);
         new_fd = dup2(saved_stderr, STDERR_FILENO);
