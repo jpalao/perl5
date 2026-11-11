@@ -137,8 +137,10 @@ restart:
                 LEAVE;
             FREETMPS;
             PL_curstash = PL_defstash;
-            if (PL_endav && !PL_minus_c)
+            if (PL_endav && !PL_minus_c) {
+                PERL_SET_PHASE(PERL_PHASE_END);
                 call_list(oldscope, PL_endav);
+            }
             break;
         case 3:
             if (PL_restartop) {
@@ -157,6 +159,13 @@ restart:
         JMPENV_POP;
     }
 
+    /*
+     * The cloned interpreter inherits the parent's optree.  Do not let
+     * perl_destruct() free that inherited tree as if it owned it.
+     */
+    PL_main_root = (OP *)NULL;
+
+    Perl_ios_pseudofork_join_all(aTHX_ my_perl);
     perl_destruct(my_perl);
     perl_free(my_perl);
     Perl_ios_pseudofork_clear_current_pid();
