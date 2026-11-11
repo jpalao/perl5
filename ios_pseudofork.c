@@ -121,7 +121,12 @@ restart:
             PL_curstash = PL_defstash;
             if (PL_endav && !PL_minus_c)
                 call_list(oldscope, PL_endav);
-            status = STATUS_EXIT;
+            /*
+             * waitpid() decodes child completion as a native wait status.
+             * STATUS_EXIT is Perl's unshifted exit value, so encode normal
+             * exits before publishing the pseudo-child result.
+             */
+            status = STATUS_EXIT < 0 ? -1 : (STATUS_EXIT & 0xff) << 8;
             break;
         case 3:
             if (PL_restartop) {
