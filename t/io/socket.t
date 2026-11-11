@@ -87,6 +87,8 @@ SKIP: {
             binmode $accept;
 	    SKIP: {
 		skip "no fcntl", 1 unless $Config{d_fcntl};
+		skip "iOS embedded runner has no exec boundary", 1
+		    if $^O =~ /darwin-ios/;
 		my $acceptfd = fileno($accept);
 		fresh_perl_is(qq(
 		    print open(F, "+<&=$acceptfd") ? 1 : 0, "\\n";
@@ -328,4 +330,3 @@ sub is_child {
 sub end_child {
     print @child_tests;
 }
-
