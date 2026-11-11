@@ -35,6 +35,8 @@ static Pid_t ios_pseudofork_next_pid = 2;
 static Perl_ios_pseudofork_child *ios_pseudofork_children;
 static pthread_once_t ios_pseudofork_pid_once = PTHREAD_ONCE_INIT;
 static pthread_key_t ios_pseudofork_pid_key;
+static __thread I32 ios_pseudofork_exit_status;
+static __thread int ios_pseudofork_exit_status_set;
 
 static int
 ios_pseudofork_ignore_sigpipe(void)
@@ -91,6 +93,7 @@ ios_pseudofork_start_child(void *arg)
     Perl_ios_pseudofork_child *child = child_arg->child;
     PerlInterpreter *my_perl = child_arg->interp;
     int status = 0;
+    I32 exit_status;
     int run_status;
     volatile int oldscope;
 
@@ -104,6 +107,7 @@ ios_pseudofork_start_child(void *arg)
         perl_free(my_perl);
         return NULL;
     }
+    ios_pseudofork_exit_status_set = FALSE;
 
     {
         dSP;
@@ -127,12 +131,10 @@ restart:
             status = 0;
             break;
         case 2:
-            /*
-             * Capture the exit value before END blocks run.  END code can
-             * update PL_statusvalue, but the pseudo-child must report the
-             * status produced by its exit().
-             */
-            status = STATUS_EXIT < 0 ? -1 : (STATUS_EXIT & 0xff) << 8;
+            if (Perl_ios_pseudofork_get_exit_status(&exit_status))
+                status = (exit_status & 0xff) << 8;
+            else
+                status = STATUS_EXIT < 0 ? -1 : (STATUS_EXIT & 0xff) << 8;
             while (PL_scopestack_ix > oldscope)
                 LEAVE;
             FREETMPS;
@@ -508,6 +510,23 @@ Perl_ios_pseudofork_clear_current_pid(void)
     value = (Pid_t *)pthread_getspecific(ios_pseudofork_pid_key);
     (void)pthread_setspecific(ios_pseudofork_pid_key, NULL);
     free(value);
+}
+
+void
+Perl_ios_pseudofork_record_exit_status(I32 status)
+{
+    ios_pseudofork_exit_status = status;
+    ios_pseudofork_exit_status_set = TRUE;
+}
+
+int
+Perl_ios_pseudofork_get_exit_status(I32 *statusp)
+{
+    if (!ios_pseudofork_exit_status_set)
+        return FALSE;
+    if (statusp != NULL)
+        *statusp = ios_pseudofork_exit_status;
+    return TRUE;
 }
 
 void
