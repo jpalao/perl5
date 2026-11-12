@@ -2736,6 +2736,7 @@ nothing in the core.
 
         while (++mark <= sp) {
             Pid_t proc;
+            int kill_result;
             SvGETMAGIC(*mark);
             if (!(SvNIOK(*mark) || looks_like_number(*mark)))
                 Perl_croak(aTHX_ "Can't kill a non-numeric process ID");
@@ -2744,11 +2745,28 @@ nothing in the core.
 #ifdef HAS_KILLPG
             /* use killpg in preference, as the killpg() wrapper for Win32
              * understands process groups, but the kill() wrapper doesn't */
-            if (killgp ? PerlProc_killpg(proc, val)
-                       : PerlProc_kill(proc, val))
-#else
-            if (PerlProc_kill(killgp ? -proc: proc, val))
+#if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
+            if (!killgp && proc < 0) {
+                kill_result = Perl_ios_pseudofork_kill(aTHX_ proc, val);
+                if (kill_result && errno == ESRCH)
+                    kill_result = PerlProc_kill(proc, val);
+            }
+            else
 #endif
+                kill_result = killgp ? PerlProc_killpg(proc, val)
+                                     : PerlProc_kill(proc, val);
+#else
+# if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
+            if (!killgp && proc < 0) {
+                kill_result = Perl_ios_pseudofork_kill(aTHX_ proc, val);
+                if (kill_result && errno == ESRCH)
+                    kill_result = PerlProc_kill(proc, val);
+            }
+            else
+# endif
+                kill_result = PerlProc_kill(killgp ? -proc: proc, val);
+#endif
+            if (kill_result)
                 tot--;
         }
         PERL_ASYNC_CHECK();

@@ -559,6 +559,31 @@ Perl_ios_pseudofork_get_exit_status(I32 *statusp)
     return FALSE;
 }
 
+int
+Perl_ios_pseudofork_kill(pTHX_ Pid_t pid, int sig)
+{
+    Perl_ios_pseudofork_child *child;
+    pthread_t thread;
+    int result;
+
+    pthread_mutex_lock(&ios_pseudofork_mutex);
+    child = ios_pseudofork_find_child_locked(aTHX_ pid);
+    if (child == NULL || !child->thread_set) {
+        pthread_mutex_unlock(&ios_pseudofork_mutex);
+        errno = ESRCH;
+        return -1;
+    }
+    thread = child->thread;
+    pthread_mutex_unlock(&ios_pseudofork_mutex);
+
+    result = pthread_kill(thread, sig);
+    if (result != 0) {
+        errno = result;
+        return -1;
+    }
+    return 0;
+}
+
 void
 Perl_ios_pseudofork_join_all(pTHX_ PerlInterpreter *parent)
 {

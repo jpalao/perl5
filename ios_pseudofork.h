@@ -74,6 +74,9 @@ Perl_ios_pseudofork_record_exit_status(I32 status);
 int
 Perl_ios_pseudofork_get_exit_status(I32 *statusp);
 
+int
+Perl_ios_pseudofork_kill(pTHX_ Pid_t pid, int sig);
+
 void
 Perl_ios_pseudofork_join_all(pTHX_ PerlInterpreter *parent);
 
