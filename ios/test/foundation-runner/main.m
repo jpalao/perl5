@@ -24,7 +24,8 @@ static NSString *RunnerTestDataDirectory(void) {
     return baseDirectory;
 }
 
-static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *statusPath) {
+static int RunPerlScript(NSString *scriptPath, NSString *outputPath,
+                         NSString *statusPath, BOOL runOnMainThread) {
     __block int normalizedResult = 255;
     @autoreleasepool {
         NSLog(@"Foundation runner starting Perl script: %@", scriptPath);
@@ -88,7 +89,7 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
         drainPipe(stdoutPipe, savedStdout);
         drainPipe(stderrPipe, savedStderr);
 
-        dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        void (^runPerl)(void) = ^{
             @autoreleasepool {
                 PerlCtrl *controller = [[PerlCtrl alloc] init];
                 [controller initWithFileName:scriptPath
@@ -104,7 +105,13 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
                     NSLog(@"Foundation runner Perl completion result: %d", result);
                 }];
             }
-        });
+        };
+        if (runOnMainThread) {
+            runPerl();
+        } else {
+            dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0),
+                          runPerl);
+        }
 
         dup2(savedStdout, STDOUT_FILENO);
         dup2(savedStderr, STDERR_FILENO);
@@ -195,9 +202,13 @@ static int RunPerlScript(NSString *scriptPath, NSString *outputPath, NSString *s
     NSString *outputPath = RunnerArgument(arguments, @"--output", defaultOutput);
     NSString *defaultStatus = [testDataDirectory stringByAppendingPathComponent:@"perl-tests.status"];
     NSString *statusPath = RunnerArgument(arguments, @"--status", defaultStatus);
+    BOOL runOnMainThread = [arguments containsObject:@"--main-thread"];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)),
-                    dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
-        int result = RunPerlScript(scriptPath, outputPath, statusPath);
+                    dispatch_get_main_queue(), ^{
+        NSLog(@"Foundation runner Perl execution thread: %@",
+              runOnMainThread ? @"main" : @"GCD");
+        int result = RunPerlScript(scriptPath, outputPath, statusPath,
+                                   runOnMainThread);
         exit(result);
     });
 }
