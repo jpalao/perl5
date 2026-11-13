@@ -10,8 +10,8 @@ mkdir -p "$runtime_path" "$frameworks_path"
 cp -R "$PERL_DIST_PATH/$PERL_VERSION" "$runtime_path/"
 cp -R "$PERL_DIST_PATH/site_perl" "$runtime_path/"
 mv "$runtime_path/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib" "$frameworks_path/"
-rm -rf "$runtime_path/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib.dSYM"
 cp -R "$IOS_FRAMEWORK_PATH/ios.framework" "$frameworks_path/"
+cp -R "$IOS_FRAMEWORK_PATH/ios.framework.dSYM" "$frameworks_path/"
 
 exec "$MACOS_PERL_PATH" "$PROJECT_DIR/fix_ios_dylibs.pl" \
     "$PRODUCT_NAME" "$TARGET_BUILD_DIR" "$TARGET_NAME" \

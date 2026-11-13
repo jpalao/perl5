@@ -205,7 +205,7 @@ $ARCHFLAGS .= " -L$PERL_INCLUDE_DIR -I$PERL_INCLUDE_DIR -ObjC -lobjc ";
 $XCODE_BUILD_CONFIG = "Release-iphoneos"
     if (!defined $XCODE_BUILD_CONFIG || !length $XCODE_BUILD_CONFIG);
 
-my $iosPath = "$PERL_IOS_PREFIX/ios/Build/Products/$XCODE_BUILD_CONFIG";
+my $iosPath = "$PERL_BUILD_DIR/ios/Build/Products/$XCODE_BUILD_CONFIG";
 
 our %opts = (
     VERSION           => $IOS_VERSION,
@@ -216,11 +216,11 @@ our %opts = (
     XSOPT             => "-typemap $IOS_CPAN_DIR/typemap",
 
     LIBS              => [ '-lobjc'],
-    INC               => "-F$IOS_MODULE_PATH/Build/Products/$XCODE_BUILD_CONFIG",
+    INC               => "-F$iosPath",
     dynamic_lib       => {
                         'OTHERLDFLAGS' =>
                             "$ARCHFLAGS -framework Foundation " .
-                            "-framework ios -F$IOS_MODULE_PATH/Build/Products/$XCODE_BUILD_CONFIG " .
+                            "-framework ios -F$iosPath " .
                             "-Wl,-rpath,$iosPath"
                         },
 );

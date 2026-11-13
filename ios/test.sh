@@ -115,7 +115,7 @@ export INSTALL_DIR
 
 : "${PERL_IOS_PREFIX:=$WORKDIR}"
 
-: "${HARNESS_BUILD_CONFIGURATION:=Debug}"
+: "${HARNESS_BUILD_CONFIGURATION:=Release}"
 case "$HARNESS_TARGET" in
     appletvos|appletvsimulator)
         : "${IOS_TEST_APP:=appletv-runner}"

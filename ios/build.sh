@@ -5,6 +5,8 @@
 # perl binaries
 : "${BITCODE:=0}"
 : "${DEBUG:=0}"
+: "${IOS_BUILD_CONFIGURATION:=Release}"
+export IOS_BUILD_CONFIGURATION
 : "${INSTALL_DIR:=local}"
 if [ -n "${IOS_DEPLOYMENT_TARGET:-}" ] && [ -n "${MIN_VERSION:-}" ] &&
    [ "$IOS_DEPLOYMENT_TARGET" != "$MIN_VERSION" ]; then
@@ -315,15 +317,13 @@ build_perl() {
   make install
   check_exit_code
 
-  # generate dSYM file
-  if [ $DEBUG -eq 1 ]; then
-    echo "Generate libperl.dylib.dSYM..."
-    pushd "$PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE"
-    dsymutil libperl.dylib
-    check_exit_code
-    echo "$PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib.dSYM"
-    popd
-  fi
+  # Generate symbols for both optimized and debug builds.
+  echo "Generate libperl.dylib.dSYM..."
+  pushd "$PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE"
+  dsymutil libperl.dylib
+  check_exit_code
+  echo "$PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib.dSYM"
+  popd
 
   #change install name of library for embedding
   chmod +w "$PREFIX/lib/perl5/$PERL_VERSION/darwin-thread-multi-2level/CORE/libperl.dylib"
@@ -353,6 +353,10 @@ build_ios_framework() {
 
     local framework_other_cflags=""
     local framework_scheme="$IOS_TARGET"
+    local framework_debug_settings="DEBUG_INFORMATION_FORMAT=dwarf-with-dsym GCC_GENERATE_DEBUGGING_SYMBOLS=YES"
+    if [ "$DEBUG" -eq 1 ]; then
+      framework_debug_settings="$framework_debug_settings GCC_OPTIMIZATION_LEVEL=0"
+    fi
     if [ "$SIMULATOR_BUILD" -ne 0 ]; then
       framework_other_cflags="-DNO_LOCALE"
     fi
@@ -367,9 +371,10 @@ build_ios_framework() {
       LIBPERL_PATH="$PERL_BUILD_DIR" PERL_VERSION="$PERL_VERSION" \
       HEADER_SEARCH_PATHS="$PERL_BUILD_DIR" \
       OTHER_LDFLAGS="-L$PERL_BUILD_DIR -lperl" \
+      $framework_debug_settings \
       ONLY_ACTIVE_ARCH=NO SUPPORTED_PLATFORMS="$IOS_PLATFORM" \
       TVOS_DEPLOYMENT_TARGET="$MIN_VERSION" TARGETED_DEVICE_FAMILY=3 \
-      -configuration "${IOS_BUILD_CONFIGURATION:-Debug}" -scheme "$framework_scheme"
+      -configuration "${IOS_BUILD_CONFIGURATION:-Release}" -scheme "$framework_scheme"
     elif [ $PERL_APPLEWATCH -ne 0 ]; then
       case "$IOS_PLATFORM" in
         watchsimulator) framework_scheme="iphonesimulator" ;;
@@ -380,15 +385,18 @@ build_ios_framework() {
       LIBPERL_PATH="$PERL_BUILD_DIR" PERL_VERSION="$PERL_VERSION" \
       HEADER_SEARCH_PATHS="$PERL_BUILD_DIR" \
       OTHER_LDFLAGS="-L$PERL_BUILD_DIR -lperl" \
+      $framework_debug_settings \
       ONLY_ACTIVE_ARCH=NO SUPPORTED_PLATFORMS="$IOS_PLATFORM" \
       WATCHOS_DEPLOYMENT_TARGET="$MIN_VERSION" TARGETED_DEVICE_FAMILY=4 \
-      -configuration "${IOS_BUILD_CONFIGURATION:-Debug}" -scheme "$framework_scheme"
+      -configuration "${IOS_BUILD_CONFIGURATION:-Release}" -scheme "$framework_scheme"
     else
       xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" \
       OTHER_CFLAGS="$framework_other_cflags" PERL_DIST_PATH="$PERL_BUILD_DIR" \
       LIBPERL_PATH="$PERL_BUILD_DIR" PERL_VERSION="$PERL_VERSION" \
       IPHONEOS_DEPLOYMENT_TARGET="$MIN_VERSION" \
-      ONLY_ACTIVE_ARCH=NO -scheme "$framework_scheme"
+      $framework_debug_settings \
+      ONLY_ACTIVE_ARCH=NO \
+      -configuration "${IOS_BUILD_CONFIGURATION:-Release}" -scheme "$framework_scheme"
     fi
     check_exit_code
     popd
