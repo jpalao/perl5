@@ -50,9 +50,9 @@
 		8227C2FE25DAA87F00A353EC /* OutputViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutputViewController.h; sourceTree = "<group>"; };
 		8227C30825DAAC4400A353EC /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		8227C30925DAAC4400A353EC /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		8227C31425DAAC8500A353EC /* ios.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ios.framework; path = "../../ios/Build/Products/Debug-iphoneos/ios.framework"; sourceTree = "<group>"; };
-		8227C41125DABEB700A353EC /* ios.framework.dSYM */ = {isa = PBXFileReference; lastKnownFileType = wrapper.dsym; name = ios.framework.dSYM; path = "../ios/Build/Products/Debug-iphoneos/ios.framework.dSYM"; sourceTree = "<group>"; };
-		8227C41325DABECB00A353EC /* ios.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ios.framework; path = "../ios/Build/Products/Debug-iphoneos/ios.framework"; sourceTree = "<group>"; };
+		8227C31425DAAC8500A353EC /* ios.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ios.framework; path = "../Build/Products/Debug-iphoneos/ios.framework"; sourceTree = "<group>"; };
+		8227C41125DABEB700A353EC /* ios.framework.dSYM */ = {isa = PBXFileReference; lastKnownFileType = wrapper.dsym; name = ios.framework.dSYM; path = "../Build/Products/Debug-iphoneos/ios.framework.dSYM"; sourceTree = "<group>"; };
+		8227C41325DABECB00A353EC /* ios.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ios.framework; path = "../Build/Products/Debug-iphoneos/ios.framework"; sourceTree = "<group>"; };
 		8227C41525DABEF300A353EC /* libperl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libperl.dylib; path = "../../../../../../opt/local/lib/perl5/$(PERL_VERSION)/darwin-thread-multi-2level/CORE/libperl.dylib"; sourceTree = "<group>"; };
 		8227C41625DABEF300A353EC /* libperl.dylib.dSYM */ = {isa = PBXFileReference; lastKnownFileType = wrapper.dsym; name = libperl.dylib.dSYM; path = "../../../../../../opt/local/lib/perl5/$(PERL_VERSION)/darwin-thread-multi-2level/CORE/libperl.dylib.dSYM"; sourceTree = "<group>"; };
 		826A8FCF25D1C54D00D5461B /* harness.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = harness.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -572,8 +572,8 @@
 				);
 				INFOPLIST_FILE = harness/Info.plist;
 				IOS_FRAMEWORK_PATH = "";
-				"IOS_FRAMEWORK_PATH[sdk=iphoneos*]" = "$(PROJECT_DIR)/../ios/Build/Products/Debug-iphoneos";
-				"IOS_FRAMEWORK_PATH[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../ios/Build/Products/Debug-iphonesimulator";
+				"IOS_FRAMEWORK_PATH[sdk=iphoneos*]" = "$(PROJECT_DIR)/../Build/Products/Debug-iphoneos";
+				"IOS_FRAMEWORK_PATH[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../Build/Products/Debug-iphonesimulator";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -588,8 +588,8 @@
 				"PERL_DIST_PATH[sdk=iphoneos*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				"PERL_DIST_PATH[sdk=iphonesimulator*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				PERL_INSTALL_PREFIX = "";
-				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local-iphoneos-12.0";
-				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local-iphonesimulator-12.0";
+				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local";
+				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local";
 				PERL_VERSION = 5.37.2;
 						PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -623,8 +623,8 @@
 				);
 				INFOPLIST_FILE = harness/Info.plist;
 				IOS_FRAMEWORK_PATH = "";
-				"IOS_FRAMEWORK_PATH[sdk=iphoneos*]" = "$(PROJECT_DIR)/../ios/Build/Products/Release-iphoneos";
-				"IOS_FRAMEWORK_PATH[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../ios/Build/Products/Release-iphonesimulator";
+				"IOS_FRAMEWORK_PATH[sdk=iphoneos*]" = "$(PROJECT_DIR)/../Build/Products/Release-iphoneos";
+				"IOS_FRAMEWORK_PATH[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../Build/Products/Release-iphonesimulator";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -639,8 +639,8 @@
 				"PERL_DIST_PATH[sdk=iphoneos*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				"PERL_DIST_PATH[sdk=iphonesimulator*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				PERL_INSTALL_PREFIX = "";
-				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local-iphoneos-12.0";
-				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local-iphonesimulator-12.0";
+				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local";
+				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local";
 				PERL_VERSION = 5.37.2;
 						PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -730,15 +730,14 @@
 				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
 				HEADER_SEARCH_PATHS = ("$(LIBPERL_PATH)", "$(IOS_FRAMEWORK_PATH)/ios.framework/Headers");
 				INFOPLIST_FILE = foundation-runner/Info.plist;
-				IOS_FRAMEWORK_PATH = "$(PROJECT_DIR)/../ios/Build/Products/Debug-$(PLATFORM_NAME)";
+				IOS_FRAMEWORK_PATH = "$(PROJECT_DIR)/../Build/Products/Debug-$(PLATFORM_NAME)";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
 				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
 				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = ("-framework", ios);
 				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
-				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local-iphoneos-12.0";
-				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local-iphonesimulator-12.0";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
 				PERL_VERSION = 5.37.2;
 				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.foundation-runner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -756,15 +755,14 @@
 				FRAMEWORK_SEARCH_PATHS = "$(IOS_FRAMEWORK_PATH)";
 				HEADER_SEARCH_PATHS = ("$(IOS_FRAMEWORK_PATH)/ios.framework/Headers", "$(LIBPERL_PATH)");
 				INFOPLIST_FILE = foundation-runner/Info.plist;
-				IOS_FRAMEWORK_PATH = "$(PROJECT_DIR)/../ios/Build/Products/Release-$(PLATFORM_NAME)";
+				IOS_FRAMEWORK_PATH = "$(PROJECT_DIR)/../Build/Products/Release-$(PLATFORM_NAME)";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
 				LIBPERL_PATH = "$(PERL_DIST_PATH)$(PERL_VERSION)/darwin-thread-multi-2level/CORE";
 				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = ("-framework", ios);
 				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
-				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local-iphoneos-12.0";
-				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local-iphonesimulator-12.0";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
 				PERL_VERSION = 5.37.2;
 				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.foundation-runner;
 				PRODUCT_NAME = "$(TARGET_NAME)";

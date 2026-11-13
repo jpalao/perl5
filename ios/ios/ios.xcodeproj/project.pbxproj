@@ -612,7 +612,7 @@
 				PRODUCT_NAME = ios;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
-				SYMROOT = Build/Products;
+				SYMROOT = "$(PROJECT_DIR)/../Build/Products";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "";
@@ -713,7 +713,7 @@
 				PRODUCT_NAME = ios;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
-				SYMROOT = Build/Products;
+				SYMROOT = "$(PROJECT_DIR)/../Build/Products";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "";
@@ -804,7 +804,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
-				SYMROOT = Build/Products;
+				SYMROOT = "$(PROJECT_DIR)/../Build/Products";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "";
@@ -888,7 +888,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
-				SYMROOT = Build/Products;
+				SYMROOT = "$(PROJECT_DIR)/../Build/Products";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "";
 				VALID_ARCHS = "";
