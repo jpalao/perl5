@@ -363,6 +363,7 @@ static Boolean perlInitialized = false;
             installedDebuggerOptions = true;
         }
         @try {
+            PERL_SET_CONTEXT(_PerlCtrlInterpreter);
             result = perl_parse(_PerlCtrlInterpreter, PerlCtrl_xs_init, embSize, emb, (char **)NULL);
         }
         @catch (NSException * exception ){
@@ -377,6 +378,7 @@ static Boolean perlInitialized = false;
     }
 
     if (result == 0 && stdinBytes != nil && stdinBytes.length > 0) {
+        PERL_SET_CONTEXT(_PerlCtrlInterpreter);
         PerlIO *stdinStream = PerlIO_stdin();
         AV *stdinLayers = PerlIO_get_layers(aTHX_ stdinStream);
         SV **layerName = av_fetch(stdinLayers, 0, 0);
@@ -416,6 +418,7 @@ static Boolean perlInitialized = false;
 
     if (result == 0) {
         @try {
+            PERL_SET_CONTEXT(_PerlCtrlInterpreter);
             result = perl_run(_PerlCtrlInterpreter);
         } @catch (NSException *exception) {
             * error = [[NSError alloc] initWithDomain:@"dev.perla.run" code:05 userInfo:@{@"reason":[NSString stringWithFormat:@"Unspecified error\n"]}];

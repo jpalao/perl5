@@ -9,6 +9,7 @@
 #import "NativeMethods.h"
 
 #include <stdio.h>
+#include <signal.h>
 
 // The BYTEORDER macro is also #defined by perl, and Perl's use
 // of it should be fully expanded by now.
@@ -16,6 +17,16 @@
 
 static dispatch_once_t onceToken = 0;
 static dispatch_queue_t stdioQueue = nil;
+
+static void
+CBUnblockPerlSignalProbe(void)
+{
+    sigset_t set;
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    (void)pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+}
 
 static BOOL debuggerEnabledForSwitches(NSArray *switches)
 {
@@ -437,6 +448,7 @@ int CBRunPerlSystem(void *context, const char *selectedProgram, int argc, char *
     NSThread *worker = [[NSThread alloc] initWithBlock:^{
         @autoreleasepool {
             @try {
+                CBUnblockPerlSignalProbe();
                 NSError *perlError = nil;
                 [[PerlCtrl alloc]
                     initWithFileName:fileName
@@ -532,6 +544,7 @@ void* CBRunPerl (char * json)
     {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, (unsigned long)NULL), ^(void) {
             @autoreleasepool {
+                CBUnblockPerlSignalProbe();
                 NSString * filePath = [cbRunPerlDict objectForKey:@"filePath"];
                 NSString * absPwd = [cbRunPerlDict objectForKey:@"absPwd"];
                 BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:filePath];
