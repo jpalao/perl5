@@ -205,7 +205,7 @@ $ARCHFLAGS .= " -L$PERL_INCLUDE_DIR -I$PERL_INCLUDE_DIR -ObjC -lobjc ";
 $XCODE_BUILD_CONFIG = "Release-iphoneos"
     if (!defined $XCODE_BUILD_CONFIG || !length $XCODE_BUILD_CONFIG);
 
-my $iosPath = "$PERL_BUILD_DIR/ios/Build/Products/$XCODE_BUILD_CONFIG";
+my $iosPath = "$ENV{'PERL_BUILD_DIR'}/ios/Build/Products/$XCODE_BUILD_CONFIG";
 
 our %opts = (
     VERSION           => $IOS_VERSION,

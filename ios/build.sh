@@ -98,6 +98,7 @@ WORKDIR=`pwd`
 PREFIX="$WORKDIR/$INSTALL_DIR"
 PERL_VERSION="$PERL_REVISION.$PERL_MAJOR_VERSION.$PERL_MINOR_VERSION"
 : "${PERL_BUILD_DIR:=$WORKDIR/perl-$PERL_VERSION}"
+export PERL_BUILD_DIR
 
 if [ "$SIMULATOR_BUILD" -eq 1 ]; then
   HOST_ARCH=$(uname -m)
@@ -423,7 +424,8 @@ build_libffi() {
     fi
 
     xcodebuild -project libffi.xcodeproj -scheme "$LIBFFI_SCHEME" -sdk "$IOS_PLATFORM" \
-      ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO
+      ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
+      -configuration "${CAMELBONES_BUILD_CONFIGURATION:-Release}"
     check_exit_code
     popd
 }
@@ -436,6 +438,7 @@ build_camelbones_framework() {
     xcodebuild -sdk "$IOS_PLATFORM" ARCHS="$ARCHS" PERL_DIST_PATH="$PERL_BUILD_DIR" \
     LIBPERL_PATH="$PERL_BUILD_DIR" \
     PERL_VERSION="$PERL_VERSION" ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=NO \
+    -configuration "${CAMELBONES_BUILD_CONFIGURATION:-Release}" \
     -scheme "$CAMELBONES_TARGET"
     check_exit_code
     popd

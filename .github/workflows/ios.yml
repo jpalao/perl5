@@ -32,7 +32,7 @@ jobs:
           - macos-26
           # Intel simulator coverage is substantially slower and has
           # intermittent TAP-stream failures; arm64 remains enabled.
-          # - macos-26-intel
+          - macos-26-intel
         target:
           - iphonesimulator
           - appletvsimulator
