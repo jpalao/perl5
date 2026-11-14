@@ -588,8 +588,8 @@
 				"PERL_DIST_PATH[sdk=iphoneos*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				"PERL_DIST_PATH[sdk=iphonesimulator*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				PERL_INSTALL_PREFIX = "";
-				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local";
-				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local";
+				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local-iphoneos-12.0";
+				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local-iphonesimulator-12.0";
 				PERL_VERSION = 5.37.2;
 						PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -639,8 +639,8 @@
 				"PERL_DIST_PATH[sdk=iphoneos*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				"PERL_DIST_PATH[sdk=iphonesimulator*]" = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
 				PERL_INSTALL_PREFIX = "";
-				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local";
-				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local";
+				"PERL_INSTALL_PREFIX[sdk=iphoneos*]" = "$(PROJECT_DIR)/../../../local-iphoneos-12.0";
+				"PERL_INSTALL_PREFIX[sdk=iphonesimulator*]" = "$(PROJECT_DIR)/../../../local-iphonesimulator-12.0";
 				PERL_VERSION = 5.37.2;
 						PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -737,7 +737,7 @@
 				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = ("-framework", ios);
 				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
-				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local-$(PLATFORM_NAME)-12.0";
 				PERL_VERSION = 5.37.2;
 				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.foundation-runner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -762,7 +762,7 @@
 				MACOS_PERL_PATH = "/usr/bin/perl";
 				OTHER_LDFLAGS = ("-framework", ios);
 				PERL_DIST_PATH = "$(PERL_INSTALL_PREFIX)/lib/perl5/";
-				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local";
+				PERL_INSTALL_PREFIX = "$(PROJECT_DIR)/../../../local-$(PLATFORM_NAME)-12.0";
 				PERL_VERSION = 5.37.2;
 				PRODUCT_BUNDLE_IDENTIFIER = net.pytm.perl.foundation-runner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
