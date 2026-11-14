@@ -15,8 +15,12 @@ sub test_require {
     open my $fh, '<', 'README' or die "Can't open README: $!";
     my $fileno = fileno $fh;
     if (defined $want) {
+      SKIP: {
+	skip("fd $want is shared with the embedding iOS interpreter", 1)
+	    if $^O =~ /darwin-ios/;
 	is($fileno, $want,
 	   "file handle has correct numeric file descriptor $state");
+      }
     } else {
 	like($fileno, qr/\A\d+\z/,
 	     "file handle has a numeric file descriptor $state");

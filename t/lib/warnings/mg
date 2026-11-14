@@ -8,6 +8,7 @@
 
 __END__
 # mg.c
+# SKIP ? $^O =~ /darwin-ios/
 use warnings 'signal' ;
 $SIG{FRED} = sub {};
 EXPECT
@@ -21,7 +22,7 @@ EXPECT
 ########
 # mg.c
 use warnings 'signal' ;
-if ($^O eq 'MSWin32' || $^O eq 'VMS') {
+if ($^O eq 'MSWin32' || $^O eq 'VMS' || $^O =~ /darwin-ios/) {
     print "SKIPPED\n# $^O, can't kill() to raise()\n"; exit;
 }
 $|=1;
@@ -31,7 +32,7 @@ SIGINT handler "fred" not defined.
 ########
 # mg.c
 no warnings 'signal' ;
-if ($^O eq 'MSWin32' || $^O eq 'VMS') {
+if ($^O eq 'MSWin32' || $^O eq 'VMS' || $^O =~ /darwin-ios/) {
     print "SKIPPED\n# $^O, can't kill() to raise()\n"; exit;
 }
 $|=1;
@@ -41,7 +42,7 @@ EXPECT
 ########
 # mg.c
 use warnings 'signal' ;
-if ($^O eq 'MSWin32' || $^O eq 'VMS') {
+if ($^O eq 'MSWin32' || $^O eq 'VMS' || $^O =~ /darwin-ios/) {
     print "SKIPPED\n# $^O, can't kill() to raise()\n"; exit;
 }
 $|=1;
@@ -54,7 +55,7 @@ SIGINT handler "fr\0d" not defined.
 use warnings 'signal' ;
 use open ":std", ":utf8";
 use utf8;
-if ($^O eq 'MSWin32' || $^O eq 'VMS') {
+if ($^O eq 'MSWin32' || $^O eq 'VMS' || $^O =~ /darwin-ios/) {
     print "SKIPPED\n# $^O, can't kill() to raise()\n"; exit;
 }
 $|=1;

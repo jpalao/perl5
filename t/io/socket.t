@@ -87,6 +87,8 @@ SKIP: {
             binmode $accept;
 	    SKIP: {
 		skip "no fcntl", 1 unless $Config{d_fcntl};
+		skip "iOS embedded runner has no exec boundary", 1
+		    if $^O =~ /darwin-ios/;
 		my $acceptfd = fileno($accept);
 		fresh_perl_is(qq(
 		    print open(F, "+<&=$acceptfd") ? 1 : 0, "\\n";
@@ -243,7 +245,7 @@ SKIP:
       or skip "Can't load Errno or EMFILE not defined", 1;
     # stdio might return strange values in errno if it runs
     # out of FILE entries, and does on darwin
-    $^O eq "darwin" && exists $ENV{PERLIO} && $ENV{PERLIO} =~ /stdio/
+    $^O =~ /^darwin/ && exists $ENV{PERLIO} && $ENV{PERLIO} =~ /stdio/
       and skip "errno values from stdio are unspecified", 1;
     my @socks;
     my $sock_limit = 1000; # don't consume every file in the system
@@ -273,6 +275,7 @@ SKIP:
 
 SKIP: {
     skip "no fcntl", 1 unless $Config{d_fcntl};
+    skip "iOS: cannot exec with inherited sockets", 1 if $^O =~ /darwin-ios/;
     my $sock;
     socket($sock, PF_INET, SOCK_STREAM, $tcp) or die "socket: $!";
     my $sockfd = fileno($sock);
@@ -327,4 +330,3 @@ sub is_child {
 sub end_child {
     print @child_tests;
 }
-

@@ -61,6 +61,7 @@ SKIP: {
     my ($name, $home);
     skip $^O, 1 if $^O eq 'MSWin32' || $^O eq 'VMS'
 	|| $^O eq 'os2';
+    skip 'iOS sandbox-managed home directory', 1 if $^O =~ /darwin-ios/;
     skip "Can't find user for $>: $@", 1 unless eval {
 	($name, $home) = (getpwuid($>))[0,7];
 	1;
@@ -79,7 +80,8 @@ SKIP: {
     }
 }
 # check plain tilde expansion
-{
+SKIP: {
+    skip('iOS: ~ expands to /var/mobile', 3) if $^O =~ /darwin-ios/;
     my $tilde_check = sub {
         my @a = bsd_glob('~');
 
@@ -175,7 +177,8 @@ print "# @a\n";
 is_deeply(\@a, ['TEST', 'a', 'b'], "Got list of 3 elements, including 'TEST'");
 
 # "~" should expand to $ENV{HOME}
-{
+SKIP: {
+    skip 'iOS sandbox-managed home directory', 1 if $^O =~ /darwin-ios/;
     local $ENV{HOME} = "sweet home";
     @a = bsd_glob('~', GLOB_TILDE | GLOB_NOMAGIC);
     is_deeply(\@a, [$ENV{HOME}], "~ expands to envvar \$HOME");

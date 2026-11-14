@@ -7,6 +7,8 @@ BEGIN {
 }
 
 use Config;
+use Cwd qw(getcwd);
+use File::Path ();
 
 my $Is_VMSish = ($^O eq 'VMS');
 
@@ -26,6 +28,9 @@ elsif ( $^O =~ /android/ || $^O eq 'nto' ) {
     # On Android and Blackberry 10, pwd is a shell builtin, so plain `pwd`
     # won't cut it
     $wd = `sh -c pwd`;
+}
+elsif ($^O =~ /darwin-ios/) {
+    $wd = getcwd();
 }
 else {
     $wd = `pwd`;
@@ -76,13 +81,18 @@ elsif ($^O eq 'VMS') {
     `if f\$search("$tmpdir.dir") .nes. "" then delete/nolog/noconfirm $tmpdir.dir;`;
     `create/directory [.$tmpdir]`;
 }
+elsif ($^O =~ /darwin-ios/) {
+    File::Path::rmtree($tmpdir);
+    mkdir $tmpdir;
+}
 else {
     `rm -f $tmpdir 2>/dev/null; mkdir $tmpdir 2>/dev/null`;
 }
 
 chdir $tmpdir;
 
-`/bin/rm -rf a b c x` if -x '/bin/rm';
+`/bin/rm -rf a b c x` if -x '/bin/rm'
+    && $^O !~ /darwin-ios/;
 
 umask(022);
 
@@ -272,6 +282,7 @@ SKIP: {
 
 SKIP: {
     skip "has futimes", 1 if ($Config{d_futimes} || "") eq "define";
+    skip "futimes is not implemented on iOS", 1 if $^O =~ /darwin-ios/;
     open(my $fh, "<", "b") || die;
     eval { utime(undef, undef, $fh); };
     like($@, qr/^The futimes function is unimplemented at/, "futimes is unimplemented");
@@ -453,6 +464,9 @@ SKIP: {
     }
     elsif ($^O eq 'VMS') {
         `create/directory [.$tmpdir]`;
+    }
+    elsif ($^O =~ /darwin-ios/) {
+        mkdir $tmpdir;
     }
     else {
         `mkdir $tmpdir 2>/dev/null`;

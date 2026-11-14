@@ -1473,6 +1473,8 @@ sub test_DumpProg {
 
 my $threads = $Config{'useithreads'};
 
+SKIP: {
+skip('iOS: DumpProg tests crash', 5) if $^O =~ /darwin-ios/;
 for my $test (
 [
     "package test;",
@@ -1498,7 +1500,8 @@ for my $test (
 }
 
 {
-    local $TODO = 'This gets mangled by the current pipe implementation' if $^O eq 'VMS';
+    local $TODO = 'This gets mangled by the current pipe implementation'
+        if $^O eq 'VMS';
     my $e = <<'EODUMP';
 dumpindent is 4 at -e line 1.
      
@@ -1547,6 +1550,7 @@ EODUMP
     $out =~ s/0x[0-9a-f]{2,}\]/${1}0xNNN]/g;
     $out =~ s/\(0x[0-9a-f]{3,}\)/(0xNNN)/g;
     is $out, $e, "DumpProg() has no 'Attempt to free X prematurely' warning";
+}
 }
 
 {

@@ -196,7 +196,11 @@ SKIP: {
   # pretend it is, first find where Devel/Peek.pm is
   my $peek_file = "Devel/Peek.pm";
   my $module_path;
-  for my $dir (@INC) {
+  my @module_dirs = @INC;
+  # The iOS test tree omits XS bundles; use the app's signed runtime tree.
+  unshift @module_dirs, $DynaLoader::ios_runtime_path
+    if $^O =~ /darwin-ios/ && defined $DynaLoader::ios_runtime_path;
+  for my $dir (@module_dirs) {
     if (-f "$dir/$peek_file") {
       $module_path = "$dir/Not/Devel/Peek.pm";
       last;

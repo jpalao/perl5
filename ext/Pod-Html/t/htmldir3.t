@@ -41,7 +41,11 @@ $args = {
     debug => $debug,
 };
 $args->{core} = 1 if $ENV{PERL_CORE};
+SKIP: {
+skip 'iOS: podroot/podpath resolution differs for embedded temp paths', 1
+    if $^O =~ /darwin-ios/;
 xconvert($args);
+}
 
 $args = {
     podstub => "htmldir3",
@@ -71,7 +75,11 @@ $args = {
     },
     debug => $debug,
 };
+SKIP: {
+skip 'iOS: podroot/podpath resolution differs for embedded temp paths', 1
+    if $^O =~ /darwin-ios/;
 xconvert($args);
+}
 
 done_testing;
 

@@ -99,7 +99,8 @@ BEGIN {
 # package is DynaLoader, not just the current lexical one.
 use vars qw(@dl_library_path @dl_resolve_using @dl_require_symbols
             $dl_debug @dl_librefs @dl_modules @dl_shared_objects
-            $dl_dlext $dl_so $dlsrc @args $module @dirs $file $bscode);
+            $dl_dlext $dl_so $dlsrc @args $module @dirs $file $bscode
+            $ios_runtime_path);
 
 EOT
 
@@ -346,8 +347,11 @@ sub bootstrap {
 		       "(auto/$modpname/$modfname.$dl_dlext)\n"
 	if $dl_debug;
 
+    my @module_inc = @INC;
+    push @module_inc, $ios_runtime_path if defined $ios_runtime_path;
+
     my $dir;
-    foreach (@INC) {
+    foreach (@module_inc) {
 	<<$^O-eq-VMS>>chop($_ = VMS::Filespec::unixpath($_));<</$^O-eq-VMS>>
 	    $dir = "$_/auto/$modpname";
 	
@@ -361,7 +365,7 @@ sub bootstrap {
 	push @dirs, $dir;
     }
     # last resort, let dl_findfile have a go in all known locations
-    $file = dl_findfile(map("-L$_",@dirs,@INC), $modfname) unless $file;
+    $file = dl_findfile(map("-L$_",@dirs,@module_inc), $modfname) unless $file;
 
     croak("Can't locate loadable object for module $module in \@INC (\@INC contains: @INC)")
 	unless $file;	# wording similar to error from 'require'

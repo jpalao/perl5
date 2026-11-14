@@ -11,9 +11,11 @@ my $has_perlio;
 our %Config;
 BEGIN {
     require Config; import Config;
-    $can_fork = $Config{'d_fork'} || $Config{'d_pseudofork'};
-
-    if ($^O eq "hpux" or $Config{'extensions'} !~ /\bSocket\b/ &&
+    if ($^O =~ /^darwin-ios/ && !$Config{'d_fork'}) {
+	print "1..0 # SKIP socketpair watchdog requires real fork\n";
+	exit 0;
+    }
+    if ($^O =~ /^darwin-ios/ or $^O eq "hpux" or $Config{'extensions'} !~ /\bSocket\b/ &&
         !(($^O eq 'VMS') && $Config{d_socket})) {
 	print "1..0\n";
 	exit 0;
@@ -27,7 +29,7 @@ BEGIN {
     # Too many things in this test will hang forever if something is wrong,
     # so we need a self destruct timer. And IO can hang despite an alarm.
 
-    if( $can_fork) {
+    if( $can_fork ) {
 	my $parent = $$;
 	$child = fork;
 	die "Fork failed" unless defined $child;

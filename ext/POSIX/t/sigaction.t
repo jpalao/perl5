@@ -4,9 +4,11 @@ BEGIN{
 	# Don't do anything if POSIX is missing, or sigaction missing.
 	use Config;
 	eval 'use POSIX';
-	if($@ || $^O eq 'MSWin32' ||
+	if($@ || $^O eq 'MSWin32' || $^O =~ /darwin-ios/ ||
 	   ($^O eq 'VMS' && !$Config{'d_sigaction'})) {
-		print "1..0\n";
+		print $^O =~ /darwin-ios/
+		    ? "1..0 # Skip: iOS signal delivery is not functional\n"
+		    : "1..0\n";
 		exit 0;
 	}
 }

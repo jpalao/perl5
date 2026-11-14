@@ -53,6 +53,7 @@ $Is_MSWin32  = $^O eq 'MSWin32';
 $Is_VMS      = $^O eq 'VMS';
 $Is_os2      = $^O eq 'os2';
 $Is_Cygwin   = $^O eq 'cygwin';
+$Is_Ios      = $^O eq 'darwin-ios';
 
 $PERL =
    ($Is_VMS     ? $^X      :
@@ -82,6 +83,7 @@ sub env_is {
     } else {
         my @env = `env`;
         SKIP: {
+            skip("no env command on iOS", 1) if $Is_Ios;
             skip("env doesn't work on this android", 1) if !@env && $^O =~ /android/;
             chomp (my @env = grep { s/^$key=// } @env);
             is "@env", $val, $desc;
@@ -101,9 +103,12 @@ END {
 eval '$ENV{"FOO"} = "hi there";';	# check that ENV is inited inside eval
 # cmd.exe will echo 'variable=value' but 4nt will echo just the value
 # -- Nikola Knezevic
-if ($Is_MSWin32)  { like `set FOO`, qr/^(?:FOO=)?hi there$/m; }
-elsif ($Is_VMS)   { is `write sys\$output f\$trnlnm("FOO")`, "hi there\n"; }
-else              { is `echo \$FOO`, "hi there\n"; }
+SKIP: {
+    skip("no shell on iOS", 1) if $Is_Ios;
+    if ($Is_MSWin32)  { like `set FOO`, qr/^(?:FOO=)?hi there$/m; }
+    elsif ($Is_VMS)   { is `write sys\$output f\$trnlnm("FOO")`, "hi there\n"; }
+    else              { is `echo \$FOO`, "hi there\n"; }
+}
 
 unlink_all 'ajslkdfpqjsjfk';
 $! = 0;
@@ -113,7 +118,7 @@ close FOO; # just mention it, squelch used-only-once
 
 SKIP: {
     skip('SIGINT not safe on this platform', 5)
-	if $Is_MSWin32;
+	if $Is_MSWin32 || $Is_Ios;
   # the next tests are done in a subprocess because sh spits out a
   # newline onto stderr when a child process kills itself with SIGINT.
   # We use a pipe rather than system() because the VMS command buffer
@@ -283,6 +288,9 @@ $$ = $pid; # Tests below use $$
     elsif($^O =~ /android/) {
         chomp($wd = `sh -c 'pwd'`);
     }
+    elsif($Is_Ios) {
+        $wd = '.';
+    }
     elsif($Is_Cygwin || $is_abs) {
        # Cygwin turns the symlink into the real file
        chomp($wd = `pwd`);
@@ -348,26 +356,30 @@ print "\$^X is $^X, \$0 is $0\n";
 EOF
     ok close(SCRIPT) or diag $!;
     ok chmod(0755, $script) or diag $!;
-    $_ = $Is_VMS ? `$perl $script` : `$script`;
-    s/\.exe//i if $Is_Cygwin or $Is_os2;
-    s{is perl}{is $perl}; # for systems where $^X is only a basename
-    s{\\}{/}g;
-    if ($Is_MSWin32 || $Is_os2) {
-	is uc $_, uc $s1;
-    } else {
-  SKIP:
-     {
-	  skip "# TODO: Hit bug posix-2058; exec does not setup argv[0] correctly." if ($^O eq "vos");
-	  is $_, $s1;
-     }
-    }
-    $_ = `$perl $script`;
-    s/\.exe//i if $Is_os2 or $Is_Cygwin;
-    s{\\}{/}g;
-    if ($Is_MSWin32 || $Is_os2) {
-	is uc $_, uc $s1;
-    } else {
-	is $_, $s1;
+    SKIP: {
+        # The runner is not named perl, so the #! line would re-exec it
+        skip("no #! script execution on iOS", 2) if $Is_Ios;
+        $_ = $Is_VMS ? `$perl $script` : `$script`;
+        s/\.exe//i if $Is_Cygwin or $Is_os2;
+        s{is perl}{is $perl}; # for systems where $^X is only a basename
+        s{\\}{/}g;
+        if ($Is_MSWin32 || $Is_os2) {
+	    is uc $_, uc $s1;
+        } else {
+      SKIP:
+         {
+	      skip "# TODO: Hit bug posix-2058; exec does not setup argv[0] correctly." if ($^O eq "vos");
+	      is $_, $s1;
+         }
+        }
+        $_ = `$perl $script`;
+        s/\.exe//i if $Is_os2 or $Is_Cygwin;
+        s{\\}{/}g;
+        if ($Is_MSWin32 || $Is_os2) {
+	    is uc $_, uc $s1;
+        } else {
+	    is $_, $s1;
+        }
     }
     ok unlink($script) or diag $!;
     # CHECK
@@ -836,6 +848,8 @@ SKIP: {
 	    $ENV{PERL_DESTRUCT_LEVEL} = $PDL || 0;
 	    if ($Is_MSWin32) {
 		is `set foo 2>NUL`, "";
+	    } elsif ($Is_Ios) {
+		skip("no shell on iOS", 1);
 	    } else {
 		is `echo \$foo`, "\n";
 	    }

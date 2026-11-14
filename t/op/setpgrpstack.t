@@ -12,4 +12,8 @@ plan tests => 3;
 ok(!eval { package A;sub foo { die("got here") }; package main; A->foo(setpgrp())});
 ok($@ =~ /got here/, "setpgrp() should extend the stack before modifying it");
 
-is join("_", setpgrp(0)), 1, 'setpgrp with one argument';
+SKIP: {
+    skip('iOS: process-group changes are unavailable in the app sandbox', 1)
+        if $^O =~ /darwin-ios/;
+    is join("_", setpgrp(0)), 1, 'setpgrp with one argument';
+}

@@ -221,6 +221,7 @@ like($x, qr/^Can't open -: .* at -e line 1/, '<<>> does not treat - as STDIN');
 
 SKIP: {
     skip('no echo', 2) unless -x '/bin/echo';
+    skip('iOS: system() cannot launch CLI commands', 2) if $^O =~ /darwin-ios/;
 
     $x = runperl(
         prog	=> 'while (<<>>) { print $_; }',

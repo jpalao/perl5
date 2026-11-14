@@ -4027,7 +4027,16 @@ out there, Solaris being the most prominent.
 #endif
 
 #ifndef PERL_WAIT_FOR_CHILDREN
-#  define PERL_WAIT_FOR_CHILDREN	NOOP
+#  if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
+void Perl_ios_pseudofork_join_all(pTHX_ PerlInterpreter *);
+void Perl_ios_pseudofork_record_exit_status(I32);
+int Perl_ios_pseudofork_get_exit_status(I32 *);
+int Perl_ios_pseudofork_kill(pTHX_ Pid_t, int);
+#    define PERL_WAIT_FOR_CHILDREN \
+        Perl_ios_pseudofork_join_all(aTHX_ my_perl)
+#  else
+#    define PERL_WAIT_FOR_CHILDREN	NOOP
+#  endif
 #endif
 
 /* the traditional thread-unsafe notion of "current interpreter". */
@@ -5240,7 +5249,7 @@ typedef OP* (*PPADDR_t[]) (pTHX);
 typedef bool (*destroyable_proc_t) (pTHX_ SV *sv);
 typedef void (*despatch_signals_proc_t) (pTHX);
 
-#if defined(__DYNAMIC__) && defined(PERL_DARWIN) && defined(PERL_CORE)
+#if defined(__DYNAMIC__) && defined(PERL_DARWIN) && defined(PERL_CORE) && !PERL_IOS
 #  include <crt_externs.h>	/* for the env array */
 #  define environ (*_NSGetEnviron())
 #elif defined(USE_ENVIRON_ARRAY) && !defined(environ)

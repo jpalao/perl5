@@ -7,7 +7,7 @@ BEGIN {
        # open2/3 supported on win32
        && $^O ne 'MSWin32')
     {
-	Test::More->import(skip_all => 'open2/3 not available with MSWin32');
+	Test::More->import(skip_all => 'open2/3 not available with ' . $^O);
 	exit 0;
     }
     # make warnings fatal

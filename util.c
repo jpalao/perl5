@@ -24,6 +24,9 @@
 #include "EXTERN.h"
 #define PERL_IN_UTIL_C
 #include "perl.h"
+#ifdef PERL_IOS
+#  include "ios_pseudofork.h"
+#endif
 #include "reentr.h"
 
 #if defined(USE_PERLIO)
@@ -2568,6 +2571,10 @@ Perl_my_popen_list(pTHX_ const char *mode, int n, SV **args)
         taint_env();
         taint_proper("Insecure %s%s", "EXEC");
     }
+#if PERL_IOS
+    SETERRNO(ENOSYS, LIB_INVARG);
+    return NULL;
+#endif
     if (PerlProc_pipe_cloexec(p) < 0)
         return NULL;
     /* Try for another pipe pair for error return */
@@ -2740,6 +2747,10 @@ Perl_my_popen(pTHX_ const char *cmd, const char *mode)
         taint_env();
         taint_proper("Insecure %s%s", "EXEC");
     }
+#if PERL_IOS
+    SETERRNO(ENOSYS, LIB_INVARG);
+    return NULL;
+#endif
     if (PerlProc_pipe_cloexec(p) < 0)
         return NULL;
     if (doexec && PerlProc_pipe_cloexec(pp) >= 0)
@@ -3023,8 +3034,12 @@ Perl_rsignal(pTHX_ int signo, Sighandler_t handler)
     struct sigaction act, oact;
 
 #ifdef USE_ITHREADS
-    /* only "parent" interpreter can diddle signals */
-    if (PL_curinterp != aTHX)
+    /* Only the parent changes dispositions; iOS shares Perl's trampoline. */
+    if (PL_curinterp != aTHX
+#ifdef PERL_IOS
+        && handler != PL_csighandlerp
+#endif
+    )
         return (Sighandler_t) SIG_ERR;
 #endif
 
@@ -3113,8 +3128,12 @@ Sighandler_t
 Perl_rsignal(pTHX_ int signo, Sighandler_t handler)
 {
 #if defined(USE_ITHREADS) && !defined(WIN32)
-    /* only "parent" interpreter can diddle signals */
-    if (PL_curinterp != aTHX)
+    /* Only the parent changes dispositions; iOS shares Perl's trampoline. */
+    if (PL_curinterp != aTHX
+#ifdef PERL_IOS
+        && handler != PL_csighandlerp
+#endif
+    )
         return (Sighandler_t) SIG_ERR;
 #endif
 
@@ -3248,6 +3267,9 @@ Perl_wait4pid(pTHX_ Pid_t pid, int *statusp, int flags)
 {
     I32 result = 0;
     PERL_ARGS_ASSERT_WAIT4PID;
+#if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
+    return Perl_ios_pseudofork_wait(aTHX_ pid, statusp, flags);
+#endif
 #ifdef PERL_USES_PL_PIDSTATUS
     if (!pid) {
         /* PERL_USES_PL_PIDSTATUS is only defined when neither

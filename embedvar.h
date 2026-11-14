@@ -329,6 +329,8 @@
 #define PL_unitcheckav_save	(vTHX->Iunitcheckav_save)
 #define PL_unlockhook		(vTHX->Iunlockhook)
 #define PL_unsafe		(vTHX->Iunsafe)
+#define PL_user_def_props	(vTHX->Iuser_def_props)
+#define PL_user_def_props_aTHX	(vTHX->Iuser_def_props_aTHX)
 #define PL_utf8_charname_begin	(vTHX->Iutf8_charname_begin)
 #define PL_utf8_charname_continue	(vTHX->Iutf8_charname_continue)
 #define PL_utf8_foldclosures	(vTHX->Iutf8_foldclosures)

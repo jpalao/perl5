@@ -16,6 +16,8 @@ use Config;
 if (not $Config{'useithreads'}) {
     skip_all("clone_with_stack requires threads");
 }
+skip_all("iOS: clone_with_stack exits the nested embedded interpreter")
+    if $^O =~ /darwin-ios/;
 
 plan(8);
 

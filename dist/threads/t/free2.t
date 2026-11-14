@@ -30,7 +30,10 @@ BEGIN {
     require Thread::Queue;
 
     $| = 1;
-    print("1..78\n");   ### Number of tests that will be run ###
+    my $tests = 78;
+    # iOS: watchdog is disabled and "Thread 1 started" event is received
+    $tests++ if $^O =~ /darwin-ios/;
+    print("1..$tests\n");   ### Number of tests that will be run ###
 }
 
 Test::watchdog(60);   # In case we get stuck

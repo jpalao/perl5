@@ -2388,7 +2388,7 @@ Perl_do_aexec5(pTHX_ SV *really, SV **mark, SV **sp,
                int fd, int do_report)
 {
     PERL_ARGS_ASSERT_DO_AEXEC5;
-#if defined(__LIBCATAMOUNT__)
+#if defined(__LIBCATAMOUNT__) || PERL_IOS
     Perl_croak(aTHX_ "exec? I'm not *that* kind of operating system");
 #else
     assert(sp >= mark);
@@ -2441,6 +2441,10 @@ Perl_do_exec3(pTHX_ const char *incmd, int fd, int do_report)
     char *s;
     char *buf;
     char *cmd;
+#if defined(PERL_APPLEWATCH) || defined(PERL_APPLETV)
+    PERL_ARGS_ASSERT_DO_EXEC3;
+    Perl_croak(aTHX_ "exec? I'm not *that* kind of operating system");
+#else
     /* Make a copy so we can change it */
     const Size_t cmdlen = strlen(incmd) + 1;
 
@@ -2562,6 +2566,7 @@ Perl_do_exec3(pTHX_ const char *incmd, int fd, int do_report)
 leave:
     LEAVE;
     return FALSE;
+#endif
 }
 
 #endif /* OS2 || WIN32 */
@@ -2731,6 +2736,7 @@ nothing in the core.
 
         while (++mark <= sp) {
             Pid_t proc;
+            int kill_result;
             SvGETMAGIC(*mark);
             if (!(SvNIOK(*mark) || looks_like_number(*mark)))
                 Perl_croak(aTHX_ "Can't kill a non-numeric process ID");
@@ -2739,11 +2745,28 @@ nothing in the core.
 #ifdef HAS_KILLPG
             /* use killpg in preference, as the killpg() wrapper for Win32
              * understands process groups, but the kill() wrapper doesn't */
-            if (killgp ? PerlProc_killpg(proc, val)
-                       : PerlProc_kill(proc, val))
-#else
-            if (PerlProc_kill(killgp ? -proc: proc, val))
+#if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
+            if (!killgp && proc < 0) {
+                kill_result = Perl_ios_pseudofork_kill(aTHX_ proc, val);
+                if (kill_result && errno == ESRCH)
+                    kill_result = PerlProc_kill(proc, val);
+            }
+            else
 #endif
+                kill_result = killgp ? PerlProc_killpg(proc, val)
+                                     : PerlProc_kill(proc, val);
+#else
+# if defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
+            if (!killgp && proc < 0) {
+                kill_result = Perl_ios_pseudofork_kill(aTHX_ proc, val);
+                if (kill_result && errno == ESRCH)
+                    kill_result = PerlProc_kill(proc, val);
+            }
+            else
+# endif
+                kill_result = PerlProc_kill(killgp ? -proc: proc, val);
+#endif
+            if (kill_result)
                 tot--;
         }
         PERL_ASYNC_CHECK();

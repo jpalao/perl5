@@ -18,6 +18,12 @@ elsif ($^O eq 'VMS') {
   map { $files{lc($_)}++ } <[.op]*>;
   map { s/;.*$//; delete $files{lc($_)}; } split /[\n]/, `directory/noheading/notrailing/versions=1 [.op]`,
 }
+elsif ($^O =~ /darwin-ios/) {
+  map { $files{$_}++ } <op/*>;
+  opendir my $dh, 'op' or die "Cannot open op: $!";
+  delete $files{"op/$_"} for grep { $_ !~ /^\./ } readdir $dh;
+  closedir $dh or die "Cannot close op: $!";
+}
 else {
   map { $files{$_}++ } <op/*>;
   map { delete $files{$_} } split /\n/, `ls op/* | cat`;

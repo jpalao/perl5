@@ -31,6 +31,18 @@
 #include "perl.h"
 #include "time64.h"
 
+#ifdef PERL_IOS
+typedef int (*Perl_ios_system_callback)(void *context, const char *program,
+                                        int argc, char **argv);
+static Perl_ios_system_callback PL_ios_system_callback;
+
+void
+Perl_ios_set_system_callback(Perl_ios_system_callback callback)
+{
+    PL_ios_system_callback = callback;
+}
+#endif
+
 #ifdef I_SHADOW
 /* Shadow password support for solaris - pdo@cs.umd.edu
  * Not just Solaris: at least HP-UX, IRIX, Linux.
@@ -4259,7 +4271,7 @@ PP(pp_fork)
     }
     PUSHi(childpid);
     RETURN;
-#elif (defined(USE_ITHREADS) && defined(PERL_IMPLICIT_SYS)) || defined(__amigaos4__)
+#elif (defined(USE_ITHREADS) && defined(PERL_IMPLICIT_SYS)) || defined(__amigaos4__) || (defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK))
     dSP; dTARGET;
     Pid_t childpid;
 
@@ -4310,11 +4322,15 @@ PP(pp_waitpid)
     const int optype = POPi;
     const Pid_t pid = TOPi;
     Pid_t result;
-#ifdef __amigaos4__
+#if defined(__amigaos4__)
     int argflags = 0;
     result = amigaos_waitpid(aTHX_ optype, pid, &argflags);
     STATUS_NATIVE_CHILD_SET((result >= 0) ? argflags : -1);
     result = result == 0 ? pid : -1;
+#elif defined(PERL_IOS) && defined(USE_ITHREADS) && defined(HAS_PSEUDOFORK)
+    int argflags = 0;
+    result = wait4pid(pid, &argflags, optype);
+    STATUS_NATIVE_CHILD_SET((result >= 0) ? argflags : -1);
 #else
     int argflags;
 
@@ -4332,7 +4348,7 @@ PP(pp_waitpid)
 #  else
     STATUS_NATIVE_CHILD_SET((result > 0) ? argflags : -1);
 #  endif
-# endif /* __amigaos4__ */
+# endif /* __amigaos4__ || PERL_IOS && USE_ITHREADS && HAS_PSEUDOFORK */
     SETi(result);
     RETURN;
 #else
@@ -4347,6 +4363,62 @@ PP(pp_system)
     PL_statusvalue = -1;
     SP = ORIGMARK;
     XPUSHi(-1);
+#elif PERL_IOS
+    I32 argc = SP - MARK;
+    char **argv;
+    I32 index;
+    I32 status;
+    int saved_errno;
+    const I32 program_offset = (PL_op->op_flags & OPf_STACKED) ? 1 : 0;
+
+    assert(argc >= program_offset);
+
+    for (index = 0; index < argc; index++) {
+        SV *origsv = MARK[index + 1];
+        STRLEN len;
+        const char *pv;
+
+        SvGETMAGIC(origsv);
+        pv = SvPV_nomg(origsv, len);
+        MARK[index + 1] = newSVpvn_flags(pv, len,
+                            (SvFLAGS(origsv) & SVf_UTF8) | SVs_TEMP);
+    }
+
+    if (TAINTING_get) {
+        TAINT_ENV();
+        TAINT_PROPER("system");
+    }
+
+    if (PL_ios_system_callback == NULL) {
+        SETERRNO(ENOSYS, LIB_INVARG);
+        STATUS_NATIVE_CHILD_SET(-1);
+        SP = ORIGMARK;
+        XPUSHi(STATUS_CURRENT);
+        RETURN;
+    }
+
+    ENTER;
+    Newx(argv, argc + 1, char *);
+    SAVEFREEPV(argv);
+    for (index = 0; index < argc; index++) {
+        STRLEN len;
+        const char *pv = SvPV_nomg(MARK[index + 1], len);
+        argv[index] = savepvn(pv, len);
+        SAVEFREEPV(argv[index]);
+    }
+    argv[argc] = NULL;
+
+    status = PL_ios_system_callback(PERL_GET_CONTEXT,
+                                    program_offset ? argv[0] : NULL,
+                                    argc - program_offset,
+                                    argv + program_offset);
+    saved_errno = errno;
+    LEAVE;
+    errno = saved_errno;
+    STATUS_NATIVE_CHILD_SET(status);
+    SP = ORIGMARK;
+    XPUSHi(STATUS_CURRENT);
+    RETURN;
 #else
     I32 value;
 # ifdef __amigaos4__
@@ -4570,6 +4642,11 @@ PP(pp_exec)
         TAINT_PROPER("exec");
     }
 
+#if PERL_IOS
+    /* iOS apps cannot replace their process image */
+    SETERRNO(ENOSYS, LIB_INVARG);
+    value = 0;
+#else
     PERL_FLUSHALL_FOR_CHILD;
     if (PL_op->op_flags & OPf_STACKED) {
         SV * const really = *++MARK;
@@ -4588,6 +4665,7 @@ PP(pp_exec)
         value = (I32)do_exec(SvPVx_nolen(sv_mortalcopy(*SP)));
 #endif
     }
+#endif /* PERL_IOS */
     SP = ORIGMARK;
     XPUSHi(value);
     RETURN;
