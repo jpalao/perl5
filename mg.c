@@ -1497,6 +1497,11 @@ Perl_csighandler1(int sig)
 Signal_t
 Perl_csighandler3(int sig, Siginfo_t *sip PERL_UNUSED_DECL, void *uap PERL_UNUSED_DECL)
 {
+#ifdef PERL_IOS
+    if (PERL_GET_CONTEXT == NULL)
+        return;
+#endif
+
 #ifdef PERL_GET_SIG_CONTEXT
     dTHXa(PERL_GET_SIG_CONTEXT);
 #else
