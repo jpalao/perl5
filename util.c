@@ -3034,8 +3034,12 @@ Perl_rsignal(pTHX_ int signo, Sighandler_t handler)
     struct sigaction act, oact;
 
 #ifdef USE_ITHREADS
-    /* only "parent" interpreter can diddle signals */
-    if (PL_curinterp != aTHX)
+    /* Only the parent changes dispositions; iOS shares Perl's trampoline. */
+    if (PL_curinterp != aTHX
+#ifdef PERL_IOS
+        && handler != PL_csighandlerp
+#endif
+    )
         return (Sighandler_t) SIG_ERR;
 #endif
 
@@ -3124,8 +3128,12 @@ Sighandler_t
 Perl_rsignal(pTHX_ int signo, Sighandler_t handler)
 {
 #if defined(USE_ITHREADS) && !defined(WIN32)
-    /* only "parent" interpreter can diddle signals */
-    if (PL_curinterp != aTHX)
+    /* Only the parent changes dispositions; iOS shares Perl's trampoline. */
+    if (PL_curinterp != aTHX
+#ifdef PERL_IOS
+        && handler != PL_csighandlerp
+#endif
+    )
         return (Sighandler_t) SIG_ERR;
 #endif
 
